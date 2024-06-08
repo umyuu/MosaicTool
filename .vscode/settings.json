@@ -1,0 +1,11 @@
+{
+  "python.analysis.typeCheckingMode": "basic",
+  "flake8.args": [
+    "--ignore=E265,W291",
+    "--max-complexity=10",
+    "--max-line-length=127"
+  ],
+  "cSpell.words": [
+    "tkinterdnd"
+  ]
+}
