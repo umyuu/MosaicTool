@@ -11,7 +11,7 @@ from pathlib import Path
 from PIL import Image, ImageTk
 
 from controllers import AppController
-from lib.models import MosaicImageFile, MosaicImage
+from lib.models import MosaicImageFile, MosaicImage, StatusMessage
 from lib.utils import round_up_decimal
 
 
@@ -40,10 +40,10 @@ class HeaderFrame(tk.Frame):
         self.createWidgets(str(icons_path))
 
     def createWidgets(self, icons_path: str):
-        self.btn_select_file = PhotoImageButton(self,
+        self.btn_pick_images = PhotoImageButton(self,
                                                 image_path=str(Path(icons_path, "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
-                                                command=self.controller.handle_select_files_event)
-        self.btn_select_file.grid(row=0, column=0, padx=(0, 0))
+                                                command=self.controller.handle_pick_images)
+        self.btn_pick_images.grid(row=0, column=0, padx=(0, 0))
         self.btn_back_file = PhotoImageButton(self, image_path=str(Path(icons_path, "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")))
         self.btn_back_file.grid(row=0, column=1, padx=(4, 0))
         self.btn_forward_file = PhotoImageButton(self, image_path=str(Path(icons_path, "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")))
@@ -193,3 +193,14 @@ class FooterFrame(tk.Frame):
         self.fileSizeBar.config(text=str(round_up_decimal(Decimal(filesize_kb), 2)) + " KB")
         # 最終更新日時
         self.modified.config(text=target.mtime)
+
+    def updateStatus2(self, status: StatusMessage):
+        # 画像の幅と高さを表示
+        self.imageSizeBar.config(text=f"Width: {status.width}px, Height: {status.height}px")
+        # 件数を表示
+        self.count.config(text=f"{status.current} / {status.total}")
+        # ファイルサイズを表示
+        filesize_kb = Decimal(status.file_size) / Decimal(1024)
+        self.fileSizeBar.config(text=str(round_up_decimal(Decimal(filesize_kb), 2)) + " KB")
+        # 最終更新日時
+        self.modified.config(text=status.mtime)

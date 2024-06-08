@@ -15,6 +15,19 @@ from PIL import Image
 from . utils import round_up_decimal
 
 
+@dataclass
+class StatusMessage:
+    """
+    ステータスバーのステータスメッセージ
+    """
+    width: int = 0
+    height: int = 0
+    current: int = 0
+    total: int = 0
+    file_size: int = 0  # ファイルサイズ(バイト単位)
+    mtime: str = ""
+
+
 class DataModel:
     def __init__(self):
         self.file_paths: List[Path] = []

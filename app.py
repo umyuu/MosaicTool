@@ -64,10 +64,16 @@ class MainPage(tk.Frame):
 
         self.columnconfigure(0, weight=1)  # ヘッダーをウィンドウ幅まで拡張する
         self.drop_target_register(DND_FILES)
-        self.dnd_bind('<<Drop>>', self.controller.handle_drop_event)
+        self.dnd_bind('<<Drop>>', self.controller.handle_drop)
 
     def display_image(self, path: Path):
-        self.pickImage(str(path))
+        """
+        画像ファイルを選択時
+        """
+        data = str(path)
+        self.MainFrame.updateImage(data)
+        self.set_window_title(data)
+        self.updateStatus()
 
     def on_select_files(self, event):
         # 画像形式
@@ -90,17 +96,14 @@ class MainPage(tk.Frame):
         files = filedialog.askopenfilenames(parent=self, filetypes=IMAGE_FILE_TYPES)
         if files is None:
             return
+        self.controller.handle_select_files_complete(files)
+        self.updateStatus()
 
-        self.controller.addRange_file_path(files)
-
-    def pickImage(self, data: str):
+    def updateStatus(self):
         """
-        画像ファイルを選択時
+        フッターのステータスバーを更新
         """
-        self.MainFrame.updateImage(data)
-        self.set_window_title(data)
-        # フッターのステータスバーを更新
-        self.FooterFrame.updateStatus(data)
+        self.FooterFrame.updateStatus2(self.controller.get_status())
 
     def set_window_title(self, filepath: str):
         """
@@ -133,17 +136,6 @@ class MyApp(TkinterDnD.Tk):
         self.rowconfigure(0, weight=1)
 
         self.controller.view = self.MainPage  # コントローラーにビューを設定
-
-    def onDragAndDrop(self, e):
-        """
-        ドラッグ＆ドロップイベント
-        """
-        files = e.data
-        for path in files.split():
-            # パスの処理
-            print(path)
-            self.set_window_title(path)
-            self.MainPage.pickImage(path)
 
 
 if __name__ == "__main__":

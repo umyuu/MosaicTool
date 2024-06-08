@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-    MosaicTool
+    AppController
 """
 from pathlib import Path
 
-from lib.models import DataModel
+from PIL import Image
+
+from lib.models import DataModel, StatusMessage, MosaicImageFile
 
 
 class AppController:
@@ -17,17 +19,43 @@ class AppController:
         self.model.add_file_path(path)
         self.view.display_image(path)
 
-    def addRange_file_path(self, files: tuple[str, ...]):
-        for file_path in files:
-            self.add_file_path(file_path)
-
-    def handle_drop_event(self, event):
+    def handle_drop(self, event):
         self.model.clear()
         file_paths = event.data.split()  # 複数のパスを分割
         for file_path in file_paths:
             self.add_file_path(file_path)
             break
-        self.view.FooterFrame.updateStatus(file_path)
+        self.view.FooterFrame.updateStatus2(self.get_status())
 
-    def handle_select_files_event(self):
+    def handle_pick_images(self):
+        """
+        ファイル選択ボタンクリック時
+        """
         self.view.on_select_files(None)
+
+    def handle_select_files_complete(self, files: tuple[str, ...]):
+        """
+        ファイル選択ダイアログよりファイル選択時
+        """
+        self.model.clear()
+        for file_path in files:
+            self.add_file_path(file_path)
+
+    def get_status(self) -> StatusMessage:
+        files = self.model.get_file_paths()
+        filepath = files[0]
+        with Image.open(filepath) as img:
+            width, height = img.size
+
+        m = MosaicImageFile(str(filepath))
+
+        message = StatusMessage(
+            current=1,
+            total=len(files),
+            mtime=m.mtime,
+            file_size=m.st_size,
+            width=width,
+            height=height
+        )
+
+        return message
