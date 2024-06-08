@@ -104,6 +104,6 @@ class FooterFrame(tk.Frame):
         # 最終更新日時
         self.modified.config(text=target.mtime)
         # ファイルサイズを取得
-        filesize_kb = Decimal(target.st_size) / 1024
+        filesize_kb = Decimal(target.st_size) / Decimal(1024)
         # ファイルサイズを表示
         self.fileSizeBar.config(text=str(round_up_decimal(Decimal(filesize_kb), 2)) + " KB")

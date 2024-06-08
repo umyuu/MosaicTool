@@ -6,6 +6,7 @@
 from dataclasses import dataclass
 from decimal import Decimal
 import time
+import os
 from pathlib import Path
 
 from PIL import Image
@@ -39,7 +40,7 @@ class MosaicImageFile:
         ファイルサイズを取得するプロパティ
         :return: ファイルサイズ（バイト）
         """
-        return self.file_stat.st_size
+        return os.path.getsize(self._file_path)
 
     def newMosaicFile(self) -> Path:
         """
@@ -104,9 +105,8 @@ class MosaicImage:
 
         :return: セルサイズ
         """
-        # 長辺の取得し÷100
-        long_side = Decimal(self._image.width).max(Decimal(self._image.height)) // 100
-        print(long_side)
+        # 長辺の取得し÷100で割り、小数点以下を切り上げする。
+        # セルサイズが4以下（を含む）場合は、最小4ピクセルに設定します。
+        long_side = Decimal(self._image.width).max(Decimal(self._image.height)) / Decimal(100)
         cell_size = max(4, round_up_decimal(Decimal(long_side), 0))  # 最小4ピクセル
-
         return int(cell_size)
