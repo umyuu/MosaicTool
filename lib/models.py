@@ -8,10 +8,27 @@ from datetime import datetime
 from decimal import Decimal
 import os
 from pathlib import Path
+from typing import List
 
 from PIL import Image
 
 from . utils import round_up_decimal
+
+
+class DataModel:
+    def __init__(self):
+        self.file_paths: List[Path] = []
+        self.index: int = 0
+
+    def add_file_path(self, file_path: Path):
+        self.file_paths.append(file_path)
+
+    def clear(self):
+        self.file_paths = []
+        self.index = 0
+
+    def get_file_paths(self) -> List[Path]:
+        return self.file_paths
 
 
 @dataclass

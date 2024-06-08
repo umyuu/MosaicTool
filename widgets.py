@@ -3,13 +3,14 @@
     PhotoImageButton
 """
 from decimal import Decimal
-
+from functools import partial
 import tkinter as tk
 
 from pathlib import Path
 
 from PIL import Image, ImageTk
 
+from controllers import AppController
 from lib.models import MosaicImageFile, MosaicImage
 from lib.utils import round_up_decimal
 
@@ -33,12 +34,15 @@ class HeaderFrame(tk.Frame):
     """
     画面のヘッダー部
     """
-    def __init__(self, master, bg: str, icons_path: Path):
+    def __init__(self, master, controller: AppController, bg: str, icons_path: Path):
         super().__init__(master, bg=bg)
+        self.controller = controller
         self.createWidgets(str(icons_path))
 
     def createWidgets(self, icons_path: str):
-        self.btn_select_file = PhotoImageButton(self, image_path=str(Path(icons_path, "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")))
+        self.btn_select_file = PhotoImageButton(self,
+                                                image_path=str(Path(icons_path, "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+                                                command=self.controller.handle_select_files_event)
         self.btn_select_file.grid(row=0, column=0, padx=(0, 0))
         self.btn_back_file = PhotoImageButton(self, image_path=str(Path(icons_path, "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")))
         self.btn_back_file.grid(row=0, column=1, padx=(4, 0))
