@@ -1,6 +1,7 @@
 @echo on
 
 cd /d %~dp0
+cd..
 
 if not exist "venv/Scripts/activate" (
   python -m venv venv  
