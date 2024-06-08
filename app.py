@@ -2,6 +2,7 @@
 """
     MosaicTool
 """
+from argparse import ArgumentParser
 from dataclasses import dataclass
 from decimal import Decimal, ROUND_UP
 from functools import partial
@@ -13,7 +14,7 @@ import tkinter as tk
 from tkinter import filedialog
 
 from tkinterdnd2 import DND_FILES, TkinterDnD
-from PIL import Image
+from PIL import Image, ImageTk
 
 PROGRAM_NAME = 'MosaicTool'
 __version__ = '0.0.1'
@@ -22,6 +23,19 @@ __version__ = '0.0.1'
 application_path = os.path.dirname(os.path.abspath(__file__))
 # アイコンのパスを作成
 icons_path = Path(application_path, "third_party/icons")
+
+
+parser = ArgumentParser(description="Process some files or directories.", add_help=False)
+
+# コマンドライン引数を追加
+parser.add_argument('-p', '--paths', metavar='path', type=str, nargs='+',
+                    help='a path to a file or directory')
+
+# 引数を解析
+args = parser.parse_args()
+if args.paths is not None:
+    for path in args.paths:
+        print(f"引数: {path}")
 
 
 @dataclass
@@ -94,18 +108,61 @@ class MainFrame(tk.Frame):
     def __init__(self, master, bg):
         super().__init__(master, bg=bg)
 
-        self.textbox = tk.Text(self)
-        self.textbox.insert(0.0, "Drag and drop your image")
-        self.textbox.configure(state='disabled')
+        # 水平スクロールバーを追加
+        self.hscrollbar = tk.Scrollbar(self, orient=tk.HORIZONTAL)
+        self.hscrollbar.pack(side=tk.BOTTOM, fill=tk.X)
 
-        # スクロールバー
-        self.scrollbar = tk.Scrollbar(self, orient=tk.VERTICAL, command=self.textbox.yview)
-        self.textbox['yscrollcommand'] = self.scrollbar.set
+        # 垂直スクロールバーを追加
+        self.vscrollbar = tk.Scrollbar(self)
+        self.vscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        self.textbox.grid(column=0, row=0, sticky=tk.E + tk.W + tk.S + tk.N)
-        self.scrollbar.grid(row=0, column=1, sticky=tk.N + tk.S)
-        self.columnconfigure(0, weight=1)
-        self.rowconfigure(0, weight=1)
+        # キャンバスを作成し、スクロールバーを設定
+        self.canvas = tk.Canvas(self, yscrollcommand=self.vscrollbar.set, xscrollcommand=self.hscrollbar.set)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # スクロールバーのコマンドを設定
+        self.vscrollbar.config(command=self.canvas.yview)
+        self.hscrollbar.config(command=self.canvas.xview)
+
+        self.updateImage("")
+
+    def updateImage(self, filepath):
+        if len(filepath) == 0:
+            return
+        
+        image = Image.open(filepath)
+        self.image = image
+        photo = ImageTk.PhotoImage(image)
+
+        # 画像を更新
+        self.canvas.create_image(0, 0, image=photo, anchor=tk.NW)
+        self.canvas.photo = photo
+
+        # キャンバスのスクロール領域を設定
+        self.canvas.config(scrollregion=(0, 0, image.width, image.height))
+
+    def apply_mosaic(self, event):
+        # クリックした位置を取得
+        x, y = event.x, event.y
+        image = self.image
+        # モザイクをかける領域を定義（ここではクリックした位置を中心に50x50ピクセルの領域）
+        left = max(0, x - 25)
+        top = max(0, y - 25)
+        right = min(image.width, x + 25)
+        bottom = min(image.height, y + 25)
+
+        # モザイクをかける領域を切り出す
+        region = image.crop((left, top, right, bottom))
+
+        # 切り出した領域を縮小し、元のサイズに拡大することでモザイクをかける
+        region = region.resize((10, 10), Image.BOX).resize(region.size, Image.NEAREST)
+
+        # モザイクをかけた領域を元の画像に戻す
+        image.paste(region, (left, top, right, bottom))
+
+        # 画像を更新
+        photo = ImageTk.PhotoImage(image)
+        self.canvas.create_image(0, 0, image=photo, anchor=tk.NW)
 
 
 def round_up_decimal(value: Decimal):
@@ -153,13 +210,13 @@ class MainPage(tk.Frame):
 
     def onUpdate(self, e):
         message = '\n' + e.data
+        self.MainFrame.updateImage(e.data)
+        #text = self.MainFrame.textbox
+        #text.configure(state='normal')
+        #text.insert(tk.END, message)
+        #text.configure(state='disabled')
 
-        text = self.MainFrame.textbox
-        text.configure(state='normal')
-        text.insert(tk.END, message)
-        text.configure(state='disabled')
-
-        text.see(tk.END)
+        #text.see(tk.END)
 
         # フッターのステータスバーを更新
         self.FooterFrame.updateStatus(e.data)
@@ -202,5 +259,8 @@ class MyApp(TkinterDnD.Tk):
 
 
 if __name__ == "__main__":
+    start = time.time()
     app = MyApp()
+    end = time.time()
+    print(f"\n起動時間({end - start:.3f}s)")
     app.mainloop()
