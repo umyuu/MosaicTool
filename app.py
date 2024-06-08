@@ -2,14 +2,56 @@
 """
     MosaicTool
 """
+from dataclasses import dataclass
+from decimal import Decimal, ROUND_UP
 from functools import partial
+from pathlib import Path
+import sys
+import os
+import time
 import tkinter as tk
 from tkinter import filedialog
+
 from tkinterdnd2 import DND_FILES, TkinterDnD
 from PIL import Image
 
 PROGRAM_NAME = 'MosaicTool'
 __version__ = '0.0.1'
+
+
+application_path = os.path.dirname(os.path.abspath(__file__))
+# アイコンのパスを作成
+icons_path = Path(application_path, "third_party/icons")
+
+
+@dataclass
+class TargetFile:
+    _file_path: str = ""
+    # ファイルのメタデータを取得
+    file_stat = Path(_file_path).stat()
+
+    @property
+    def mtime(self) -> str:
+        # 最終更新日時を取得
+        timestamp = self.file_stat.st_mtime
+        # タイムスタンプをISO 8601形式に変換
+        return time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(timestamp))
+
+    @property
+    def st_size(self) -> int:
+        return self.file_stat.st_size
+
+
+class PhotoImageButton(tk.Button):
+    def __init__(self, master=None, image_path="", command=None, **kwargs):
+        img = tk.PhotoImage(file=image_path)
+        img = img.subsample(3, 3)
+        if command is None:
+            super().__init__(master, image=img, compound="top", **kwargs)
+        else:
+            super().__init__(master, image=img, compound="top", command=command, **kwargs)
+
+        self.img = img  # Keep a reference to the image to prevent it from being garbage collected
 
 
 class HeaderFrame(tk.Frame):
@@ -18,10 +60,14 @@ class HeaderFrame(tk.Frame):
         self.createWidgets()
 
     def createWidgets(self):
+        self.btn_select_file = PhotoImageButton(self, image_path=str(Path(icons_path, "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")), command=partial(self.on_select_file, event=None))
+        self.btn_select_file.grid(row=0, column=0, padx=(0, 0))
+        self.btn_back_file = PhotoImageButton(self, image_path=str(Path(icons_path, "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")), command=partial(self.on_select_file, event=None))
+        self.btn_back_file.grid(row=0, column=1, padx=(4, 0))
+        self.btn_forward_file = PhotoImageButton(self, image_path=str(Path(icons_path, "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")), command=partial(self.on_select_file, event=None))
+        self.btn_forward_file.grid(row=0, column=2, padx=(4, 0))
         self.widgetHeader = tk.Label(self, text="ヘッダーはここ", font=("", 10))
-        self.widgetHeader.pack()
-        self.btn_select_file = tk.Button(self, text="ファイル選択(F)", command=partial(self.on_select_file, event=None)) 
-        self.btn_select_file.pack()
+        self.widgetHeader.grid(row=0, column=3, padx=(4, 0))
 
     def on_select_file(self, event):
         # 画像形式
@@ -62,15 +108,36 @@ class MainFrame(tk.Frame):
         self.rowconfigure(0, weight=1)
 
 
+def round_up_decimal(value: Decimal):
+    # 小数点以下2桁に切り上げ
+    rounded_value = value.quantize(Decimal('0.01'), rounding=ROUND_UP)
+    return rounded_value
+
+
 class FooterFrame(tk.Frame):
     def __init__(self, master, bg):
         super().__init__(master, bg=bg)
         self.createWidgets()
 
     def createWidgets(self):
-        widgetFooter = tk.Label(self, text="フッターはここ", font=("", 10))
-        widgetFooter.pack(expand=True)
-        return
+        self.modified = tk.Label(self, text=" " * 20, bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.modified.grid(row=0, column=0, sticky=tk.W + tk.E)
+        self.fileSizeBar = tk.Label(self, text=" " * 20, bd=1, relief=tk.SUNKEN, anchor=tk.W)  # ファイルサイズ表示用のラベルを追加
+        self.fileSizeBar.grid(row=0, column=1, sticky=tk.W + tk.E)
+        self.paddingLabel = tk.Label(self, text="フッターはここ")  # 余白調整用のラベルを追加
+        self.paddingLabel.grid(row=0, column=2, sticky=tk.W + tk.E)  # stickyをW+Eに変更
+        self.columnconfigure(0, weight=0)
+        self.columnconfigure(1, weight=0)
+        self.columnconfigure(2, weight=1)  # 列2（余白調整用のラベル）にweightを設定
+
+    def updateStatus(self, filepath):
+        target = TargetFile(filepath)
+        # ステータスバーに表示
+        self.modified.config(text=target.mtime)
+        # ファイルサイズを取得
+        filesize_kb = Decimal(target.st_size) / 1024
+        # ファイルサイズを表示
+        self.fileSizeBar.config(text=str(round_up_decimal(filesize_kb)) + " KB")
 
 
 class MainPage(tk.Frame):
@@ -84,6 +151,19 @@ class MainPage(tk.Frame):
         self.FooterFrame.grid(column=0, row=2, sticky=(tk.E + tk.W + tk.S + tk.N))
         self.columnconfigure(0, weight=1)  # ヘッダーをウィンドウ幅まで拡張する
 
+    def onUpdate(self, e):
+        message = '\n' + e.data
+
+        text = self.MainFrame.textbox
+        text.configure(state='normal')
+        text.insert(tk.END, message)
+        text.configure(state='disabled')
+
+        text.see(tk.END)
+
+        # フッターのステータスバーを更新
+        self.FooterFrame.updateStatus(e.data)
+
 
 class MyApp(TkinterDnD.Tk):
     def __init__(self):
@@ -91,27 +171,31 @@ class MyApp(TkinterDnD.Tk):
 
         width = 640
         height = 480
-        self.title(PROGRAM_NAME)
         self.geometry(f'{width}x{height}')  # ウィンドウサイズ
         self.minsize(width, height)
+        self.set_window_title("")  # プログラム名とバージョン番号を表示
 
-        self.frame_drag_drop = MainPage()
+        self.TargetFile = TargetFile()
+        self.MainPage = MainPage()
         # ドラッグアンドドロップ
-        self.frame_drag_drop.drop_target_register(DND_FILES)
-        self.frame_drag_drop.dnd_bind('<<Drop>>', self.onDragAndDrop)
-        #self.frame_drag_drop.pack(expand=True)
-        self.frame_drag_drop.grid(column=0, row=0, sticky=tk.E + tk.W + tk.S + tk.N)
+        self.MainPage.drop_target_register(DND_FILES)
+        self.MainPage.dnd_bind('<<Drop>>', self.onDragAndDrop)
+        #self.MainPage.pack(expand=True)
+        self.MainPage.grid(column=0, row=0, sticky=tk.E + tk.W + tk.S + tk.N)
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
-    def onDragAndDrop(self, e):
-        message = '\n' + e.data
-        text = self.frame_drag_drop.MainFrame.textbox
-        text.configure(state='normal')
-        text.insert(tk.END, message)
-        text.configure(state='disabled')
+    def set_window_title(self, filepath: str):
+        filename = Path(filepath).name if filepath else ""
+        title = f"{filename} - {PROGRAM_NAME} {__version__}" if filename else f"{PROGRAM_NAME} {__version__}"
+        self.title(title)
 
-        text.see(tk.END)
+    def onDragAndDrop(self, e):
+        """
+        ドラッグ＆ドロップイベント
+        """
+        self.set_window_title(e.data)
+        self.MainPage.onUpdate(e)
 
         image = Image.open(e.data)
         image.show()
