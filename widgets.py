@@ -47,7 +47,7 @@ class HeaderFrame(tk.Frame):
         self.btn_back_file.grid(row=0, column=1, padx=(4, 0))
         self.btn_forward_file = PhotoImageButton(self, image_path=str(Path(icons_path, "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")), command=partial(self.on_select_file, event=None))
         self.btn_forward_file.grid(row=0, column=2, padx=(4, 0))
-        self.widgetHeader = tk.Label(self, text="画面にファイルをドラッグ＆ドロップしてください。", font=("", 10))
+        self.widgetHeader = tk.Label(self, text="画面に画像ファイルをドラッグ＆ドロップしてください。", font=("", 10))
         self.widgetHeader.grid(row=0, column=3, padx=(4, 0))
 
     def on_select_file(self, event):
