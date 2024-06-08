@@ -43,19 +43,21 @@ class AppController:
 
     def get_status(self) -> StatusMessage:
         files = self.model.get_file_paths()
+        total = len(files)        
+        if total == 0:
+            return StatusMessage()
+
         filepath = files[0]
         with Image.open(filepath) as img:
             width, height = img.size
 
         m = MosaicImageFile(str(filepath))
 
-        message = StatusMessage(
+        return StatusMessage(
             current=1,
-            total=len(files),
+            total=total,
             mtime=m.mtime,
             file_size=m.st_size,
             width=width,
             height=height
         )
-
-        return message

@@ -11,7 +11,7 @@ from pathlib import Path
 from PIL import Image, ImageTk
 
 from controllers import AppController
-from lib.models import MosaicImageFile, MosaicImage, StatusMessage
+from lib.models import MosaicImageFile, MosaicFilter, StatusMessage
 from lib.utils import round_up_decimal
 
 
@@ -135,9 +135,7 @@ class MainFrame(tk.Frame):
         if self.photo is None:
             return
 
-        mosaic = MosaicImage(self.original_image)
-        #mosaic.cell_size = mosaic.calc_cell_size()
-        print(mosaic.cell_size)
+        mosaic = MosaicFilter(self.original_image)
         mosaic.apply(start_x, start_y, end_x, end_y)
         self.original_image = mosaic.Image
 
@@ -178,23 +176,10 @@ class FooterFrame(tk.Frame):
         self.columnconfigure(3, weight=0)
         self.columnconfigure(4, weight=1)  # 列2（余白調整用のラベル）にweightを設定
 
-    def updateStatus(self, filepath):
-        target = MosaicImageFile(filepath)
-
-        # 画像の幅と高さを取得
-        with Image.open(filepath) as img:
-            width, height = img.size
-
-        # 画像の幅と高さを表示
-        self.imageSizeBar.config(text=f"Width: {width}px, Height: {height}px")
-        # ファイルサイズを取得
-        filesize_kb = Decimal(target.st_size) / Decimal(1024)
-        # ファイルサイズを表示
-        self.fileSizeBar.config(text=str(round_up_decimal(Decimal(filesize_kb), 2)) + " KB")
-        # 最終更新日時
-        self.modified.config(text=target.mtime)
-
-    def updateStatus2(self, status: StatusMessage):
+    def updateStatusBar(self, status: StatusMessage):
+        """
+        ステータスバーを更新します。
+        """
         # 画像の幅と高さを表示
         self.imageSizeBar.config(text=f"Width: {status.width}px, Height: {status.height}px")
         # 件数を表示

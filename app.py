@@ -66,6 +66,8 @@ class MainPage(tk.Frame):
         self.drop_target_register(DND_FILES)
         self.dnd_bind('<<Drop>>', self.controller.handle_drop)
 
+        self.updateStatus()
+
     def display_image(self, path: Path):
         """
         画像ファイルを選択時
@@ -103,7 +105,7 @@ class MainPage(tk.Frame):
         """
         フッターのステータスバーを更新
         """
-        self.FooterFrame.updateStatus2(self.controller.get_status())
+        self.FooterFrame.updateStatusBar(self.controller.get_status())
 
     def set_window_title(self, filepath: str):
         """

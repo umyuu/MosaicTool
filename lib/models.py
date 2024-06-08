@@ -29,6 +29,9 @@ class StatusMessage:
 
 
 class DataModel:
+    """
+    処理対象のファイル
+    """
     def __init__(self):
         self.file_paths: List[Path] = []
         self.index: int = 0
@@ -86,7 +89,7 @@ class MosaicImageFile:
 
 
 @dataclass
-class MosaicImage:
+class MosaicFilter:
     """
     モザイク画像を作成するクラス
     """
