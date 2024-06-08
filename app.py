@@ -12,7 +12,7 @@ import tkinter as tk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 from PIL import Image, ImageTk
 
-from mosaicimagefile import MosaicImageFile, MosaicImage
+from lib.models import MosaicImageFile, MosaicImage
 from widgets import HeaderFrame, FooterFrame
 
 
@@ -101,7 +101,7 @@ class MainFrame(tk.Frame):
         #y1 = y + self.canvas.winfo_height()
 
         # キャンバスの内容をキャプチャ
-        self.original_image.save(filename)
+        #self.original_image.save(filename)
         #ImageGrab.grab().crop((x, y, x1, y1)).save(filename)
 
     def start_drag(self, event):
@@ -132,14 +132,15 @@ class MainFrame(tk.Frame):
             return
 
         mosaic = MosaicImage(self.original_image)
-        mosaic.apply_mosaic(start_x, start_y, end_x, end_y)
-        self.original_image = mosaic.get_image()
+        mosaic.apply(start_x, start_y, end_x, end_y)
+        self.original_image = mosaic.Image
         self.photo = ImageTk.PhotoImage(self.original_image)  # 元の画像のコピーをキャンバスに表示
         # キャンバスの画像も更新
         #self.photo.paste(region, (start_x, start_y, end_x, end_y))
         self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
         new_filepath = self.t.newMosaicFile()
-        self.save_canvas_image(str(new_filepath))
+        mosaic.save(str(new_filepath))
+        #self.save_canvas_image(str(new_filepath))
         # キャンバスのスクロール領域を設定
         self.canvas.config(scrollregion=(0, 0, self.original_image.width, self.original_image.height))
 
