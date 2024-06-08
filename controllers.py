@@ -19,12 +19,18 @@ class AppController:
         self.model.add_file_path(path)
 
     def handle_drop(self, event):
-        self.model.clear()
-        file_paths = event.data.split()  # 複数のパスを分割
-        for file_path in file_paths:
-            self.add_file_path(file_path)
-
-        self.display_image()
+        if event.data:
+            self.model.clear()
+            file_paths = event.data.split('\n')  # 改行で分割
+            for file_path in file_paths:
+                for f in file_path.split():
+                    if f.strip():  # 空でないパスを処理
+                        print(f"Processing file path: {f}")
+                        self.add_file_path(f)
+            print(self.model)
+            self.display_image()
+        else:
+            print("No data received in drop event")
 
     def handle_pick_images(self):
         """
@@ -68,11 +74,11 @@ class AppController:
         ステータスメッセージを取得します。
         """
         files = self.model.get_file_paths()
-        total = len(files)        
+        total = len(files)
         if total == 0:
             return StatusMessage()
 
-        filepath = files[0]
+        filepath = self.model.get_current_file()
         with Image.open(filepath) as img:
             width, height = img.size
 

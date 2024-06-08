@@ -99,10 +99,9 @@ class MainPage(tk.Frame):
         ]
 
         files = filedialog.askopenfilenames(parent=self, filetypes=IMAGE_FILE_TYPES)
-        if files is None:
+        if len(files) == 0:
             return
         self.controller.handle_select_files_complete(files)
-        self.updateStatus()
 
     def updateStatus(self):
         """
