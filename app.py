@@ -78,6 +78,9 @@ class MainPage(tk.Frame):
         self.updateStatus()
 
     def on_select_files(self, event):
+        """
+        ファイル選択ボタン
+        """
         # 画像形式
         ImageFormat = {
             'PNG': ('*.png', ),

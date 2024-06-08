@@ -34,17 +34,55 @@ class DataModel:
     """
     def __init__(self):
         self.file_paths: List[Path] = []
-        self.index: int = 0
+        self.current: int = 0
 
     def add_file_path(self, file_path: Path):
+        """
+        処理対象のファイルを追加します。
+        """
         self.file_paths.append(file_path)
 
     def clear(self):
         self.file_paths = []
-        self.index = 0
+        self.current = 0
+
+    def set_current(self, current: int):
+        if current < 0 or current >= len(self.file_paths):
+            raise ValueError(f"current index out of range: {current}")
+        self.current = current
+
+    def next_index(self):
+        """
+        current の次のインデックスに移動します。
+        """
+        if self.current < len(self.file_paths) - 1:
+            self.current += 1
+        #else:
+        #    raise IndexError("No more files in the list.")
+
+    def prev_index(self):
+        """
+        current の前のインデックスに移動します。
+        """
+        if self.current > 0:
+            self.current -= 1
+        #else:
+        #    raise IndexError("Already at the first file in the list.")
 
     def get_file_paths(self) -> List[Path]:
+        """
+        処理対象のファイル一覧
+        """
         return self.file_paths
+
+    def get_current_file(self) -> Path:
+        """
+        現在処理中のファイルパス
+        """
+        return self.file_paths[self.current]
+
+    def __str__(self) -> str:
+        return f"current:{self.current}, {self.file_paths}"
 
 
 @dataclass

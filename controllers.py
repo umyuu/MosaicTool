@@ -17,21 +17,41 @@ class AppController:
     def add_file_path(self, file_path: str):
         path = Path(file_path)
         self.model.add_file_path(path)
-        self.view.display_image(path)
 
     def handle_drop(self, event):
         self.model.clear()
         file_paths = event.data.split()  # 複数のパスを分割
         for file_path in file_paths:
             self.add_file_path(file_path)
-            break
-        self.view.FooterFrame.updateStatus2(self.get_status())
+
+        self.display_image()
 
     def handle_pick_images(self):
         """
         ファイル選択ボタンクリック時
         """
         self.view.on_select_files(None)
+
+    def handle_back_images(self):
+        """
+        前の画像に遷移するをクリック時
+        """
+        self.model.prev_index()
+        self.display_image()
+
+    def handle_forward_images(self):
+        """
+        次の画像に遷移するをクリック時
+        """
+        self.model.next_index()
+        self.display_image()
+
+    def display_image(self):
+        """
+        画面に画像を表示します。
+        """
+        file = self.model.get_current_file()
+        self.view.display_image(file)
 
     def handle_select_files_complete(self, files: tuple[str, ...]):
         """
@@ -41,7 +61,12 @@ class AppController:
         for file_path in files:
             self.add_file_path(file_path)
 
+        self.display_image()
+
     def get_status(self) -> StatusMessage:
+        """
+        ステータスメッセージを取得します。
+        """
         files = self.model.get_file_paths()
         total = len(files)        
         if total == 0:
@@ -54,7 +79,7 @@ class AppController:
         m = MosaicImageFile(str(filepath))
 
         return StatusMessage(
-            current=1,
+            current=self.model.current + 1,
             total=total,
             mtime=m.mtime,
             file_size=m.st_size,

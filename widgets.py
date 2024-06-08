@@ -44,10 +44,17 @@ class HeaderFrame(tk.Frame):
                                                 image_path=str(Path(icons_path, "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                 command=self.controller.handle_pick_images)
         self.btn_pick_images.grid(row=0, column=0, padx=(0, 0))
-        self.btn_back_file = PhotoImageButton(self, image_path=str(Path(icons_path, "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")))
+
+        self.btn_back_file = PhotoImageButton(self,
+                                              image_path=str(Path(icons_path, "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+                                              command=self.controller.handle_back_images)
         self.btn_back_file.grid(row=0, column=1, padx=(4, 0))
-        self.btn_forward_file = PhotoImageButton(self, image_path=str(Path(icons_path, "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")))
+
+        self.btn_forward_file = PhotoImageButton(self,
+                                                 image_path=str(Path(icons_path, "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+                                                 command=self.controller.handle_forward_images)
         self.btn_forward_file.grid(row=0, column=2, padx=(4, 0))
+
         self.widgetHeader = tk.Label(self, text="画面に画像ファイルをドラッグ＆ドロップしてください。", font=("", 10))
         self.widgetHeader.grid(row=0, column=3, padx=(4, 0))
 
