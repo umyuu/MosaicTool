@@ -26,7 +26,7 @@ class MosaicImageFile:
     def st_size(self) -> int:
         return self.file_stat.st_size
 
-    def saveMosaic(self) -> Path:
+    def newMosaicFile(self) -> Path:
         mosaic = Path(self._file_path)
         # 元のファイル名から新しいファイル名を作成
         return mosaic.with_stem(mosaic.stem + "_mosaic")
@@ -44,7 +44,7 @@ class MosaicImage:
         region = self.image.crop((start_x, start_y, end_x, end_y))
         # 切り出した領域を縮小し、元のサイズに拡大することでモザイクをかける
         region = region.resize((10, 10), Image.BOX).resize(region.size, Image.NEAREST)
-        #モザイクをかけた領域を元の画像に戻す
+        # モザイクをかけた領域を元の画像に戻す
         self.image.paste(region, (start_x, start_y, end_x, end_y))
 
     def get_image(self):

@@ -17,7 +17,7 @@ from widgets import HeaderFrame, FooterFrame
 
 
 PROGRAM_NAME = 'MosaicTool'
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 start = time.time()
 application_path = os.path.dirname(os.path.abspath(__file__))
@@ -138,7 +138,7 @@ class MainFrame(tk.Frame):
         # キャンバスの画像も更新
         #self.photo.paste(region, (start_x, start_y, end_x, end_y))
         self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
-        new_filepath = self.t.saveMosaic()
+        new_filepath = self.t.newMosaicFile()
         self.save_canvas_image(str(new_filepath))
         # キャンバスのスクロール領域を設定
         self.canvas.config(scrollregion=(0, 0, self.original_image.width, self.original_image.height))
