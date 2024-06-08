@@ -4,7 +4,7 @@
 
 #### 📥 導入方法  
 ##### 1. セットアップ  
-1. [Releases](https://github.com/umyuu/SaliencyMapDemo/releases)を開き、一番上の `Assets` 欄にある `Source code (zip)` をダウンロードして展開します。  
+1. [Releases](https://github.com/umyuu/MosaicTool/releases)を開き、一番上の `Assets` 欄にある `Source code (zip)` をダウンロードして展開します。  
 ##### 2. 実行  
 `MosaicTool.exe`ファイルをダブルクリックします。  
 
