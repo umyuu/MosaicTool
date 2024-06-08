@@ -3,14 +3,14 @@
     PhotoImageButton
 """
 from decimal import Decimal
-from functools import partial
+
 import tkinter as tk
-from tkinter import filedialog
+
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageTk
 
-from lib.models import MosaicImageFile
+from lib.models import MosaicImageFile, MosaicImage
 from lib.utils import round_up_decimal
 
 
@@ -38,39 +38,116 @@ class HeaderFrame(tk.Frame):
         self.createWidgets(str(icons_path))
 
     def createWidgets(self, icons_path: str):
-        self.btn_select_file = PhotoImageButton(self, image_path=str(Path(icons_path, "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")), command=partial(self.on_select_file, event=None))
+        self.btn_select_file = PhotoImageButton(self, image_path=str(Path(icons_path, "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")))
         self.btn_select_file.grid(row=0, column=0, padx=(0, 0))
-        self.btn_back_file = PhotoImageButton(self, image_path=str(Path(icons_path, "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")), command=partial(self.on_select_file, event=None))
+        self.btn_back_file = PhotoImageButton(self, image_path=str(Path(icons_path, "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")))
         self.btn_back_file.grid(row=0, column=1, padx=(4, 0))
-        self.btn_forward_file = PhotoImageButton(self, image_path=str(Path(icons_path, "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")), command=partial(self.on_select_file, event=None))
+        self.btn_forward_file = PhotoImageButton(self, image_path=str(Path(icons_path, "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")))
         self.btn_forward_file.grid(row=0, column=2, padx=(4, 0))
         self.widgetHeader = tk.Label(self, text="画面に画像ファイルをドラッグ＆ドロップしてください。", font=("", 10))
         self.widgetHeader.grid(row=0, column=3, padx=(4, 0))
 
-    def on_select_file(self, event):
-        # 画像形式
-        ImageFormat = {
-            'PNG': ('*.png', ),
-            'JPEG': ('*.jpg', '*.jpeg', ),
-            'WEBP': ('*.webp', ),
-            'BMP': ('*.bmp', ),
-            'PNM': ('*.pbm', '*.pgm', '*.ppm', )
-        }
-        IMAGE_FILE_TYPES = [
-            ('Image Files', ImageFormat['PNG'] + ImageFormat['JPEG'] + ImageFormat['WEBP'] + ImageFormat['BMP']),
-            ('png (*.png)', ImageFormat['PNG']),
-            ('jpg (*.jpg, *.jpeg)', ImageFormat['JPEG']),
-            ('webp (*.webp)', ImageFormat['WEBP']),
-            ('bmp (*.bmp)', ImageFormat['BMP']),
-            ('*', '*.*')
-        ]
-        print('on_select_file...')
-        return filedialog.askopenfilename(parent=self, filetypes=IMAGE_FILE_TYPES)
+
+class MainFrame(tk.Frame):
+    """
+    画面のメイン部
+    """
+    def __init__(self, master, bg):
+        super().__init__(master, bg=bg)
+
+        # 水平スクロールバーを追加
+        self.hscrollbar = tk.Scrollbar(self, orient=tk.HORIZONTAL)
+        self.hscrollbar.pack(side=tk.BOTTOM, fill=tk.X)
+
+        # 垂直スクロールバーを追加
+        self.vscrollbar = tk.Scrollbar(self)
+        self.vscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # キャンバスを作成し、スクロールバーを設定
+        self.canvas = tk.Canvas(self, yscrollcommand=self.vscrollbar.set, xscrollcommand=self.hscrollbar.set)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # スクロールバーのコマンドを設定
+        self.vscrollbar.config(command=self.canvas.yview)
+        self.hscrollbar.config(command=self.canvas.xview)
+
+        # ドラッグ開始時のイベントをバインド
+        self.canvas.bind("<Button-1>", self.start_drag)
+
+        # ドラッグ中のイベントをバインド
+        self.canvas.bind("<B1-Motion>", self.dragging)
+
+        # ドラッグ終了時のイベントをバインド
+        self.canvas.bind("<ButtonRelease-1>", self.end_drag)
+        self.photo = None
+        self.updateImage("")
+        self.t = MosaicImageFile("")
+
+    def updateImage(self, filepath):
+        if len(filepath) == 0:
+            return
+        self.t = MosaicImageFile(filepath)
+
+        #self.canvas.image = Image.open(filepath)
+        #self.photo = ImageTk.PhotoImage(self.canvas.image)
+
+        self.original_image = Image.open(filepath)  # 元の画像を開く
+        self.photo = ImageTk.PhotoImage(self.original_image)  # 元の画像のコピーをキャンバスに表示
+
+        # 画像を更新
+        self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
+        # キャンバスのスクロール領域を設定
+        self.canvas.config(scrollregion=(0, 0, self.original_image.width, self.original_image.height))
+
+    def start_drag(self, event):
+        # ドラッグ開始位置を記録（キャンバス上の座標に変換）
+        self.start_x = int(self.canvas.canvasx(event.x))
+        self.start_y = int(self.canvas.canvasy(event.y))
+
+    def dragging(self, event):
+        if self.photo is None:
+            return
+        # ドラッグ中は選択領域を表示
+        self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
+
+        end_x = int(self.canvas.canvasx(event.x))
+        end_y = int(self.canvas.canvasy(event.y))
+        self.canvas.create_rectangle(self.start_x, self.start_y, end_x, end_y, outline='red', tags='dragging')
+
+    def end_drag(self, event):
+        # ドラッグ終了位置を取得（キャンバス上の座標に変換）
+        end_x = int(self.canvas.canvasx(event.x))
+        end_y = int(self.canvas.canvasy(event.y))
+
+        # 選択領域にモザイクをかける
+        self.apply_mosaic(self.start_x, self.start_y, end_x, end_y)
+
+        # ドラッグ中に表示した選択領域を削除
+        self.canvas.delete('dragging')
+
+    def apply_mosaic(self, start_x, start_y, end_x, end_y):
+        if self.photo is None:
+            return
+
+        mosaic = MosaicImage(self.original_image)
+        #mosaic.cell_size = mosaic.calc_cell_size()
+        print(mosaic.cell_size)
+        mosaic.apply(start_x, start_y, end_x, end_y)
+        self.original_image = mosaic.Image
+
+        self.photo = ImageTk.PhotoImage(self.original_image)  # 元の画像のコピーをキャンバスに表示
+        # キャンバスの画像も更新
+        self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
+        new_filepath = self.t.newMosaicFile()
+        mosaic.save(str(new_filepath))
+
+        # キャンバスのスクロール領域を設定
+        self.canvas.config(scrollregion=(0, 0, self.original_image.width, self.original_image.height))
 
 
 class FooterFrame(tk.Frame):
     """
-    画面のヘッダー部
+    画面のフッター部
     """
     def __init__(self, master, bg):
         super().__init__(master, bg=bg)

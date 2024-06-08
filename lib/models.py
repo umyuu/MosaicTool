@@ -3,9 +3,9 @@
     models
     データモデル関連
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime
 from decimal import Decimal
-import time
 import os
 from pathlib import Path
 
@@ -29,10 +29,13 @@ class MosaicImageFile:
         最終更新日時をISO 8601形式で取得するプロパティ
         :return: 最終更新日時の文字列
         """
+        # ファイルのメタデータを取得
+        file_stat = Path(self._file_path).stat()
         # 最終更新日時を取得
-        timestamp = self.file_stat.st_mtime
-        # タイムスタンプをISO 8601形式に変換
-        return time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(timestamp))
+        timestamp = file_stat.st_mtime
+        # タイムスタンプをローカルタイムに変換し、ISO 8601形式に変換
+        local_time = datetime.fromtimestamp(timestamp)
+        return local_time.strftime('%Y-%m-%dT%H:%M:%S')
 
     @property
     def st_size(self) -> int:
@@ -58,7 +61,12 @@ class MosaicImage:
     モザイク画像を作成するクラス
     """
     _image: Image.Image
-    cell_size: int = 10  # モザイクのセルサイズを固定値に設定
+    cell_size: int = field(init=False)  # モザイクのセルサイズ
+
+    def __post_init__(self):
+        """
+        """
+        self.cell_size = self.calc_cell_size()
 
     def save(self, filename: str):
         """
