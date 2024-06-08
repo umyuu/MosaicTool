@@ -90,9 +90,11 @@ class MainFrame(tk.Frame):
 
         #self.canvas.image = Image.open(filepath)
         #self.photo = ImageTk.PhotoImage(self.canvas.image)
-
-        self.original_image = Image.open(filepath)  # 元の画像を開く
-        self.photo = ImageTk.PhotoImage(self.original_image)  # 元の画像のコピーをキャンバスに表示
+        # 日本語ファイル名でエラーが発生するため。openを使用する。
+        with open(filepath, "rb") as f:
+            img = Image.open(f)
+            self.original_image = img  # 元の画像を開く
+            self.photo = ImageTk.PhotoImage(self.original_image)  # 元の画像のコピーをキャンバスに表示
 
         # 画像を更新
         self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
@@ -154,20 +156,23 @@ class FooterFrame(tk.Frame):
         self.createWidgets()
 
     def createWidgets(self):
-        self.imageSizeBar = tk.Label(self, text=" " * 20, bd=1, relief=tk.SUNKEN, anchor=tk.W)  # 画像サイズ表示用のラベルを追加
+        self.imageSizeBar = tk.Label(self, text=" " * 40, bd=1, relief=tk.SUNKEN, anchor=tk.W)  # 画像サイズ表示用のラベルを追加
         self.imageSizeBar.grid(row=0, column=0, sticky=tk.W + tk.E)
-        self.modified = tk.Label(self, text=" " * 20, bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.modified.grid(row=0, column=1, sticky=tk.W + tk.E)
+        self.count = tk.Label(self, text="  1 /  1 ", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.count.grid(row=0, column=1, sticky=tk.W + tk.E)
         self.fileSizeBar = tk.Label(self, text=" " * 20, bd=1, relief=tk.SUNKEN, anchor=tk.W)  # ファイルサイズ表示用のラベルを追加
         self.fileSizeBar.grid(row=0, column=2, sticky=tk.W + tk.E)
+        self.modified = tk.Label(self, text=" " * 20, bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.modified.grid(row=0, column=3, sticky=tk.W + tk.E)
 
         self.paddingLabel = tk.Label(self, text="フッターはここ")  # 余白調整用のラベルを追加
-        self.paddingLabel.grid(row=0, column=3, sticky=tk.W + tk.E)
+        self.paddingLabel.grid(row=0, column=4, sticky=tk.W + tk.E)
 
         self.columnconfigure(0, weight=0)
         self.columnconfigure(1, weight=0)
         self.columnconfigure(2, weight=0)
-        self.columnconfigure(3, weight=1)  # 列2（余白調整用のラベル）にweightを設定
+        self.columnconfigure(3, weight=0)
+        self.columnconfigure(4, weight=1)  # 列2（余白調整用のラベル）にweightを設定
 
     def updateStatus(self, filepath):
         target = MosaicImageFile(filepath)
@@ -178,9 +183,9 @@ class FooterFrame(tk.Frame):
 
         # 画像の幅と高さを表示
         self.imageSizeBar.config(text=f"Width: {width}px, Height: {height}px")
-        # 最終更新日時
-        self.modified.config(text=target.mtime)
         # ファイルサイズを取得
         filesize_kb = Decimal(target.st_size) / Decimal(1024)
         # ファイルサイズを表示
         self.fileSizeBar.config(text=str(round_up_decimal(Decimal(filesize_kb), 2)) + " KB")
+        # 最終更新日時
+        self.modified.config(text=target.mtime)

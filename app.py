@@ -67,6 +67,7 @@ class MainPage(tk.Frame):
         # フッターのステータスバーを更新
         self.FooterFrame.updateStatus(data)
 
+
 class MyApp(TkinterDnD.Tk):
     """
     アプリ
@@ -104,8 +105,12 @@ class MyApp(TkinterDnD.Tk):
         """
         ドラッグ＆ドロップイベント
         """
-        self.set_window_title(e.data)
-        self.MainPage.pickImage(e.data)
+        files = e.data
+        for path in files.split():
+            # パスの処理
+            print(path)
+            self.set_window_title(path)
+            self.MainPage.pickImage(path)
 
     def on_select_file(self, event):
         # 画像形式
@@ -124,7 +129,6 @@ class MyApp(TkinterDnD.Tk):
             ('bmp (*.bmp)', ImageFormat['BMP']),
             ('*', '*.*')
         ]
-        print('on_select_file...')
 
         files = filedialog.askopenfilenames(parent=self, filetypes=IMAGE_FILE_TYPES)
         if files is None:
