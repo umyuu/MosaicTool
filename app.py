@@ -13,11 +13,12 @@ from tkinterdnd2 import DND_FILES, TkinterDnD
 from PIL import Image, ImageTk
 
 from lib.models import MosaicImageFile, MosaicImage
+from lib.utils import get_package_version
 from widgets import HeaderFrame, FooterFrame
 
 
 PROGRAM_NAME = 'MosaicTool'
-__version__ = '0.0.2'
+__version__ = get_package_version()
 
 start = time.time()
 application_path = os.path.dirname(os.path.abspath(__file__))
@@ -86,24 +87,6 @@ class MainFrame(tk.Frame):
         # キャンバスのスクロール領域を設定
         self.canvas.config(scrollregion=(0, 0, self.original_image.width, self.original_image.height))
 
-    def save_canvas_image(self, filename):
-        if (len(filename) == 0):
-            return
-        # キャンバスの位置とサイズを取得
-        #x = 0
-        #y = 0
-        #x1 = x + self.canvas.image.width
-        #y1 = y + self.canvas.image.height
-
-        #x = self.canvas.winfo_rootx()
-        #y = self.canvas.winfo_rooty()
-        #x1 = x + self.canvas.winfo_width()
-        #y1 = y + self.canvas.winfo_height()
-
-        # キャンバスの内容をキャプチャ
-        #self.original_image.save(filename)
-        #ImageGrab.grab().crop((x, y, x1, y1)).save(filename)
-
     def start_drag(self, event):
         # ドラッグ開始位置を記録（キャンバス上の座標に変換）
         self.start_x = int(self.canvas.canvasx(event.x))
@@ -114,7 +97,10 @@ class MainFrame(tk.Frame):
             return
         # ドラッグ中は選択領域を表示
         self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
-        self.canvas.create_rectangle(self.start_x, self.start_y, event.x, event.y, outline='red', tags='dragging')
+
+        end_x = int(self.canvas.canvasx(event.x))
+        end_y = int(self.canvas.canvasy(event.y))
+        self.canvas.create_rectangle(self.start_x, self.start_y, end_x, end_y, outline='red', tags='dragging')
 
     def end_drag(self, event):
         # ドラッグ終了位置を取得（キャンバス上の座標に変換）
@@ -132,15 +118,16 @@ class MainFrame(tk.Frame):
             return
 
         mosaic = MosaicImage(self.original_image)
+        mosaic.cell_size = mosaic.calc_cell_size()
         mosaic.apply(start_x, start_y, end_x, end_y)
         self.original_image = mosaic.Image
+
         self.photo = ImageTk.PhotoImage(self.original_image)  # 元の画像のコピーをキャンバスに表示
         # キャンバスの画像も更新
-        #self.photo.paste(region, (start_x, start_y, end_x, end_y))
         self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
         new_filepath = self.t.newMosaicFile()
         mosaic.save(str(new_filepath))
-        #self.save_canvas_image(str(new_filepath))
+
         # キャンバスのスクロール領域を設定
         self.canvas.config(scrollregion=(0, 0, self.original_image.width, self.original_image.height))
 

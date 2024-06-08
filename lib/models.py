@@ -4,10 +4,13 @@
     データモデル関連
 """
 from dataclasses import dataclass
-from pathlib import Path
+from decimal import Decimal
 import time
+from pathlib import Path
 
 from PIL import Image
+
+from . utils import round_up_decimal
 
 
 @dataclass
@@ -54,6 +57,7 @@ class MosaicImage:
     モザイク画像を作成するクラス
     """
     _image: Image.Image
+    cell_size: int = 10  # モザイクのセルサイズを固定値に設定
 
     def save(self, filename: str):
         """
@@ -70,10 +74,19 @@ class MosaicImage:
         :param end_x: モザイクをかける領域の右下X座標
         :param end_y: モザイクをかける領域の右下Y座標
         """
+        # モザイクをかける領域のサイズを計算
+        region_width = end_x - start_x
+        region_height = end_y - start_y
+
         # モザイクをかける領域を切り出す
         region = self._image.crop((start_x, start_y, end_x, end_y))
-        # 切り出した領域を縮小し、元のサイズに拡大することでモザイクをかける
-        region = region.resize((10, 10), Image.BOX).resize(region.size, Image.NEAREST)
+
+        # セルサイズに基づいて縮小後のサイズを計算
+        new_width = max(1, region_width // self.cell_size)
+        new_height = max(1, region_height // self.cell_size)
+
+        # 縮小してから元のサイズにリサイズ
+        region = region.resize((new_width, new_height), Image.BOX).resize(region.size, Image.NEAREST)
         # モザイクをかけた領域を元の画像に戻す
         self._image.paste(region, (start_x, start_y, end_x, end_y))
 
@@ -84,3 +97,16 @@ class MosaicImage:
         :return: PIL Imageオブジェクト
         """
         return self._image
+
+    def calc_cell_size(self) -> int:
+        """
+        モザイクのセルサイズを計算します。
+
+        :return: セルサイズ
+        """
+        # 長辺の取得し÷100
+        long_side = Decimal(self._image.width).max(Decimal(self._image.height)) // 100
+        print(long_side)
+        cell_size = max(4, round_up_decimal(Decimal(long_side), 0))  # 最小4ピクセル
+
+        return int(cell_size)

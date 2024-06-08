@@ -2,19 +2,16 @@
 """
     PhotoImageButton
 """
-from decimal import Decimal, ROUND_UP
+from decimal import Decimal
 from functools import partial
 import tkinter as tk
 from tkinter import filedialog
 from pathlib import Path
 
 from lib.models import MosaicImageFile
+from lib.utils import round_up_decimal
 
 
-def round_up_decimal(value: Decimal):
-    # 小数点以下2桁に切り上げ
-    rounded_value = value.quantize(Decimal('0.01'), rounding=ROUND_UP)
-    return rounded_value
 
 
 class PhotoImageButton(tk.Button):
@@ -94,4 +91,4 @@ class FooterFrame(tk.Frame):
         # ファイルサイズを取得
         filesize_kb = Decimal(target.st_size) / 1024
         # ファイルサイズを表示
-        self.fileSizeBar.config(text=str(round_up_decimal(filesize_kb)) + " KB")
+        self.fileSizeBar.config(text=str(round_up_decimal(Decimal(filesize_kb), 2)) + " KB")
