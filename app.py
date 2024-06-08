@@ -16,10 +16,12 @@ from tkinter import filedialog
 from tkinterdnd2 import DND_FILES, TkinterDnD
 from PIL import Image, ImageTk
 
+from widgets.core import PhotoImageButton
+
 PROGRAM_NAME = 'MosaicTool'
 __version__ = '0.0.1'
 
-
+start = time.time()
 application_path = os.path.dirname(os.path.abspath(__file__))
 # アイコンのパスを作成
 icons_path = Path(application_path, "third_party/icons")
@@ -54,18 +56,6 @@ class TargetFile:
     @property
     def st_size(self) -> int:
         return self.file_stat.st_size
-
-
-class PhotoImageButton(tk.Button):
-    def __init__(self, master=None, image_path="", command=None, **kwargs):
-        img = tk.PhotoImage(file=image_path)
-        img = img.subsample(3, 3)
-        if command is None:
-            super().__init__(master, image=img, compound="top", **kwargs)
-        else:
-            super().__init__(master, image=img, compound="top", command=command, **kwargs)
-
-        self.img = img  # Keep a reference to the image to prevent it from being garbage collected
 
 
 class HeaderFrame(tk.Frame):
@@ -124,45 +114,73 @@ class MainFrame(tk.Frame):
         self.vscrollbar.config(command=self.canvas.yview)
         self.hscrollbar.config(command=self.canvas.xview)
 
+        # ドラッグ開始時のイベントをバインド
+        self.canvas.bind("<Button-1>", self.start_drag)
+
+        # ドラッグ中のイベントをバインド
+        self.canvas.bind("<B1-Motion>", self.dragging)
+
+        # ドラッグ終了時のイベントをバインド
+        self.canvas.bind("<ButtonRelease-1>", self.end_drag)
+        self.canvas.image = None
+        self.photo = None
         self.updateImage("")
 
     def updateImage(self, filepath):
         if len(filepath) == 0:
             return
         
-        image = Image.open(filepath)
-        self.image = image
-        photo = ImageTk.PhotoImage(image)
+        self.canvas.image = Image.open(filepath)
+        self.photo = ImageTk.PhotoImage(self.canvas.image)
 
         # 画像を更新
-        self.canvas.create_image(0, 0, image=photo, anchor=tk.NW)
-        self.canvas.photo = photo
+        self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
 
         # キャンバスのスクロール領域を設定
-        self.canvas.config(scrollregion=(0, 0, image.width, image.height))
+        self.canvas.config(scrollregion=(0, 0, self.canvas.image.width, self.canvas.image.height))
 
-    def apply_mosaic(self, event):
-        # クリックした位置を取得
-        x, y = event.x, event.y
-        image = self.image
-        # モザイクをかける領域を定義（ここではクリックした位置を中心に50x50ピクセルの領域）
-        left = max(0, x - 25)
-        top = max(0, y - 25)
-        right = min(image.width, x + 25)
-        bottom = min(image.height, y + 25)
+    def start_drag(self, event):
+        # ドラッグ開始位置を記録
+        self.start_x = event.x
+        self.start_y = event.y
+
+    def dragging(self, event):
+        if self.photo is None:
+            return
+        # ドラッグ中は選択領域を表示
+        self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
+        self.canvas.create_rectangle(self.start_x, self.start_y, event.x, event.y, outline='red', tags='dragging')
+
+    def end_drag(self, event):
+        # ドラッグ終了位置を取得
+        end_x = event.x
+        end_y = event.y
+
+        # 選択領域にモザイクをかける
+        self.apply_mosaic(self.start_x, self.start_y, end_x, end_y)
+
+        # ドラッグ中に表示した選択領域を削除
+        self.canvas.delete('dragging')
+
+    def apply_mosaic(self, start_x, start_y, end_x, end_y):
+        if self.canvas.image is None:
+            return
 
         # モザイクをかける領域を切り出す
-        region = image.crop((left, top, right, bottom))
+        region = self.canvas.image.crop((start_x, start_y, end_x, end_y))
 
         # 切り出した領域を縮小し、元のサイズに拡大することでモザイクをかける
         region = region.resize((10, 10), Image.BOX).resize(region.size, Image.NEAREST)
 
         # モザイクをかけた領域を元の画像に戻す
-        image.paste(region, (left, top, right, bottom))
+        self.canvas.image.paste(region, (start_x, start_y, end_x, end_y))
 
         # 画像を更新
-        photo = ImageTk.PhotoImage(image)
-        self.canvas.create_image(0, 0, image=photo, anchor=tk.NW)
+        self.photo = ImageTk.PhotoImage(self.canvas.image)
+        self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
+
+        # キャンバスのスクロール領域を設定
+        self.canvas.config(scrollregion=(0, 0, self.canvas.image.width, self.canvas.image.height))
 
 
 def round_up_decimal(value: Decimal):
@@ -206,6 +224,14 @@ class MainPage(tk.Frame):
         self.MainFrame.grid(column=0, row=1, sticky=(tk.E + tk.W + tk.S + tk.N))
         self.FooterFrame = FooterFrame(self, bg="#FFBB9D")
         self.FooterFrame.grid(column=0, row=2, sticky=(tk.E + tk.W + tk.S + tk.N))
+
+        # ヘッダーとフッターの行のweightを0に設定（固定領域）
+        self.grid_rowconfigure(0, weight=0)
+        self.grid_rowconfigure(2, weight=0)
+
+        # メインフレームの行のweightを1に設定（残りのスペースをすべて取る）
+        self.grid_rowconfigure(1, weight=1)
+
         self.columnconfigure(0, weight=1)  # ヘッダーをウィンドウ幅まで拡張する
 
     def onUpdate(self, e):
@@ -255,11 +281,11 @@ class MyApp(TkinterDnD.Tk):
         self.MainPage.onUpdate(e)
 
         image = Image.open(e.data)
-        image.show()
+        #image.show()
 
 
 if __name__ == "__main__":
-    start = time.time()
+
     app = MyApp()
     end = time.time()
     print(f"\n起動時間({end - start:.3f}s)")
