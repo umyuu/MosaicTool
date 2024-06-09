@@ -52,26 +52,26 @@ class AppController:
         else:
             self.view.status_message("No data received in drop event")
 
-    def handle_file_open(self):
+    def handle_file_open(self, event=None):
         """
         ファイル選択ボタンクリック時
         """
         self.view.on_select_files(None)
 
-    def handle_save_as(self):
+    def handle_save_as(self, event=None):
         """
         ファイルを選択して保存ボタンをクリック時
         """
         self.view.on_select_files(None)
 
-    def handle_back_images(self):
+    def handle_back_images(self, event=None):
         """
         前の画像に遷移するをクリック時
         """
         self.model.prev_index()
         self.display_image()
 
-    def handle_forward_images(self):
+    def handle_forward_images(self, event=None):
         """
         次の画像に遷移するをクリック時
         """

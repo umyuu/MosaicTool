@@ -7,7 +7,7 @@ from decimal import Decimal
 from functools import partial
 from tkinter import filedialog
 import tkinter as tk
-from typing import Optional
+from typing import Optional, Literal
 from pathlib import Path
 
 from PIL import Image, ImageTk
@@ -16,6 +16,36 @@ from tkinterdnd2 import DND_FILES, TkinterDnD
 from controllers import AppController
 from lib.models import MosaicFilter, StatusMessage, ImageFormat
 from lib.utils import round_up_decimal
+
+
+class WidgetUtils(object):
+    """
+    ウィジェット用のユーティリティクラス
+    """
+    @staticmethod
+    def bind_all(widget: tk.Widget, modifier: Literal["Control", "Shift", "Alt", "Control-Shift", ""] = "", letter: str = "", callback=None) -> None:
+        """
+        キーボードショートカットを割り当てるメソッド。
+        :param widget: ショートカットを割り当てる対象のウィジェット
+        :param modifier: キー修飾子 ("Control", "Shift", "Alt" など)
+        :param letter: ショートカットキーとして使用する文字
+        :param callback: イベント発生時に呼び出されるコールバック関数
+        :return: None
+        """
+        if not callback:
+            raise ValueError("コールバック関数を指定する必要があります")
+
+        bind_modifier = f"{modifier}-" if modifier else ""
+
+        # 大文字と小文字の両方にバインド
+        # キーが矢印キーかどうかをチェック
+        if letter in ["Left", "Right", "Up", "Down"]:
+            widget.bind_all(f"<{bind_modifier}{letter}>", callback)
+        else:
+            # 大文字と小文字の両方にバインド
+            widget.bind_all(f"<{bind_modifier}{letter.upper()}>", callback)
+            if not letter.isdecimal():
+                widget.bind_all(f"<{bind_modifier}{letter.lower()}>", callback)
 
 
 class Tooltip:
@@ -61,17 +91,23 @@ class Tooltip:
         self.tooltip = tk.Toplevel(self.widget)
         self.tooltip.wm_overrideredirect(True)
         self.tooltip.wm_geometry("+%d+%d" % (x, y))
-        #label = tk.Label(self.tooltip, text=self.text, border=8)
         label = tk.Label(self.tooltip, text=self.text, background="#ffffe0", relief="solid", border=1, padx=8, pady=4)
-        
         label.pack(ipadx=1)
 
 
 class PhotoImageButton(tk.Button):
     """
-    イメージボタンクラス
+    画像ボタンのクラス
     """
-    def __init__(self, master=None, image_path: str = "", tooltip: Optional[Tooltip] = None, command=None, **kwargs):
+    def __init__(self, master=None, image_path: str = "", tooltip_text: Optional[str] = None, command=None, **kwargs):
+        """
+        コンストラクタ
+        :param master: 親ウィジェット
+        :param image_path: ボタンに表示する画像のファイルパス
+        :param tooltip_text: ツールチップに表示するテキスト
+        :param command: ボタンが押されたときに実行するコマンド
+        :param kwargs: その他のオプション
+        """
         img = tk.PhotoImage(file=image_path)
         img = img.subsample(3, 3)
         if command is None:
@@ -79,8 +115,8 @@ class PhotoImageButton(tk.Button):
         else:
             super().__init__(master, image=img, compound="top", command=command, **kwargs)
 
-        self.img = img  # Keep a reference to the image to prevent it from being garbage collected
-        self.tooltip = tooltip
+        self.img = img  # ガベージコレクションを防ぐために画像を保持
+        self.tooltip = Tooltip(self, tooltip_text) if tooltip_text else None
 
 
 class HeaderFrame(tk.Frame):
@@ -93,26 +129,32 @@ class HeaderFrame(tk.Frame):
         self.controller = controller
         self.btn_file_open = PhotoImageButton(self,
                                               image_path=str(Path(icons_path, "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+                                              tooltip_text="Open (Ctrl+O)",
                                               command=self.controller.handle_file_open)
-        self.btn_file_open.tooltip = Tooltip(self.btn_file_open, "Open")
+        WidgetUtils.bind_all(self, "Control", "O", partial(self.controller.handle_file_open))
         self.btn_file_open.grid(row=0, column=0, padx=(0, 0))
 
         self.btn_save_as = PhotoImageButton(self,
                                             image_path=str(Path(icons_path, "save_as_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+                                            tooltip_text="SaveAs (Ctrl+Shift+S)",
                                             command=self.controller.handle_save_as)
-        self.btn_save_as.tooltip = Tooltip(self.btn_save_as, "SaveAs")
+        WidgetUtils.bind_all(self, "Control-Shift", "S", partial(self.controller.handle_save_as))
         self.btn_save_as.grid(row=0, column=1, padx=(4, 0))
 
         self.btn_back_file = PhotoImageButton(self,
                                               image_path=str(Path(icons_path, "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+                                              tooltip_text="Previous file (<-)",
                                               command=self.controller.handle_back_images)
-        self.btn_back_file.tooltip = Tooltip(self.btn_back_file, "Back")
+        WidgetUtils.bind_all(self, "", "Left", partial(self.controller.handle_back_images))
+        WidgetUtils.bind_all(self, "Shift", "Left", partial(self.controller.handle_back_images))
         self.btn_back_file.grid(row=0, column=2, padx=(4, 0))
 
         self.btn_forward_file = PhotoImageButton(self,
                                                  image_path=str(Path(icons_path, "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+                                                 tooltip_text="Next file (->)",
                                                  command=self.controller.handle_forward_images)
-        self.btn_forward_file.tooltip = Tooltip(self.btn_forward_file, "Forward")
+        WidgetUtils.bind_all(self, "", "Right", partial(self.controller.handle_forward_images))
+        WidgetUtils.bind_all(self, "Shift", "Right", partial(self.controller.handle_forward_images))
         self.btn_forward_file.grid(row=0, column=3, padx=(4, 0))
 
         self.widgetHeader = tk.Label(self, text="画面に画像ファイルをドラッグ＆ドロップしてください。", font=("", 14))
@@ -240,10 +282,13 @@ class FooterFrame(tk.Frame):
 
         self.imageSizeBar = tk.Label(self, text=" " * 40, bd=1, relief=tk.SUNKEN, anchor=tk.W)  # 画像サイズ表示用のラベルを追加
         self.imageSizeBar.grid(row=0, column=0, sticky=tk.W + tk.E)
+
         self.count = tk.Label(self, text="  1 /  1 ", bd=1, relief=tk.SUNKEN, anchor=tk.W)
         self.count.grid(row=0, column=1, sticky=tk.W + tk.E)
+
         self.fileSizeBar = tk.Label(self, text=" " * 20, bd=1, relief=tk.SUNKEN, anchor=tk.W)  # ファイルサイズ表示用のラベルを追加
         self.fileSizeBar.grid(row=0, column=2, sticky=tk.W + tk.E)
+
         self.modified = tk.Label(self, text=" " * 20, bd=1, relief=tk.SUNKEN, anchor=tk.W)
         self.modified.grid(row=0, column=3, sticky=tk.W + tk.E)
 
@@ -281,10 +326,13 @@ class MainPage(tk.Frame):
     def __init__(self, master: TkinterDnD.Tk, controller: AppController, icons_path: Path):
         super().__init__(master, bg="#00C8B4")
         self.controller = controller
+
         self.HeaderFrame = HeaderFrame(self, controller, "#44F7D3", icons_path)
         self.HeaderFrame.grid(column=0, row=0, sticky=(tk.E + tk.W + tk.S + tk.N))
+
         self.MainFrame = MainFrame(self, controller, bg="#88FFEB")
         self.MainFrame.grid(column=0, row=1, sticky=(tk.E + tk.W + tk.S + tk.N))
+
         self.FooterFrame = FooterFrame(self, bg="#FFBB9D")
         self.FooterFrame.grid(column=0, row=2, sticky=(tk.E + tk.W + tk.S + tk.N))
 
@@ -334,4 +382,7 @@ class MainPage(tk.Frame):
         self.FooterFrame.updateStatusBar(self.controller.get_status())
 
     def status_message(self, text: str):
+        """
+        フッターのステータスバーのメッセージ欄
+        """
         self.FooterFrame.updateMessage(text)

@@ -42,8 +42,8 @@ class MyApp(TkinterDnD.Tk):
     def __init__(self):
         super().__init__()
 
-        width = 640
-        height = 480
+        width = 800
+        height = 600
         self.geometry(f'{width}x{height}')  # ウィンドウサイズ
         self.minsize(width, height)
         self.set_window_title("")  # プログラム名とバージョン番号を表示
