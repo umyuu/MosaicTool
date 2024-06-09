@@ -15,7 +15,7 @@ from tkinterdnd2 import DND_FILES, TkinterDnD
 from controllers import AppController
 from src.models import MosaicFilter, StatusMessage, ImageFormat, MosaicImageFile
 from src.utils import round_up_decimal
-from src.widgets_core import WidgetUtils, PhotoImageButton
+from src.widgets_core import WidgetUtils, PhotoImageButton, Tooltip
 
 PROGRAM_NAME = 'MosaicTool'
 
@@ -198,33 +198,37 @@ class FooterFrame(tk.Frame):
     def __init__(self, master, bg: str):
         super().__init__(master, bg=bg)
 
-        self.imageSizeBar = tk.Label(self, text=" " * 40, bd=1, relief=tk.SUNKEN, anchor=tk.W)  # 画像サイズ表示用のラベルを追加
+        self.imageSizeBar = tk.Label(self, text=" ", bd=1, relief=tk.SUNKEN, anchor=tk.W)  # 画像サイズ表示用のラベルを追加
+        self.imageSizeBar.tooltip = Tooltip(self.imageSizeBar, "Width x Height")
         self.imageSizeBar.grid(row=0, column=0, sticky=tk.W + tk.E)
 
         self.count = tk.Label(self, text="  1 /  1 ", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.count.tooltip = Tooltip(self.count, "Current / Total")
         self.count.grid(row=0, column=1, sticky=tk.W + tk.E)
 
-        self.fileSizeBar = tk.Label(self, text=" " * 20, bd=1, relief=tk.SUNKEN, anchor=tk.W)  # ファイルサイズ表示用のラベルを追加
+        self.fileSizeBar = tk.Label(self, text=" ", bd=1, relief=tk.SUNKEN, anchor=tk.W)  # ファイルサイズ表示用のラベルを追加
+        self.fileSizeBar.tooltip = Tooltip(self.fileSizeBar, "File Size")
         self.fileSizeBar.grid(row=0, column=2, sticky=tk.W + tk.E)
 
-        self.modified = tk.Label(self, text=" " * 20, bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.modified = tk.Label(self, text=" ", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.modified.tooltip = Tooltip(self.modified, "モザイク加工対象ファイルの最終更新日時")
         self.modified.grid(row=0, column=3, sticky=tk.W + tk.E)
 
-        self.paddingLabel = tk.Label(self, text="フッターはここ")  # 余白調整用のラベルを追加
+        self.paddingLabel = tk.Label(self, text="フッターはここ", anchor="e")  # 余白調整用のラベルを追加
         self.paddingLabel.grid(row=0, column=4, sticky=tk.W + tk.E)
 
-        self.columnconfigure(0, weight=0)
-        self.columnconfigure(1, weight=0)
-        self.columnconfigure(2, weight=0)
-        self.columnconfigure(3, weight=0)
-        self.columnconfigure(4, weight=1)  # 列2（余白調整用のラベル）にweightを設定
+        self.columnconfigure(0, weight=1, minsize=56)
+        self.columnconfigure(1, weight=1, minsize=40)
+        self.columnconfigure(2, weight=1, minsize=48)
+        self.columnconfigure(3, weight=1, minsize=64)
+        self.columnconfigure(4, weight=1, minsize=480)  # 列2（余白調整用のラベル）にweightを設定
 
     def updateStatusBar(self, status: StatusMessage):
         """
         ステータスバーを更新します。
         """
         # 画像の幅と高さ
-        self.imageSizeBar.config(text=f"Width: {status.width}px, Height: {status.height}px")
+        self.imageSizeBar.config(text=f"{status.width} x {status.height}")
         # 件数
         self.count.config(text=f"{status.current} / {status.total}")
         # ファイルサイズ
