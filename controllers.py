@@ -4,47 +4,52 @@
 """
 from pathlib import Path
 
-from PIL import Image
-
 from lib.models import DataModel, StatusMessage, MosaicImageFile
 
 
 class AppController:
-    def __init__(self, model: DataModel, view):
-        self.model = model
+    """
+    コントローラー
+    """
+    def __init__(self, model: DataModel, view, fnc):
+        self.model = DataModel()
         self.view = view
+        self.fnc = fnc
 
-    def add_file_path(self, file_path: str):
+    def add_file_path(self, file_path: str) -> int:
         """
         ファイルをデータモデルに追加します。
         パスがディレクトリの場合は、ディレクトリ内のファイルも追加します。
+        :return: 追加件数
         """
         path = Path(file_path)
-        if path.is_dir:
+        count: int = 0
+        if path.is_dir():
             for f in path.glob("*.*"):
-                self.model.add_file_path(f)
+                count += self.model.add_file_path(f)
         else:
-            self.model.add_file_path(path)
+            count += self.model.add_file_path(path)
+        return count
 
     def handle_drop(self, event):
         """
         ドロップイベント
         """
+        count: int = 0
         if event.data:
             self.model.clear()
             file_paths = event.data.split('\n')  # 改行で分割
             for file_path in file_paths:
                 for f in file_path.split():
                     if f.strip():  # 空でないパスを処理
-                        path =  Path(f)
-
                         print(f"Processing file path: {f}")
-                        
-                        self.add_file_path(f)
+                        count += self.add_file_path(f)
             print(self.model)
-            self.display_image()
+            if self.model.count() > 0:
+                self.display_image()
+            self.view.status_message(f"received in drop event files:{count}")
         else:
-            print("No data received in drop event")
+            self.view.status_message("No data received in drop event")
 
     def handle_pick_images(self):
         """
@@ -77,11 +82,14 @@ class AppController:
         """
         ファイル選択ダイアログよりファイル選択時
         """
+        count: int = 0
         self.model.clear()
         for file_path in files:
-            self.add_file_path(file_path)
-
-        self.display_image()
+            count += self.add_file_path(file_path)
+        if count > 0:
+            self.view.status_message(f"select files:{count}")
+        else:
+            self.view.status_message("No data file select")
 
     def get_new_file(self) -> Path:
         """
@@ -90,6 +98,12 @@ class AppController:
         """
         f = self.model.get_current_file()
         return MosaicImageFile.newFileName(f)
+
+    def set_window_title(self, text: str):
+        """
+        タイトルバーの設定
+        """
+        self.fnc(text)
 
     def get_status(self) -> StatusMessage:
         """

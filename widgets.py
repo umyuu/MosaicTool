@@ -5,11 +5,12 @@
 """
 from decimal import Decimal
 from functools import partial
+from tkinter import filedialog
 import tkinter as tk
-
 from pathlib import Path
 
 from PIL import Image, ImageTk
+from tkinterdnd2 import DND_FILES, TkinterDnD
 
 from controllers import AppController
 from lib.models import MosaicFilter, StatusMessage
@@ -208,3 +209,78 @@ class FooterFrame(tk.Frame):
         self.fileSizeBar.config(text=str(round_up_decimal(Decimal(filesize_kb), 2)) + " KB")
         # 最終更新日時
         self.modified.config(text=status.mtime)
+
+    def updateMessage(self, text: str):
+        self.paddingLabel.config(text=text)
+
+
+class MainPage(tk.Frame):
+    """
+    メインページ
+    """
+    def __init__(self, master: TkinterDnD.Tk, controller: AppController, icons_path: Path):
+        super().__init__(master, bg="#00C8B4")
+        self.controller = controller
+        self.HeaderFrame = HeaderFrame(self, controller, "#44F7D3", icons_path)
+        self.HeaderFrame.grid(column=0, row=0, sticky=(tk.E + tk.W + tk.S + tk.N))
+        self.MainFrame = MainFrame(self, controller, bg="#88FFEB")
+        self.MainFrame.grid(column=0, row=1, sticky=(tk.E + tk.W + tk.S + tk.N))
+        self.FooterFrame = FooterFrame(self, bg="#FFBB9D")
+        self.FooterFrame.grid(column=0, row=2, sticky=(tk.E + tk.W + tk.S + tk.N))
+
+        # ヘッダーとフッターの行のweightを0に設定（固定領域）
+        self.grid_rowconfigure(0, weight=0)
+        self.grid_rowconfigure(2, weight=0)
+
+        # メインフレームの行のweightを1に設定（残りのスペースをすべて取る）
+        self.grid_rowconfigure(1, weight=1)
+
+        self.columnconfigure(0, weight=1)  # ヘッダーをウィンドウ幅まで拡張する
+        self.drop_target_register(DND_FILES)
+        self.dnd_bind('<<Drop>>', self.controller.handle_drop)
+
+        self.updateStatus()
+
+    def display_image(self, path: Path):
+        """
+        画像ファイルを選択時
+        """
+        data = str(path)
+        self.MainFrame.updateImage(data)
+        self.controller.set_window_title(data)
+        self.updateStatus()
+
+    def status_message(self, text: str):
+        self.FooterFrame.updateMessage(text)
+
+    def on_select_files(self, event):
+        """
+        ファイル選択ボタン
+        """
+        # 画像形式
+        ImageFormat = {
+            'PNG': ('*.png', ),
+            'JPEG': ('*.jpg', '*.jpeg', ),
+            'WEBP': ('*.webp', ),
+            'BMP': ('*.bmp', ),
+            'PNM': ('*.pbm', '*.pgm', '*.ppm', )
+        }
+        IMAGE_FILE_TYPES = [
+            ('Image Files', ImageFormat['PNG'] + ImageFormat['JPEG'] + ImageFormat['WEBP'] + ImageFormat['BMP']),
+            ('png (*.png)', ImageFormat['PNG']),
+            ('jpg (*.jpg, *.jpeg)', ImageFormat['JPEG']),
+            ('webp (*.webp)', ImageFormat['WEBP']),
+            ('bmp (*.bmp)', ImageFormat['BMP']),
+            ('*', '*.*')
+        ]
+
+        files = filedialog.askopenfilenames(parent=self, filetypes=IMAGE_FILE_TYPES)
+        if len(files) == 0:
+            return
+        self.controller.handle_select_files_complete(files)
+
+    def updateStatus(self):
+        """
+        フッターのステータスバーを更新
+        """
+        self.FooterFrame.updateStatusBar(self.controller.get_status())

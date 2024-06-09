@@ -40,11 +40,18 @@ class DataModel:
         self.file_paths: List[Path] = []
         self.current: int = 0
 
-    def add_file_path(self, file_path: Path):
+    def add_file_path(self, file_path: Path) -> int:
         """
         処理対象のファイルを追加します。
+        :return: 追加件数
         """
-        self.file_paths.append(file_path)
+        if file_path.exists():
+            self.file_paths.append(file_path)
+            return 1
+        return 0
+
+    def count(self):
+        return len(self.file_paths)
 
     def clear(self):
         self.file_paths = []
