@@ -50,7 +50,7 @@ class AppController:
             print(self.model)
             if count > 0:
                 self.display_image()
-            self.view.status_message(f"received in drop event files:{count}")
+            self.view.status_message(f"received in drop files:{count}")
         else:
             self.view.status_message("No data received in drop event")
 

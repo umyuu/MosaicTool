@@ -2,11 +2,12 @@
 """
     MosaicTool
 """
+import time
 from functools import partial
 from pathlib import Path
 import sys
 import os
-import time
+import json
 import tkinter as tk
 
 from tkinterdnd2 import TkinterDnD
@@ -19,8 +20,8 @@ from widgets import MainPage
 
 PROGRAM_NAME = 'MosaicTool'
 __version__ = get_package_version()
+start = time.perf_counter()
 
-start = time.time()
 application_path = os.path.dirname(os.path.abspath(__file__))
 # アイコンのパスを作成
 icons_path = Path(application_path, "third_party/icons")
@@ -33,6 +34,15 @@ if not args:
 else:
     file_paths = args
 
+# 設定ファイルより
+config = {"version": 1,
+          "width": 800,
+          "height": 600}
+config_file = Path(application_path, f"{PROGRAM_NAME}.json")
+if config_file.exists():
+    with config_file.open(encoding='utf-8') as f:
+        config = json.load(f)
+
 
 class MyApp(TkinterDnD.Tk):
     """
@@ -42,8 +52,8 @@ class MyApp(TkinterDnD.Tk):
     def __init__(self):
         super().__init__()
 
-        width = 800
-        height = 600
+        width = config.get("width")
+        height = config.get("height")
         self.geometry(f'{width}x{height}')  # ウィンドウサイズ
         self.minsize(width, height)
         self.set_window_title(Path(""))  # プログラム名とバージョン番号を表示
@@ -71,8 +81,9 @@ class MyApp(TkinterDnD.Tk):
         # コマンドライン引数で渡されたファイルパスを処理する
         self.controller.handle_select_files_complete(file_paths)
         self.MainPage.updateFileStatus()
-        end = time.time()
-        print(f"\n起動時間({end - start:.3f}s)")
+        text = f"起動時間({time.perf_counter() - start:.3f}s)"
+        print(text)
+        self.MainPage.status_message(text)
 
 
 if __name__ == "__main__":
