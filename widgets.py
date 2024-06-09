@@ -20,25 +20,41 @@ from lib.utils import round_up_decimal
 
 class Tooltip:
     """
-    ツールチップ
+    ウィジェットにツールチップを表示するクラス
     """
-    def __init__(self, widget, text):
+    def __init__(self, widget, text: str):
+        """
+        初期化メソッド
+
+        Parameters:
+        widget (tk.Widget): ツールチップを表示する対象のウィジェット
+        text (str): ツールチップに表示するテキスト
+        """
         self.widget = widget
         self.text = text
         self.tooltip = None
-        self.widget.bind("<Enter>", self.enter)
-        self.widget.bind("<Leave>", self.leave)
+        self.widget.bind("<Enter>", self.enter)  # マウスがウィジェットに入ったときにenterメソッドを呼び出す
+        self.widget.bind("<Leave>", self.leave)  # マウスがウィジェットから離れたときにleaveメソッドを呼び出す
 
     def enter(self, event=None):
-        self.id = self.widget.after(500, self.show_tooltip)
+        """
+        マウスがウィジェットに入ったときに呼び出されるメソッド
+        """
+        self.id = self.widget.after(500, self.show_tooltip)  # 500ミリ秒後にshow_tooltipメソッドを呼び出す
 
     def leave(self, event=None):
+        """
+        マウスがウィジェットから離れたときに呼び出されるメソッド
+        """
         if hasattr(self, 'id'):
-            self.widget.after_cancel(self.id)
+            self.widget.after_cancel(self.id)  # 予定されていたツールチップ表示をキャンセルする
             if self.tooltip:
-                self.tooltip.destroy()
-    
+                self.tooltip.destroy()  # ツールチップが表示されていればそれを破棄する
+
     def show_tooltip(self, event=None):
+        """
+        ツールチップを表示するメソッド
+        """
         x, y, _, _ = self.widget.bbox("insert")
         x += self.widget.winfo_rootx() + 32
         y = self.widget.winfo_rooty() + self.widget.winfo_height() + 8
