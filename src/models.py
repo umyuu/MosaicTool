@@ -191,7 +191,7 @@ class MosaicFilter:
         """
         self.cell_size = self.calc_cell_size()
 
-    def save(self, filename: str):
+    def save(self, filename: Path):
         """
         モザイク画像を保存する
         :param filename: 保存するファイルの名前

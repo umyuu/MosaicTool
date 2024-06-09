@@ -4,7 +4,7 @@
 """
 from pathlib import Path
 
-from lib.models import DataModel, StatusMessage, MosaicImageFile
+from src.models import DataModel, StatusMessage, MosaicImageFile
 from typing import Iterable
 
 
@@ -62,7 +62,7 @@ class AppController:
         """
         ファイルを選択して保存ボタンをクリック時
         """
-        self.view.on_select_files(None)
+        self.view.on_save_as(None)
 
     def handle_back_images(self, event=None):
         """

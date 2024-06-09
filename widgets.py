@@ -4,7 +4,7 @@
     画面パーツ
 """
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from functools import partial
 from decimal import Decimal
 from pathlib import Path
@@ -13,9 +13,9 @@ from PIL import Image, ImageTk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 
 from controllers import AppController
-from lib.models import MosaicFilter, StatusMessage, ImageFormat
-from lib.utils import round_up_decimal
-from lib.widgets_core import WidgetUtils, PhotoImageButton
+from src.models import MosaicFilter, StatusMessage, ImageFormat
+from src.utils import round_up_decimal
+from src.widgets_core import WidgetUtils, PhotoImageButton
 
 
 class HeaderFrame(tk.Frame):
@@ -173,7 +173,11 @@ class MainFrame(tk.Frame):
         self.canvas.config(scrollregion=(0, 0, self.original_image.width, self.original_image.height))
 
         # モザイク適用後のファイルを保存します。
-        mosaic.save(str(self.controller.get_new_file()))
+        mosaic.save(self.controller.get_new_file())
+
+    def save(self, filename: Path):
+        mosaic = MosaicFilter(self.original_image)
+        mosaic.save(filename)
 
 
 class FooterFrame(tk.Frame):
@@ -264,7 +268,6 @@ class MainPage(tk.Frame):
         """
         ファイル選択ボタン
         """
-
         IMAGE_FILE_TYPES = [
             ('Image Files', ImageFormat['PNG'] + ImageFormat['JPEG'] + ImageFormat['WEBP'] + ImageFormat['BMP']),
             ('png (*.png)', ImageFormat['PNG']),
@@ -278,6 +281,38 @@ class MainPage(tk.Frame):
         if len(files) == 0:
             return
         self.controller.handle_select_files_complete(files)
+
+    def on_save_as(self, event):
+        """
+        ファイルを選択して保存ボタン
+        """
+        if not hasattr(self.MainFrame, "original_image"):
+            return
+
+        IMAGE_FILE_TYPES = [
+            ('Image Files', ImageFormat['PNG'] + ImageFormat['JPEG'] + ImageFormat['WEBP'] + ImageFormat['BMP']),
+            ('png (*.png)', ImageFormat['PNG']),
+            ('jpg (*.jpg, *.jpeg)', ImageFormat['JPEG']),
+            ('webp (*.webp)', ImageFormat['WEBP']),
+            ('bmp (*.bmp)', ImageFormat['BMP']),
+            ('*', '*.*')
+        ]
+
+        files = filedialog.asksaveasfilename(parent=self, confirmoverwrite=True, filetypes=IMAGE_FILE_TYPES)
+        if len(files) == 0:
+            return
+
+        save_file = Path(files)
+        if len(save_file.suffix) == 0:
+            retval = messagebox.askokcancel(None,
+                                            "ファイル名に拡張子が付与されていません\n\nOK:ファイル名の選択に戻る,Cancel:名前を付けて保存の処理を中断する。")
+            if not retval:
+                print(f"名前を付けて保存の処理を中断。:{save_file}")
+                return
+            self.on_save_as(event)
+            return
+
+        self.MainFrame.save(save_file)
 
     def updateFileStatus(self):
         """

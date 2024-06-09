@@ -11,8 +11,8 @@ import tkinter as tk
 
 from tkinterdnd2 import TkinterDnD
 
-from lib.models import DataModel
-from lib.utils import get_package_version
+from src.models import DataModel
+from src.utils import get_package_version
 from controllers import AppController
 from widgets import MainPage
 
