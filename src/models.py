@@ -86,6 +86,7 @@ class DataModel:
         """
         current の前のインデックスに移動します。
         """
+        #self.current = (self.current - 1) % len(self.file_paths)
         if self.current > 0:
             self.current -= 1
         #else:

@@ -13,14 +13,14 @@ import tkinter as tk
 from tkinterdnd2 import TkinterDnD
 
 from src.models import DataModel
-from src.utils import get_package_version
+from src.utils import get_package_version, Stopwatch
 from controllers import AppController
 from widgets import MainPage
 
 
 PROGRAM_NAME = 'MosaicTool'
 __version__ = get_package_version()
-start = time.perf_counter()
+sw = Stopwatch.start_new()
 
 application_path = os.path.dirname(os.path.abspath(__file__))
 # アイコンのパスを作成
@@ -80,7 +80,7 @@ class MyApp(TkinterDnD.Tk):
         # コマンドライン引数で渡されたファイルパスを処理する
         self.controller.handle_select_files_complete(file_paths)
         self.MainPage.updateFileStatus()
-        text = f"起動時間({time.perf_counter() - start:.3f}s)"
+        text = f"起動時間({sw.elapsed:.3f}s)"
         print(text)
         self.MainPage.status_message(text)
 
