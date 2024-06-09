@@ -8,6 +8,7 @@ from tkinter import filedialog, messagebox
 from functools import partial
 from decimal import Decimal
 from pathlib import Path
+from typing import Optional
 
 from PIL import Image, ImageTk
 from tkinterdnd2 import DND_FILES, TkinterDnD
@@ -96,7 +97,10 @@ class MainFrame(tk.Frame):
         self.photo = None
         self.start_x = 0
         self.start_y = 0
-
+        #self.rect_tag: Optional[int] = None  # 矩形のタグ
+        #self.size_label = None  # サイズ表示用ラベル
+        self.rect_tag = None  # 矩形のタグ
+        self.size_label = None  # サイズ表示用ラベル
         # ドラッグ開始時のイベントをバインド
         self.canvas.bind("<Button-1>", self.start_drag)
 
@@ -135,29 +139,50 @@ class MainFrame(tk.Frame):
         """
         ドラッグ中
         """
-        if self.photo is None:
-            return
-        # ドラッグ中は選択領域を表示
-        self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
+        #if self.photo is None:
+        #    return
 
         end_x = int(self.canvas.canvasx(event.x))
         end_y = int(self.canvas.canvasy(event.y))
 
-        self.canvas.create_rectangle(self.start_x, self.start_y, end_x, end_y, outline='red', tags='dragging')
+        # 矩形が既に存在する場合は削除する
+        if self.rect_tag:
+            self.canvas.delete(self.rect_tag)
+        if self.size_label:
+            self.canvas.delete(self.size_label)
+
+        # 矩形を描画し、タグを付ける
+        self.rect_tag = self.canvas.create_rectangle(self.start_x, self.start_y, end_x, end_y, outline='red')
+
+        # サイズを計算して表示
+        width = abs(end_x - self.start_x)
+        height = abs(end_y - self.start_y)
+
+        # サイズラベルの位置をマウスカーソルの近くに設定
+        label_x = end_x + 10
+        label_y = end_y + 10
+        self.size_label = self.canvas.create_text((label_x, label_y), font=("", 12), text=f"{width} x {height}", anchor="nw")
 
     def end_drag(self, event):
         """
         ドラッグ終了時
         """
-        # ドラッグ終了位置を取得（キャンバス上の座標に変換）
-        end_x = int(self.canvas.canvasx(event.x))
-        end_y = int(self.canvas.canvasy(event.y))
+        try:
+            # ドラッグ終了位置を取得（キャンバス上の座標に変換）
+            end_x = int(self.canvas.canvasx(event.x))
+            end_y = int(self.canvas.canvasy(event.y))
 
-        # 選択領域にモザイクをかける
-        self.apply_mosaic(self.start_x, self.start_y, end_x, end_y)
-
-        # ドラッグ中に表示した選択領域を削除
-        self.canvas.delete('dragging')
+            # 選択領域にモザイクをかける
+            self.apply_mosaic(self.start_x, self.start_y, end_x, end_y)
+        except Exception as e:
+            print(f"Error applying mosaic: {e}")
+            raise e
+        finally:
+            # 矩形とサイズ表示用ラベルを削除
+            if self.rect_tag:
+                self.canvas.delete(self.rect_tag)
+            if self.size_label:
+                self.canvas.delete(self.size_label)
 
     def apply_mosaic(self, start_x: int, start_y: int, end_x: int, end_y: int):
         """
