@@ -15,10 +15,15 @@ class AppController:
         self.view = view
 
     def add_file_path(self, file_path: str):
+        """
+        """
         path = Path(file_path)
         self.model.add_file_path(path)
 
     def handle_drop(self, event):
+        """
+        ドロップイベント
+        """
         if event.data:
             self.model.clear()
             file_paths = event.data.split('\n')  # 改行で分割
@@ -68,6 +73,14 @@ class AppController:
             self.add_file_path(file_path)
 
         self.display_image()
+
+    def get_new_file(self) -> Path:
+        """
+        モザイク適用後のファイル名を生成します。
+        :return: Path
+        """
+        f = self.model.get_current_file()
+        return MosaicImageFile.newFileName(f)
 
     def get_status(self) -> StatusMessage:
         """

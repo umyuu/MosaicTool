@@ -3,12 +3,16 @@
     models
     データモデル関連
 """
+
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
+from functools import lru_cache
+
 import os
 from pathlib import Path
 from typing import List
+import time
 
 from PIL import Image
 
@@ -116,14 +120,41 @@ class MosaicImageFile:
         """
         return os.path.getsize(self._file_path)
 
-    def newMosaicFile(self) -> Path:
+    @classmethod
+    def getImageFSize(cls, file_path: Path) -> tuple[int, int]:
+        with Image.open(file_path) as img:
+            return img.size
+
+    @classmethod
+    def newFileName(cls, file_path: Path) -> Path:
         """
         モザイク処理後の新しいファイル名を生成する
+        同名ファイルが存在する場合は、画像の大きさを比較します。
         :return: 新しいファイルのPathオブジェクト
         """
-        mosaic = Path(self._file_path)
+        size = (0, 0)
+
+        try:
+            size = MosaicImageFile.getImageFSize(file_path)
+        except Exception as e:
+            print(e)
+
         # 元のファイル名から新しいファイル名を作成
-        return mosaic.with_stem(mosaic.stem + "_mosaic")
+        for i in range(0, 1000):
+            newFileName = file_path.with_stem(file_path.stem + f"_mosaic_{i}")
+            if not newFileName.exists():
+                return newFileName
+            try:
+                new_size = MosaicImageFile.getImageFSize(newFileName)
+                if size == new_size:
+                    return newFileName  # 画像の大きさが同じなら
+                if size == (0, 0):
+                    return newFileName  # 元ファイルが削除されている場合
+            except Exception as e:
+                print(e)
+                time.sleep(3)
+
+        return newFileName
 
 
 @dataclass
@@ -136,6 +167,7 @@ class MosaicFilter:
 
     def __post_init__(self):
         """
+        モザイクのセルサイズを計算し設定します。
         """
         self.cell_size = self.calc_cell_size()
 
@@ -186,6 +218,6 @@ class MosaicFilter:
         """
         # 長辺の取得し÷100で割り、小数点以下を切り上げする。
         # セルサイズが4以下（を含む）場合は、最小4ピクセルに設定します。
-        long_side = Decimal(self._image.width).max(Decimal(self._image.height)) / Decimal(100)
-        cell_size = max(4, round_up_decimal(Decimal(long_side), 0))  # 最小4ピクセル
+        long_side = (Decimal(self._image.width).max(Decimal(self._image.height))) / Decimal(100)
+        cell_size = max(4, round_up_decimal(long_side, 0))  # 最小4ピクセル
         return int(cell_size)

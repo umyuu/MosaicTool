@@ -63,9 +63,9 @@ class MainFrame(tk.Frame):
     """
     画面のメイン部
     """
-    def __init__(self, master, bg):
+    def __init__(self, master, controller: AppController, bg: str):
         super().__init__(master, bg=bg)
-
+        self.controller = controller
         # 水平スクロールバーを追加
         self.hscrollbar = tk.Scrollbar(self, orient=tk.HORIZONTAL)
         self.hscrollbar.pack(side=tk.BOTTOM, fill=tk.X)
@@ -91,14 +91,10 @@ class MainFrame(tk.Frame):
         # ドラッグ終了時のイベントをバインド
         self.canvas.bind("<ButtonRelease-1>", self.end_drag)
         self.photo = None
-        self.updateImage("")
-        self.t = MosaicImageFile("")
 
     def updateImage(self, filepath):
         if len(filepath) == 0:
             return
-        self.t = MosaicImageFile(filepath)
-
         #self.canvas.image = Image.open(filepath)
         #self.photo = ImageTk.PhotoImage(self.canvas.image)
         # 日本語ファイル名でエラーが発生するため。openを使用する。
@@ -142,16 +138,21 @@ class MainFrame(tk.Frame):
         if self.photo is None:
             return
 
+        # 座標を正しい順序に並べ替える
+        left = min(start_x, end_x)
+        right = max(start_x, end_x)
+        top = min(start_y, end_y)
+        bottom = max(start_y, end_y)
+
         mosaic = MosaicFilter(self.original_image)
-        mosaic.apply(start_x, start_y, end_x, end_y)
+        mosaic.apply(left, top, right, bottom)
         self.original_image = mosaic.Image
 
         self.photo = ImageTk.PhotoImage(self.original_image)  # 元の画像のコピーをキャンバスに表示
         # キャンバスの画像も更新
         self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
-        new_filepath = self.t.newMosaicFile()
-        mosaic.save(str(new_filepath))
-
+        # モザイク適用後のファイルを保存します。
+        mosaic.save(str(self.controller.get_new_file()))
         # キャンバスのスクロール領域を設定
         self.canvas.config(scrollregion=(0, 0, self.original_image.width, self.original_image.height))
 
@@ -187,11 +188,11 @@ class FooterFrame(tk.Frame):
         """
         ステータスバーを更新します。
         """
-        # 画像の幅と高さを表示
+        # 画像の幅と高さ
         self.imageSizeBar.config(text=f"Width: {status.width}px, Height: {status.height}px")
-        # 件数を表示
+        # 件数
         self.count.config(text=f"{status.current} / {status.total}")
-        # ファイルサイズを表示
+        # ファイルサイズ
         filesize_kb = Decimal(status.file_size) / Decimal(1024)
         self.fileSizeBar.config(text=str(round_up_decimal(Decimal(filesize_kb), 2)) + " KB")
         # 最終更新日時

@@ -50,7 +50,7 @@ class MainPage(tk.Frame):
         self.controller = controller
         self.HeaderFrame = HeaderFrame(self, controller, "#44F7D3", icons_path)
         self.HeaderFrame.grid(column=0, row=0, sticky=(tk.E + tk.W + tk.S + tk.N))
-        self.MainFrame = MainFrame(self, bg="#88FFEB")
+        self.MainFrame = MainFrame(self, controller, bg="#88FFEB")
         self.MainFrame.grid(column=0, row=1, sticky=(tk.E + tk.W + tk.S + tk.N))
         self.FooterFrame = FooterFrame(self, bg="#FFBB9D")
         self.FooterFrame.grid(column=0, row=2, sticky=(tk.E + tk.W + tk.S + tk.N))
