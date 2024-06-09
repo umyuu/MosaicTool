@@ -92,8 +92,7 @@ class AppController:
             return StatusMessage()
 
         filepath = self.model.get_current_file()
-        with Image.open(filepath) as img:
-            width, height = img.size
+        width, height = MosaicImageFile.get_image_size(filepath)
 
         m = MosaicImageFile(str(filepath))
 

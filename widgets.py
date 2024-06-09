@@ -151,10 +151,11 @@ class MainFrame(tk.Frame):
         self.photo = ImageTk.PhotoImage(self.original_image)  # 元の画像のコピーをキャンバスに表示
         # キャンバスの画像も更新
         self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
-        # モザイク適用後のファイルを保存します。
-        mosaic.save(str(self.controller.get_new_file()))
         # キャンバスのスクロール領域を設定
         self.canvas.config(scrollregion=(0, 0, self.original_image.width, self.original_image.height))
+
+        # モザイク適用後のファイルを保存します。
+        mosaic.save(str(self.controller.get_new_file()))
 
 
 class FooterFrame(tk.Frame):

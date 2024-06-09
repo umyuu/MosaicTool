@@ -121,7 +121,11 @@ class MosaicImageFile:
         return os.path.getsize(self._file_path)
 
     @classmethod
-    def getImageFSize(cls, file_path: Path) -> tuple[int, int]:
+    def get_image_size(cls, file_path: Path) -> tuple[int, int]:
+        """
+        画像の大きさを取得します。
+        :return: width, height
+        """
         with Image.open(file_path) as img:
             return img.size
 
@@ -135,7 +139,7 @@ class MosaicImageFile:
         size = (0, 0)
 
         try:
-            size = MosaicImageFile.getImageFSize(file_path)
+            size = MosaicImageFile.get_image_size(file_path)
         except Exception as e:
             print(e)
 
@@ -145,7 +149,7 @@ class MosaicImageFile:
             if not newFileName.exists():
                 return newFileName
             try:
-                new_size = MosaicImageFile.getImageFSize(newFileName)
+                new_size = MosaicImageFile.get_image_size(newFileName)
                 if size == new_size:
                     return newFileName  # 画像の大きさが同じなら
                 if size == (0, 0):
