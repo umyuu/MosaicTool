@@ -26,18 +26,13 @@ application_path = os.path.dirname(os.path.abspath(__file__))
 # アイコンのパスを作成
 icons_path = Path(application_path, "third_party/icons")
 
-
-parser = ArgumentParser(description="Process some files or directories.", add_help=False)
-
-# コマンドライン引数を追加
-parser.add_argument('-p', '--paths', metavar='path', type=str, nargs='+',
-                    help='a path to a file or directory')
-
-# 引数を解析
-args = parser.parse_args()
-if args.paths is not None:
-    for path in args.paths:
-        print(f"引数: {path}")
+# コマンドライン引数の解析
+file_paths: list[str] = []
+args = sys.argv[1:]
+if not args:
+    pass
+else:
+    file_paths = args
 
 
 class MyApp(TkinterDnD.Tk):
@@ -61,6 +56,7 @@ class MyApp(TkinterDnD.Tk):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
         self.controller.view = self.MainPage  # コントローラーにビューを設定
+        self.MainPage.after(1, partial(self.controller.handle_select_files_complete, file_paths))
 
     def set_window_title(self, filepath):
         filename = Path(filepath).name if filepath else ""
@@ -69,7 +65,6 @@ class MyApp(TkinterDnD.Tk):
 
 
 if __name__ == "__main__":
-
     app = MyApp()
     end = time.time()
     print(f"\n起動時間({end - start:.3f}s)")

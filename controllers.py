@@ -5,6 +5,7 @@
 from pathlib import Path
 
 from lib.models import DataModel, StatusMessage, MosaicImageFile
+from typing import Iterable
 
 
 class AppController:
@@ -23,12 +24,12 @@ class AppController:
         :return: 追加件数
         """
         path = Path(file_path)
+        if not path.is_dir():
+            return self.model.add_file_path(path)
+
         count: int = 0
-        if path.is_dir():
-            for f in path.glob("*.*"):
-                count += self.model.add_file_path(f)
-        else:
-            count += self.model.add_file_path(path)
+        for f in path.glob("*.*"):
+            count += self.model.add_file_path(f)
         return count
 
     def handle_drop(self, event):
@@ -45,7 +46,7 @@ class AppController:
                         print(f"Processing file path: {f}")
                         count += self.add_file_path(f)
             print(self.model)
-            if self.model.count() > 0:
+            if count > 0:
                 self.display_image()
             self.view.status_message(f"received in drop event files:{count}")
         else:
@@ -78,7 +79,7 @@ class AppController:
         file = self.model.get_current_file()
         self.view.display_image(file)
 
-    def handle_select_files_complete(self, files: tuple[str, ...]):
+    def handle_select_files_complete(self, files: Iterable[str]):
         """
         ファイル選択ダイアログよりファイル選択時
         """
@@ -86,10 +87,12 @@ class AppController:
         self.model.clear()
         for file_path in files:
             count += self.add_file_path(file_path)
-        if count > 0:
-            self.view.status_message(f"select files:{count}")
-        else:
-            self.view.status_message("No data file select")
+        if count == 0:
+            self.view.status_message("No image file")
+            return
+
+        self.display_image()
+        self.view.status_message(f"select files:{count}")
 
     def get_new_file(self) -> Path:
         """

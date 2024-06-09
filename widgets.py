@@ -144,7 +144,7 @@ class MainFrame(tk.Frame):
         # ドラッグ中に表示した選択領域を削除
         self.canvas.delete('dragging')
 
-    def apply_mosaic(self, start_x, start_y, end_x, end_y):
+    def apply_mosaic(self, start_x: int, start_y: int, end_x: int, end_y: int):
         """
         モザイクを適用します。
         """
