@@ -7,6 +7,7 @@ from decimal import Decimal
 from functools import partial
 from tkinter import filedialog
 import tkinter as tk
+from typing import Optional
 from pathlib import Path
 
 from PIL import Image, ImageTk
@@ -17,11 +18,42 @@ from lib.models import MosaicFilter, StatusMessage
 from lib.utils import round_up_decimal
 
 
+class Tooltip:
+    """
+    ツールチップ
+    """
+    def __init__(self, widget, text):
+        self.widget = widget
+        self.text = text
+        self.tooltip = None
+        self.widget.bind("<Enter>", self.enter)
+        self.widget.bind("<Leave>", self.leave)
+
+    def enter(self, event=None):
+        self.id = self.widget.after(500, self.show_tooltip)
+
+    def leave(self, event=None):
+        if hasattr(self, 'id'):
+            self.widget.after_cancel(self.id)
+            if self.tooltip:
+                self.tooltip.destroy()
+    
+    def show_tooltip(self, event=None):
+        x, y, _, _ = self.widget.bbox("insert")
+        x += self.widget.winfo_rootx() + 32
+        y = self.widget.winfo_rooty() + self.widget.winfo_height() + 8
+        self.tooltip = tk.Toplevel(self.widget)
+        self.tooltip.wm_overrideredirect(True)
+        self.tooltip.wm_geometry("+%d+%d" % (x, y))
+        label = tk.Label(self.tooltip, text=self.text, background="#ffffe0", relief="solid", borderwidth=1)
+        label.pack(ipadx=1)
+
+
 class PhotoImageButton(tk.Button):
     """
     イメージボタンクラス
     """
-    def __init__(self, master=None, image_path="", command=None, **kwargs):
+    def __init__(self, master=None, image_path: str = "", tooltip: Optional[Tooltip] = None, command=None, **kwargs):
         img = tk.PhotoImage(file=image_path)
         img = img.subsample(3, 3)
         if command is None:
@@ -30,6 +62,7 @@ class PhotoImageButton(tk.Button):
             super().__init__(master, image=img, compound="top", command=command, **kwargs)
 
         self.img = img  # Keep a reference to the image to prevent it from being garbage collected
+        self.tooltip = tooltip
 
 
 class HeaderFrame(tk.Frame):
@@ -43,16 +76,19 @@ class HeaderFrame(tk.Frame):
         self.btn_pick_images = PhotoImageButton(self,
                                                 image_path=str(Path(icons_path, "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                 command=self.controller.handle_pick_images)
+        self.btn_pick_images.tooltip = Tooltip(self.btn_pick_images, "Open")
         self.btn_pick_images.grid(row=0, column=0, padx=(0, 0))
 
         self.btn_back_file = PhotoImageButton(self,
                                               image_path=str(Path(icons_path, "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                               command=self.controller.handle_back_images)
+        self.btn_back_file.tooltip = Tooltip(self.btn_back_file, "Back")
         self.btn_back_file.grid(row=0, column=1, padx=(4, 0))
 
         self.btn_forward_file = PhotoImageButton(self,
                                                  image_path=str(Path(icons_path, "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                  command=self.controller.handle_forward_images)
+        self.btn_forward_file.tooltip = Tooltip(self.btn_forward_file, "Forward")
         self.btn_forward_file.grid(row=0, column=2, padx=(4, 0))
 
         self.widgetHeader = tk.Label(self, text="画面に画像ファイルをドラッグ＆ドロップしてください。", font=("", 10))
@@ -239,8 +275,6 @@ class MainPage(tk.Frame):
         self.drop_target_register(DND_FILES)
         self.dnd_bind('<<Drop>>', self.controller.handle_drop)
 
-        self.updateStatus()
-
     def display_image(self, path: Path):
         """
         画像ファイルを選択時
@@ -248,10 +282,7 @@ class MainPage(tk.Frame):
         data = str(path)
         self.MainFrame.updateImage(data)
         self.controller.set_window_title(data)
-        self.updateStatus()
-
-    def status_message(self, text: str):
-        self.FooterFrame.updateMessage(text)
+        self.updateFileStatus()
 
     def on_select_files(self, event):
         """
@@ -279,8 +310,11 @@ class MainPage(tk.Frame):
             return
         self.controller.handle_select_files_complete(files)
 
-    def updateStatus(self):
+    def updateFileStatus(self):
         """
         フッターのステータスバーを更新
         """
         self.FooterFrame.updateStatusBar(self.controller.get_status())
+
+    def status_message(self, text: str):
+        self.FooterFrame.updateMessage(text)

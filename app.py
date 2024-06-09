@@ -2,7 +2,6 @@
 """
     MosaicTool
 """
-from argparse import ArgumentParser
 from functools import partial
 from pathlib import Path
 import sys
@@ -10,12 +9,12 @@ import os
 import time
 import tkinter as tk
 
-from tkinterdnd2 import DND_FILES, TkinterDnD
+from tkinterdnd2 import TkinterDnD
 
-from lib.models import MosaicImageFile, DataModel
+from lib.models import DataModel
 from lib.utils import get_package_version
 from controllers import AppController
-from widgets import HeaderFrame, MainFrame, FooterFrame, MainPage
+from widgets import MainPage
 
 
 PROGRAM_NAME = 'MosaicTool'
@@ -47,25 +46,35 @@ class MyApp(TkinterDnD.Tk):
         height = 480
         self.geometry(f'{width}x{height}')  # ウィンドウサイズ
         self.minsize(width, height)
-        #self.set_window_title("")  # プログラム名とバージョン番号を表示
+        self.set_window_title("")  # プログラム名とバージョン番号を表示
+
         self.model = DataModel()
         self.controller = AppController(self.model, None, self.set_window_title)
         self.MainPage = MainPage(self, self.controller, icons_path)
-        self.set_window_title("")
         self.MainPage.grid(column=0, row=0, sticky=tk.E + tk.W + tk.S + tk.N)
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
+
         self.controller.view = self.MainPage  # コントローラーにビューを設定
-        self.MainPage.after(1, partial(self.controller.handle_select_files_complete, file_paths))
+        # 遅延してイベントループで処理をします。
+        self.MainPage.after(1, partial(self.after_launch))
 
     def set_window_title(self, filepath):
         filename = Path(filepath).name if filepath else ""
         title = f"{filename} - {PROGRAM_NAME} {__version__}" if filename else f"{PROGRAM_NAME} {__version__}"
         self.title(title)
 
+    def after_launch(self):
+        """
+        プログラムを開始します。
+        """
+        # コマンドライン引数で渡されたファイルパスを処理する
+        self.controller.handle_select_files_complete(file_paths)
+        self.MainPage.updateFileStatus()
+        end = time.time()
+        print(f"\n起動時間({end - start:.3f}s)")
+
 
 if __name__ == "__main__":
     app = MyApp()
-    end = time.time()
-    print(f"\n起動時間({end - start:.3f}s)")
     app.mainloop()

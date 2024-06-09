@@ -12,10 +12,10 @@ class AppController:
     """
     コントローラー
     """
-    def __init__(self, model: DataModel, view, fnc):
-        self.model = DataModel()
+    def __init__(self, model: DataModel, view, window_title_fnc):
+        self.model = model
         self.view = view
-        self.fnc = fnc
+        self.window_title_fnc = window_title_fnc
 
     def add_file_path(self, file_path: str) -> int:
         """
@@ -106,7 +106,7 @@ class AppController:
         """
         タイトルバーの設定
         """
-        self.fnc(text)
+        self.window_title_fnc(text)
 
     def get_status(self) -> StatusMessage:
         """
