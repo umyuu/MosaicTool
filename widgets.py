@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    PhotoImageButton
+    Widgets
+    画面のパーツ
 """
 from decimal import Decimal
 from functools import partial
@@ -11,7 +12,7 @@ from pathlib import Path
 from PIL import Image, ImageTk
 
 from controllers import AppController
-from lib.models import MosaicImageFile, MosaicFilter, StatusMessage
+from lib.models import MosaicFilter, StatusMessage
 from lib.utils import round_up_decimal
 
 
@@ -36,10 +37,8 @@ class HeaderFrame(tk.Frame):
     """
     def __init__(self, master, controller: AppController, bg: str, icons_path: Path):
         super().__init__(master, bg=bg)
-        self.controller = controller
-        self.createWidgets(str(icons_path))
 
-    def createWidgets(self, icons_path: str):
+        self.controller = controller
         self.btn_pick_images = PhotoImageButton(self,
                                                 image_path=str(Path(icons_path, "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                 command=self.controller.handle_pick_images)
@@ -65,6 +64,7 @@ class MainFrame(tk.Frame):
     """
     def __init__(self, master, controller: AppController, bg: str):
         super().__init__(master, bg=bg)
+
         self.controller = controller
         # 水平スクロールバーを追加
         self.hscrollbar = tk.Scrollbar(self, orient=tk.HORIZONTAL)
@@ -109,11 +109,17 @@ class MainFrame(tk.Frame):
         self.canvas.config(scrollregion=(0, 0, self.original_image.width, self.original_image.height))
 
     def start_drag(self, event):
+        """
+        ドラッグ開始
+        """
         # ドラッグ開始位置を記録（キャンバス上の座標に変換）
         self.start_x = int(self.canvas.canvasx(event.x))
         self.start_y = int(self.canvas.canvasy(event.y))
 
     def dragging(self, event):
+        """
+        ドラッグ中
+        """
         if self.photo is None:
             return
         # ドラッグ中は選択領域を表示
@@ -124,6 +130,9 @@ class MainFrame(tk.Frame):
         self.canvas.create_rectangle(self.start_x, self.start_y, end_x, end_y, outline='red', tags='dragging')
 
     def end_drag(self, event):
+        """
+        ドラッグ終了時
+        """
         # ドラッグ終了位置を取得（キャンバス上の座標に変換）
         end_x = int(self.canvas.canvasx(event.x))
         end_y = int(self.canvas.canvasy(event.y))
@@ -135,6 +144,9 @@ class MainFrame(tk.Frame):
         self.canvas.delete('dragging')
 
     def apply_mosaic(self, start_x, start_y, end_x, end_y):
+        """
+        モザイクを適用します。
+        """
         if self.photo is None:
             return
 
@@ -164,9 +176,7 @@ class FooterFrame(tk.Frame):
     """
     def __init__(self, master, bg):
         super().__init__(master, bg=bg)
-        self.createWidgets()
 
-    def createWidgets(self):
         self.imageSizeBar = tk.Label(self, text=" " * 40, bd=1, relief=tk.SUNKEN, anchor=tk.W)  # 画像サイズ表示用のラベルを追加
         self.imageSizeBar.grid(row=0, column=0, sticky=tk.W + tk.E)
         self.count = tk.Label(self, text="  1 /  1 ", bd=1, relief=tk.SUNKEN, anchor=tk.W)

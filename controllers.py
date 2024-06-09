@@ -16,9 +16,15 @@ class AppController:
 
     def add_file_path(self, file_path: str):
         """
+        ファイルをデータモデルに追加します。
+        パスがディレクトリの場合は、ディレクトリ内のファイルも追加します。
         """
         path = Path(file_path)
-        self.model.add_file_path(path)
+        if path.is_dir:
+            for f in path.glob("*.*"):
+                self.model.add_file_path(f)
+        else:
+            self.model.add_file_path(path)
 
     def handle_drop(self, event):
         """
@@ -30,7 +36,10 @@ class AppController:
             for file_path in file_paths:
                 for f in file_path.split():
                     if f.strip():  # 空でないパスを処理
+                        path =  Path(f)
+
                         print(f"Processing file path: {f}")
+                        
                         self.add_file_path(f)
             print(self.model)
             self.display_image()
