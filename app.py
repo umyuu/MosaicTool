@@ -35,13 +35,12 @@ else:
     file_paths = args
 
 # 設定ファイルより
-config = {"version": 1,
-          "width": 800,
-          "height": 600}
 config_file = Path(application_path, f"{PROGRAM_NAME}.json")
 if config_file.exists():
     with config_file.open(encoding='utf-8') as f:
         config = json.load(f)
+else:
+    config = {}
 
 
 class MyApp(TkinterDnD.Tk):
@@ -51,9 +50,9 @@ class MyApp(TkinterDnD.Tk):
     """
     def __init__(self):
         super().__init__()
-
-        width = config.get("width")
-        height = config.get("height")
+        initial_window_size = config.get("initialWindowSize", {"width": 800, "height": 600})
+        width = initial_window_size.get("width")
+        height = initial_window_size.get("height")
         self.geometry(f'{width}x{height}')  # ウィンドウサイズ
         self.minsize(width, height)
         self.set_window_title(Path(""))  # プログラム名とバージョン番号を表示
