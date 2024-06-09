@@ -66,19 +66,27 @@ class AppController:
         """
         self.view.on_save_as(None)
 
-    def handle_back_images(self, event=None):
+    def handle_back_image(self, event=None):
         """
         前の画像に遷移するをクリック時
         """
         self.model.prev_index()
         self.display_image()
 
-    def handle_forward_images(self, event=None):
+    def handle_forward_image(self, event=None):
         """
         次の画像に遷移するをクリック時
         """
         self.model.next_index()
         self.display_image()
+
+    def handle_info_image(self, event=None):
+        """
+        画像情報を表示するをクリック時
+        """
+        file = self.model.get_current_file()
+        d = MosaicImageFile.get_image_info(file)
+        print(d)
 
     def display_image(self):
         """

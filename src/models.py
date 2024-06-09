@@ -11,10 +11,11 @@ from functools import lru_cache
 
 import os
 from pathlib import Path
-from typing import List
+from typing import List, Any
 import time
 
 from PIL import Image
+from PIL.PngImagePlugin import PngInfo
 
 from . utils import round_up_decimal
 
@@ -113,6 +114,42 @@ class MosaicImageFile:
     """
     file_path: Path
 
+    @classmethod
+    def is_png(cls, path: Path):
+        # ファイルの存在を確認する
+        if not path.is_file():
+            return False
+
+        # ファイルをバイナリモードで開く
+        with open(path, 'rb') as f:
+            # 先頭8バイトを読み取る
+            header = f.read(8)
+
+        # ファイルが8バイト未満の場合はPNGファイルではないと見なす
+        if len(header) < 8:
+            return False
+
+        # PNGのシグネチャが存在するかどうかを確認する
+        return header[:8] == b'\x89PNG\r\n\x1a\n'
+
+    @classmethod
+    def is_jpg(cls, path: Path):
+        # ファイルの存在を確認する
+        if not path.is_file():
+            return False
+
+        # ファイルをバイナリモードで開く
+        with open(path, 'rb') as f:
+            # 先頭2バイトを読み取る
+            header = f.read(2)
+
+        # ファイルが2バイト未満の場合はJPGファイルではないと見なす
+        if len(header) < 2:
+            return False
+
+        # 先頭バイトがJPGファイルのマジックナンバーであるかどうかを確認する
+        return header == b'\xFF\xD8'
+
     @property
     def mtime(self) -> str:
         """
@@ -143,6 +180,15 @@ class MosaicImageFile:
         """
         with Image.open(file_path) as img:
             return img.size
+
+    @classmethod
+    def get_image_info(cls, file_path: Path) -> dict[Any, Any]:
+        """
+        画像のInfoを取得します。
+        :return: info
+        """
+        with Image.open(file_path) as img:
+            return img.info
 
     @classmethod
     def newFileName(cls, file_path: Path) -> Path:
@@ -192,12 +238,35 @@ class MosaicFilter:
         """
         self.cell_size = self.calc_cell_size()
 
-    def save(self, filename: Path):
+    def save(self, output_path: Path, filename: Path):
         """
         モザイク画像を保存する
-        :param filename: 保存するファイルの名前
+        :param output_path: 保存するファイルの名前
         """
-        self._image.save(filename)
+        if MosaicImageFile.is_png(filename):
+            with Image.open(filename) as img:
+                self.save_png_metadata(img, output_path)
+            return
+        if MosaicImageFile.is_jpg(filename):
+            with Image.open(filename) as img:
+                self.save_jpeg_metadata(img, output_path)
+            return
+
+        self._image.save(output_path)
+
+    def save_png_metadata(self, image: Image.Image, output_path: Path):
+        # PNGの場合の処理
+        png_info = image.info
+        new_png_info = PngInfo()
+        for key, value in png_info.items():
+            new_png_info.add_text(key, value)
+        image.save(output_path, pnginfo=new_png_info)
+        print("PNGINFO saved successfully.")
+
+    def save_jpeg_metadata(self, image: Image.Image, output_path: Path):
+        # JPEGの場合の処理
+        exif_data = image.info.get("exif")
+        image.save(output_path, exif=exif_data)
 
     def apply(self, start_x: int, start_y: int, end_x: int, end_y: int):
         """

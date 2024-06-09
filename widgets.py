@@ -13,7 +13,7 @@ from PIL import Image, ImageTk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 
 from controllers import AppController
-from src.models import MosaicFilter, StatusMessage, ImageFormat
+from src.models import MosaicFilter, StatusMessage, ImageFormat, MosaicImageFile
 from src.utils import round_up_decimal
 from src.widgets_core import WidgetUtils, PhotoImageButton
 
@@ -42,24 +42,31 @@ class HeaderFrame(tk.Frame):
         WidgetUtils.bind_all(self, "Control-Shift", "S", partial(self.controller.handle_save_as))
         self.btn_save_as.grid(row=0, column=1, padx=(4, 0))
 
-        self.btn_back_file = PhotoImageButton(self,
-                                              image_path=str(Path(icons_path, "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")),
-                                              tooltip_text="Previous file (<-)",
-                                              command=self.controller.handle_back_images)
-        WidgetUtils.bind_all(self, "", "Left", partial(self.controller.handle_back_images))
-        WidgetUtils.bind_all(self, "Shift", "Left", partial(self.controller.handle_back_images))
-        self.btn_back_file.grid(row=0, column=2, padx=(4, 0))
+        self.btn_back = PhotoImageButton(self,
+                                         image_path=str(Path(icons_path, "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+                                         tooltip_text="Previous file (<-)",
+                                         command=self.controller.handle_back_image)
+        WidgetUtils.bind_all(self, "", "Left", partial(self.controller.handle_back_image))
+        WidgetUtils.bind_all(self, "Shift", "Left", partial(self.controller.handle_back_image))
+        self.btn_back.grid(row=0, column=2, padx=(4, 0))
 
-        self.btn_forward_file = PhotoImageButton(self,
-                                                 image_path=str(Path(icons_path, "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")),
-                                                 tooltip_text="Next file (->)",
-                                                 command=self.controller.handle_forward_images)
-        WidgetUtils.bind_all(self, "", "Right", partial(self.controller.handle_forward_images))
-        WidgetUtils.bind_all(self, "Shift", "Right", partial(self.controller.handle_forward_images))
-        self.btn_forward_file.grid(row=0, column=3, padx=(4, 0))
+        self.btn_forward = PhotoImageButton(self,
+                                            image_path=str(Path(icons_path, "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+                                            tooltip_text="Next file (->)",
+                                            command=self.controller.handle_forward_image)
+        WidgetUtils.bind_all(self, "", "Right", partial(self.controller.handle_forward_image))
+        WidgetUtils.bind_all(self, "Shift", "Right", partial(self.controller.handle_forward_image))
+        self.btn_forward.grid(row=0, column=3, padx=(4, 0))
+
+        self.btn_info_file = PhotoImageButton(self,
+                                              image_path=str(Path(icons_path, "info_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+                                              tooltip_text="Image Information (I)",
+                                              command=self.controller.handle_info_image)
+        WidgetUtils.bind_all(self, "", "I", partial(self.controller.handle_info_image))
+        self.btn_info_file.grid(row=0, column=4, padx=(4, 0))
 
         self.widgetHeader = tk.Label(self, text="画面に画像ファイルをドラッグ＆ドロップしてください。", font=("", 14))
-        self.widgetHeader.grid(row=0, column=4, padx=(4, 0))
+        self.widgetHeader.grid(row=0, column=5, padx=(4, 0))
 
 
 class MainFrame(tk.Frame):
@@ -107,6 +114,7 @@ class MainFrame(tk.Frame):
         # 日本語ファイル名でエラーが発生するため。openを使用する。
         with open(filepath, "rb") as f:
             img = Image.open(f)
+            self.info = img.info
             self.original_image = img  # 元の画像を開く
             self.photo = ImageTk.PhotoImage(self.original_image)  # 元の画像のコピーをキャンバスに表示
 
@@ -175,11 +183,12 @@ class MainFrame(tk.Frame):
         self.canvas.config(scrollregion=(0, 0, self.original_image.width, self.original_image.height))
 
         # モザイク適用後のファイルを保存します。
-        mosaic.save(self.controller.get_new_file())
+        self.save(self.controller.get_new_file())
 
-    def save(self, filename: Path):
+    def save(self, filename: Path):        
+        current = self.controller.model.get_current_file()
         mosaic = MosaicFilter(self.original_image)
-        mosaic.save(filename)
+        mosaic.save(filename, current)
 
 
 class FooterFrame(tk.Frame):
