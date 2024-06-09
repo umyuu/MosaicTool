@@ -18,6 +18,7 @@ from PIL import Image
 
 from . utils import round_up_decimal
 
+
 # 画像形式
 ImageFormat = {
     'PNG': ('*.png', ),
@@ -59,7 +60,7 @@ class DataModel:
             return 1
         return 0
 
-    def count(self):
+    def count(self) -> int:
         return len(self.file_paths)
 
     def clear(self):
@@ -110,9 +111,7 @@ class MosaicImageFile:
     """
     モザイク画像ファイルの情報を管理するクラス
     """
-    _file_path: str = ""
-    # ファイルのメタデータを取得
-    file_stat = Path(_file_path).stat()
+    file_path: Path
 
     @property
     def mtime(self) -> str:
@@ -121,7 +120,7 @@ class MosaicImageFile:
         :return: 最終更新日時の文字列
         """
         # ファイルのメタデータを取得
-        file_stat = Path(self._file_path).stat()
+        file_stat = self.file_path.stat()
         # 最終更新日時を取得
         timestamp = file_stat.st_mtime
         # タイムスタンプをローカルタイムに変換し、ISO 8601形式に変換
@@ -134,7 +133,7 @@ class MosaicImageFile:
         ファイルサイズを取得するプロパティ
         :return: ファイルサイズ（バイト）
         """
-        return os.path.getsize(self._file_path)
+        return os.path.getsize(self.file_path)
 
     @classmethod
     def get_image_size(cls, file_path: Path) -> tuple[int, int]:
@@ -174,6 +173,8 @@ class MosaicImageFile:
                 print(e)
                 time.sleep(3)
 
+        if i == 1000:
+            ValueError()
         return newFileName
 
 

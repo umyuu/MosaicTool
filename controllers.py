@@ -17,13 +17,13 @@ class AppController:
         self.view = view
         self.window_title_callback = window_title_callback
 
-    def add_file_path(self, file_path: str) -> int:
+    def add_file_path(self, file_path: Path) -> int:
         """
         ファイルをデータモデルに追加します。
         パスがディレクトリの場合は、ディレクトリ内のファイルも追加します。
         :return: 追加件数
         """
-        path = Path(file_path)
+        path = file_path
         if not path.is_dir():
             return self.model.add_file_path(path)
 
@@ -42,9 +42,11 @@ class AppController:
             file_paths = event.data.split('\n')  # 改行で分割
             for file_path in file_paths:
                 for f in file_path.split():
-                    if f.strip():  # 空でないパスを処理
-                        print(f"Processing file path: {f}")
-                        count += self.add_file_path(f)
+                    path = Path(f)
+                    if (path.exists()):
+                        print(f"Processing file: {path}")
+                        count += self.add_file_path(path)
+
             print(self.model)
             if count > 0:
                 self.display_image()
@@ -93,7 +95,7 @@ class AppController:
         total: int = 0
         self.model.clear()
         for file_path in files:
-            count += self.add_file_path(file_path)
+            count += self.add_file_path(Path(file_path))
             total += 1
         if count == 0:
             self.view.status_message("No image file")
@@ -110,7 +112,7 @@ class AppController:
         f = self.model.get_current_file()
         return MosaicImageFile.newFileName(f)
 
-    def set_window_title(self, text: str):
+    def set_window_title(self, text: Path):
         """
         タイトルバーの設定
         """
@@ -128,7 +130,7 @@ class AppController:
         filepath = self.model.get_current_file()
         width, height = MosaicImageFile.get_image_size(filepath)
 
-        m = MosaicImageFile(str(filepath))
+        m = MosaicImageFile(filepath)
 
         return StatusMessage(
             current=self.model.current + 1,

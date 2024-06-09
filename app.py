@@ -46,7 +46,7 @@ class MyApp(TkinterDnD.Tk):
         height = 600
         self.geometry(f'{width}x{height}')  # ウィンドウサイズ
         self.minsize(width, height)
-        self.set_window_title("")  # プログラム名とバージョン番号を表示
+        self.set_window_title(Path(""))  # プログラム名とバージョン番号を表示
 
         self.model = DataModel()
         self.controller = AppController(self.model, None, self.set_window_title)
@@ -59,8 +59,8 @@ class MyApp(TkinterDnD.Tk):
         # 遅延してイベントループで処理をします。
         self.MainPage.after(1, partial(self.after_launch))
 
-    def set_window_title(self, filepath):
-        filename = Path(filepath).name if filepath else ""
+    def set_window_title(self, filepath: Path):
+        filename = filepath.name if filepath else ""
         title = f"{filename} - {PROGRAM_NAME} {__version__}" if filename else f"{PROGRAM_NAME} {__version__}"
         self.title(title)
 

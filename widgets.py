@@ -17,6 +17,8 @@ from src.models import MosaicFilter, StatusMessage, ImageFormat
 from src.utils import round_up_decimal
 from src.widgets_core import WidgetUtils, PhotoImageButton
 
+PROGRAM_NAME = 'MosaicTool'
+
 
 class HeaderFrame(tk.Frame):
     """
@@ -97,8 +99,8 @@ class MainFrame(tk.Frame):
         # ドラッグ終了時のイベントをバインド
         self.canvas.bind("<ButtonRelease-1>", self.end_drag)
 
-    def updateImage(self, filepath):
-        if len(filepath) == 0:
+    def updateImage(self, filepath: Path):
+        if not filepath.exists():
             return
         #self.canvas.image = Image.open(filepath)
         #self.photo = ImageTk.PhotoImage(self.canvas.image)
@@ -184,7 +186,7 @@ class FooterFrame(tk.Frame):
     """
     画面のフッター部
     """
-    def __init__(self, master, bg):
+    def __init__(self, master, bg: str):
         super().__init__(master, bg=bg)
 
         self.imageSizeBar = tk.Label(self, text=" " * 40, bd=1, relief=tk.SUNKEN, anchor=tk.W)  # 画像サイズ表示用のラベルを追加
@@ -259,9 +261,8 @@ class MainPage(tk.Frame):
         """
         画像ファイルを選択時
         """
-        data = str(path)
-        self.MainFrame.updateImage(data)
-        self.controller.set_window_title(data)
+        self.MainFrame.updateImage(path)
+        self.controller.set_window_title(path)
         self.updateFileStatus()
 
     def on_select_files(self, event):
@@ -304,8 +305,8 @@ class MainPage(tk.Frame):
 
         save_file = Path(files)
         if len(save_file.suffix) == 0:
-            retval = messagebox.askokcancel(None,
-                                            "ファイル名に拡張子が付与されていません\n\nOK:ファイル名の選択に戻る,Cancel:名前を付けて保存の処理を中断する。")
+            retval = messagebox.askokcancel(PROGRAM_NAME,
+                                            f"ファイル名に拡張子が付与されていません\n{save_file}\n\nOK:ファイル名の選択に戻る\nCancel:名前を付けて保存の処理を中断する。")
             if not retval:
                 print(f"名前を付けて保存の処理を中断。:{save_file}")
                 return
@@ -313,6 +314,9 @@ class MainPage(tk.Frame):
             return
 
         self.MainFrame.save(save_file)
+
+        messagebox.showinfo(PROGRAM_NAME, f"ファイルを保存しました。\n\n{save_file}")
+        self.status_message(f"ファイルを保存しました。{save_file}")
 
     def updateFileStatus(self):
         """
