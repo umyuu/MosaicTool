@@ -245,28 +245,35 @@ class MosaicFilter:
         """
         if MosaicImageFile.is_png(filename):
             with Image.open(filename) as img:
-                self.save_png_metadata(img, output_path)
+                self.save_png_metadata(img, self._image, output_path)
             return
         if MosaicImageFile.is_jpg(filename):
             with Image.open(filename) as img:
-                self.save_jpeg_metadata(img, output_path)
+                self.save_jpeg_metadata(img, self._image, output_path)
             return
 
         self._image.save(output_path)
 
-    def save_png_metadata(self, image: Image.Image, output_path: Path):
-        # PNGの場合の処理
-        png_info = image.info
+    def save_png_metadata(self, src_image: Image.Image, out_image: Image.Image, output_path: Path):
+        """
+        PNGの場合の処理
+        """
+        png_info = src_image.info
         new_png_info = PngInfo()
         for key, value in png_info.items():
             new_png_info.add_text(key, value)
-        image.save(output_path, pnginfo=new_png_info)
+        out_image.save(output_path, pnginfo=new_png_info)
         print("PNGINFO saved successfully.")
 
-    def save_jpeg_metadata(self, image: Image.Image, output_path: Path):
-        # JPEGの場合の処理
+    def save_jpeg_metadata(self, image: Image.Image, out_image: Image.Image, output_path: Path):
+        """
+        JPEGの場合
+        """
         exif_data = image.info.get("exif")
-        image.save(output_path, exif=exif_data)
+        if exif_data:
+            out_image.save(output_path, exif=exif_data)
+        else:
+            out_image.save(output_path)
 
     def apply(self, start_x: int, start_y: int, end_x: int, end_y: int):
         """
