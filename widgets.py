@@ -14,7 +14,7 @@ from PIL import Image, ImageTk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 
 from controllers import AppController
-from lib.models import MosaicFilter, StatusMessage
+from lib.models import MosaicFilter, StatusMessage, ImageFormat
 from lib.utils import round_up_decimal
 
 
@@ -61,7 +61,9 @@ class Tooltip:
         self.tooltip = tk.Toplevel(self.widget)
         self.tooltip.wm_overrideredirect(True)
         self.tooltip.wm_geometry("+%d+%d" % (x, y))
-        label = tk.Label(self.tooltip, text=self.text, background="#ffffe0", relief="solid", borderwidth=1)
+        #label = tk.Label(self.tooltip, text=self.text, border=8)
+        label = tk.Label(self.tooltip, text=self.text, background="#ffffe0", relief="solid", border=1, padx=8, pady=4)
+        
         label.pack(ipadx=1)
 
 
@@ -89,26 +91,32 @@ class HeaderFrame(tk.Frame):
         super().__init__(master, bg=bg)
 
         self.controller = controller
-        self.btn_pick_images = PhotoImageButton(self,
-                                                image_path=str(Path(icons_path, "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
-                                                command=self.controller.handle_pick_images)
-        self.btn_pick_images.tooltip = Tooltip(self.btn_pick_images, "Open")
-        self.btn_pick_images.grid(row=0, column=0, padx=(0, 0))
+        self.btn_file_open = PhotoImageButton(self,
+                                              image_path=str(Path(icons_path, "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+                                              command=self.controller.handle_file_open)
+        self.btn_file_open.tooltip = Tooltip(self.btn_file_open, "Open")
+        self.btn_file_open.grid(row=0, column=0, padx=(0, 0))
+
+        self.btn_save_as = PhotoImageButton(self,
+                                            image_path=str(Path(icons_path, "save_as_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+                                            command=self.controller.handle_save_as)
+        self.btn_save_as.tooltip = Tooltip(self.btn_save_as, "SaveAs")
+        self.btn_save_as.grid(row=0, column=1, padx=(4, 0))
 
         self.btn_back_file = PhotoImageButton(self,
                                               image_path=str(Path(icons_path, "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                               command=self.controller.handle_back_images)
         self.btn_back_file.tooltip = Tooltip(self.btn_back_file, "Back")
-        self.btn_back_file.grid(row=0, column=1, padx=(4, 0))
+        self.btn_back_file.grid(row=0, column=2, padx=(4, 0))
 
         self.btn_forward_file = PhotoImageButton(self,
                                                  image_path=str(Path(icons_path, "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                  command=self.controller.handle_forward_images)
         self.btn_forward_file.tooltip = Tooltip(self.btn_forward_file, "Forward")
-        self.btn_forward_file.grid(row=0, column=2, padx=(4, 0))
+        self.btn_forward_file.grid(row=0, column=3, padx=(4, 0))
 
-        self.widgetHeader = tk.Label(self, text="画面に画像ファイルをドラッグ＆ドロップしてください。", font=("", 10))
-        self.widgetHeader.grid(row=0, column=3, padx=(4, 0))
+        self.widgetHeader = tk.Label(self, text="画面に画像ファイルをドラッグ＆ドロップしてください。", font=("", 14))
+        self.widgetHeader.grid(row=0, column=4, padx=(4, 0))
 
 
 class MainFrame(tk.Frame):
@@ -304,14 +312,7 @@ class MainPage(tk.Frame):
         """
         ファイル選択ボタン
         """
-        # 画像形式
-        ImageFormat = {
-            'PNG': ('*.png', ),
-            'JPEG': ('*.jpg', '*.jpeg', ),
-            'WEBP': ('*.webp', ),
-            'BMP': ('*.bmp', ),
-            'PNM': ('*.pbm', '*.pgm', '*.ppm', )
-        }
+
         IMAGE_FILE_TYPES = [
             ('Image Files', ImageFormat['PNG'] + ImageFormat['JPEG'] + ImageFormat['WEBP'] + ImageFormat['BMP']),
             ('png (*.png)', ImageFormat['PNG']),

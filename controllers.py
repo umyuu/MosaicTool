@@ -52,9 +52,15 @@ class AppController:
         else:
             self.view.status_message("No data received in drop event")
 
-    def handle_pick_images(self):
+    def handle_file_open(self):
         """
         ファイル選択ボタンクリック時
+        """
+        self.view.on_select_files(None)
+
+    def handle_save_as(self):
+        """
+        ファイルを選択して保存ボタンをクリック時
         """
         self.view.on_select_files(None)
 
@@ -84,15 +90,17 @@ class AppController:
         ファイル選択ダイアログよりファイル選択時
         """
         count: int = 0
+        total: int = 0
         self.model.clear()
         for file_path in files:
             count += self.add_file_path(file_path)
+            total += 1
         if count == 0:
             self.view.status_message("No image file")
             return
 
         self.display_image()
-        self.view.status_message(f"select files:{count}")
+        self.view.status_message(f"select files:{count} / {total}")
 
     def get_new_file(self) -> Path:
         """

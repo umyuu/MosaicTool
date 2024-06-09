@@ -18,6 +18,15 @@ from PIL import Image
 
 from . utils import round_up_decimal
 
+# 画像形式
+ImageFormat = {
+    'PNG': ('*.png', ),
+    'JPEG': ('*.jpg', '*.jpeg', ),
+    'WEBP': ('*.webp', ),
+    'BMP': ('*.bmp', ),
+    'PNM': ('*.pbm', '*.pgm', '*.ppm', )
+}
+
 
 @dataclass
 class StatusMessage:
