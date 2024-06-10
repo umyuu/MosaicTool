@@ -257,15 +257,15 @@ class FooterFrame(tk.Frame):
         self.paddingLabel.grid(row=0, column=4, sticky=tk.W + tk.E)
 
         self.process_time = tk.Label(self, text=" ", anchor="e")
-        self.process_time.tooltip = Tooltip(self.fileSizeBar, "処理時間(sec)")
+        self.process_time.tooltip = Tooltip(self.process_time, "処理時間(sec)")
         self.process_time.grid(row=0, column=5, sticky=tk.W + tk.E)
 
         self.columnconfigure(0, weight=1, minsize=56)
         self.columnconfigure(1, weight=1, minsize=40)
         self.columnconfigure(2, weight=1, minsize=48)
         self.columnconfigure(3, weight=1, minsize=64)
-        self.columnconfigure(4, weight=1, minsize=480)  # 余白調整用のラベル）にweightを設定
-        self.columnconfigure(5, weight=1, minsize=64)
+        self.columnconfigure(4, weight=1, minsize=400)  # 余白調整用のラベル）にweightを設定
+        self.columnconfigure(5, weight=1, minsize=24)
 
     def updateStatusBar(self, status: StatusMessage):
         """
