@@ -1,4 +1,5 @@
-#
+# ignore shortcut link
+build.lnk
 run.lnk
 
 # Byte-compiled / optimized / DLL files
