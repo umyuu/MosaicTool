@@ -2,6 +2,7 @@
 """
     release
 """
+from dataclasses import dataclass, field
 from datetime import datetime
 import glob
 import hashlib
@@ -9,6 +10,8 @@ from pathlib import Path
 import time
 from typing import List
 import zipfile
+
+__version__ = "0.0.2"
 
 
 def hash_compute(file_path: Path) -> str:
@@ -33,14 +36,16 @@ def create_readMe(file1_path: Path, file2_path: Path, hash_value: str, output_pa
     current_date = datetime.now()
     # 8桁の日付文字列にフォーマット
     date_string = current_date.strftime("%Y/%m/%d")
-    data = f"{date_string} ver 0.0.2  \n" 
-    data += file1_path.read_text("utf-8")
-    data += "\n\n"
-    data += "## ハッシュ値  \n"
-    data += f"MosaicTool.exe Hash Value (SHA-256): {hash_value}\n"
-    data += file2_path.read_text("utf-8")
 
-    output_path.write_text(data, "utf-8")
+    readme_content = ""
+    readme_content = f"{date_string} ver {__version__}  \n" 
+    readme_content += file1_path.read_text("utf-8")
+    readme_content += "\n\n"
+    readme_content += "## ハッシュ値  \n"
+    readme_content += f"MosaicTool.exe Hash Value (SHA-256): {hash_value}\n"
+    readme_content += file2_path.read_text("utf-8")
+
+    output_path.write_text(readme_content, "utf-8")
 
 
 def get_compressible_files(root_dir: Path, exclude_files: List[Path]) -> List[Path]:
@@ -64,7 +69,7 @@ def get_compressible_files(root_dir: Path, exclude_files: List[Path]) -> List[Pa
     return compressible_files
 
 
-def create_zip_file(source_dir: List[Path], output_zip: Path) -> int:
+def create_zip(source_dir: List[Path], output_zip: Path) -> int:
     """
     ディレクトリ内のすべてのファイルをZIPに追加し、指定されたファイルを除外します。
 
@@ -86,21 +91,40 @@ def create_zip_file(source_dir: List[Path], output_zip: Path) -> int:
     return count
 
 
-if __name__ == '__main__':
-    start: float = time.perf_counter()
+@dataclass
+class SetupConfigRation:
     source_dir: Path = Path("dist")
     output_zip: Path = source_dir / "MosaicTool.zip"
     app_file: Path = source_dir / "MosaicTool.exe"
     handouts_file: Path = source_dir / "handouts.txt"
-    exclude_files: List[Path] = [output_zip, source_dir / ".gitignore", handouts_file]
+    exclude_files: List[Path] = field(default_factory=list)
+    additional_files: List[Path] = field(default_factory=list)
 
-    hash_value = hash_compute(app_file)
-    print(f"compute hash, ({time.perf_counter() - start:.3f}s)")
 
-    create_readMe(Path("ReadMe.md"), handouts_file, hash_value, source_dir / "ReadMe.txt")
-    print(f"output ReadMe.md, ({time.perf_counter() - start:.3f}s)")
+def main():
+    start: float = time.perf_counter()
+    # Configuration
+    config = SetupConfigRation()
+    config.exclude_files.extend([config.output_zip, config.source_dir / ".gitignore", config.handouts_file])
+    config.additional_files.extend([
+        Path("docs/initial_screen.png"),
+    ])
 
-    compressible_files = get_compressible_files(source_dir, exclude_files)
-    print(f"get_compressible_files, ({time.perf_counter() - start:.3f}s)")
-    count: int = create_zip_file(compressible_files, output_zip)
-    print(f"create zip_file store total:{count}, ({time.perf_counter() - start:.3f}s)")
+    # List of additional files to include in the zip
+    hash_value = hash_compute(config.app_file)
+    print(f"Compute hash, ({time.perf_counter() - start:.3f}s)")
+
+    create_readMe(Path("ReadMe.md"), config.handouts_file, hash_value, config.source_dir / "ReadMe.txt")
+    print(f"Created ReadMe.txt, ({time.perf_counter() - start:.3f}s)")
+
+    compressible_files = get_compressible_files(config.source_dir, config.exclude_files) + config.additional_files
+    print(f"Get_compressible_files, ({time.perf_counter() - start:.3f}s)")
+    count: int = create_zip(compressible_files, config.output_zip)
+
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"Release zip file created at: {config.output_zip} on {current_time}")
+    print(f"  Store total:{count}, ({time.perf_counter() - start:.3f}s)")
+
+
+if __name__ == '__main__':
+    main()
