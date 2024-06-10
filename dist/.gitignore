@@ -1,0 +1,4 @@
+# Ignore folder names after extraction
+MosaicTool/
+# exe Because the distribution method has been changed to a zip file
+*.exe

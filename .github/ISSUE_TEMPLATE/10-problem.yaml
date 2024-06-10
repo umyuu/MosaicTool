@@ -1,0 +1,43 @@
+name: "何か問題がありましたか？"
+description: "何か問題が見つかった場合は、こちらで報告してください。"
+labels: "bug"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # 問題を見つけていただき、ありがとうございます！  
+        ## 上記の「Title」と質問内容を記入したら、「Submit new Issue」ボタンを押して送信してください。よろしくお願いします！
+  - type: textarea
+    id: problem
+    attributes:
+      label: "問1, お困りの問題の内容は何ですか？"
+      description: "例: モザイクツールが実行されない。分かる範囲で大丈夫です。"
+      value: "### どのような問題が発生しましたか？\n\n<!-- 例: モザイクツールが実行されない。。 -->\n\n### どのような操作をしましたか？\n\n1. xxx\n1. xxx\n1. xxx"
+    validations:
+      required: true
+  - type: dropdown
+    id: device
+    attributes:
+      label: "問2, どの端末で確認しましたか？"
+      options:
+        - Windows
+        - Mac
+        - Linux
+        - その他
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: "【任意】バージョン情報を教えていただけますか？"
+      description: "タイトル部のバージョン欄をコピーし貼り付けてください。"
+    validations:
+      required: false
+  - type: textarea
+    id: addition
+    attributes:
+      label: "問3, 補足情報"
+      description: "補足で伝えたい事があれば記入して下さい"
+      value: "なし"
+    validations:
+      required: false
