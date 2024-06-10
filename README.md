@@ -1,7 +1,7 @@
 # 🌟 MosaicTool — モザイク編集のお供に
 ![Python version](https://img.shields.io/badge/python-3.9+-important)  
 
-`MosaicTool`は、手軽にモザイク加工ができるパソコン用アプリです。直感的な操作と高速な処理を実現し、誰でも簡単にモザイク画像を作成できます。  
+`MosaicTool`は、手軽にモザイク加工ができるパソコン用アプリです。直感的な操作とストレスフリーを追求し、誰でも簡単にモザイク画像を作成できます。  
 
 ## 🎉 主な特長  
 - 簡単操作：マウスで範囲を選択するだけで、瞬時にモザイク加工が適用されます。  
@@ -10,9 +10,10 @@
 
 ## 🚀 導入方法  
 ### 1. セットアップ  
-[Releases](https://github.com/umyuu/MosaicTool/releases)ページを開き、一番上の Assets 欄にある `MosaicTool.exe` をダウンロードします。  
+1. [Releases](https://github.com/umyuu/MosaicTool/releases)ページを開き、一番上の Assets 欄にある `MosaicTool.zip` をダウンロードします。  
+1. zipファイルを展開します。  
 ### 2. 実行  
-ダウンロードした `MosaicTool.exe` ファイルをダブルクリックするだけ。さらに、画像ファイルをドラッグ＆ドロップするだけで簡単にモザイク加工を開始できます。  
+展開されたフォルダ内の `MosaicTool.exe` ファイルをダブルクリックするだけ。さらに、画像ファイルをドラッグ＆ドロップするだけで簡単にモザイク加工を開始できます。  
 
 ### ✨ モザイク加工の方法  
 1. 画像を開く  
