@@ -127,6 +127,9 @@ class AppController:
         """
         self.window_title_callback(text)
 
+    def on_file_save(self, time) -> None:
+        self.view.status_process_time(time)
+
     def get_status(self) -> StatusMessage:
         """
         ステータスメッセージを取得します。

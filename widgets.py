@@ -8,14 +8,13 @@ from tkinter import filedialog, messagebox
 from functools import partial
 from decimal import Decimal
 from pathlib import Path
-from typing import Optional
 
 from PIL import Image, ImageTk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 
 from controllers import AppController
 from src.models import MosaicFilter, StatusMessage, ImageFormat
-from src.utils import round_up_decimal
+from src.utils import round_up_decimal, Stopwatch
 from src.widgets_core import WidgetUtils, PhotoImageButton, Tooltip
 from src.image_file_service import ImageFileService
 
@@ -167,9 +166,11 @@ class MainFrame(tk.Frame):
             # ドラッグ終了位置を取得（キャンバス上の座標に変換）
             end_x = int(self.canvas.canvasx(event.x))
             end_y = int(self.canvas.canvasy(event.y))
-
+            sw = Stopwatch.start_new()
             # 選択領域にモザイクをかける
-            self.apply_mosaic(self.start_x, self.start_y, end_x, end_y)
+            is_apply = self.apply_mosaic(self.start_x, self.start_y, end_x, end_y)
+            if is_apply:
+                self.controller.on_file_save(f"{sw.elapsed:.3f}s")
         except Exception as e:
             print(f"Error applying mosaic: {e}")
             raise e
@@ -180,12 +181,12 @@ class MainFrame(tk.Frame):
             if self.size_label:
                 self.canvas.delete(self.size_label)
 
-    def apply_mosaic(self, start_x: int, start_y: int, end_x: int, end_y: int):
+    def apply_mosaic(self, start_x: int, start_y: int, end_x: int, end_y: int) -> bool:
         """
         モザイクを適用します。
         """
         if self.photo is None:
-            return
+            return False
 
         # 座標を正しい順序に並べ替える
         left = min(start_x, end_x)
@@ -196,7 +197,7 @@ class MainFrame(tk.Frame):
         mosaic = MosaicFilter(self.original_image)
         is_apply = mosaic.apply(left, top, right, bottom)
         if not is_apply:
-            return
+            return False
 
         self.original_image = mosaic.Image
         self.photo = ImageTk.PhotoImage(self.original_image)  # 元の画像のコピーをキャンバスに表示
@@ -207,6 +208,7 @@ class MainFrame(tk.Frame):
 
         # モザイク適用後のファイルを自動保存します。
         self.save(self.controller.get_mosaic_filename())
+        return True
 
     def save(self, output_path: Path, override: bool = False):
         """
@@ -254,11 +256,16 @@ class FooterFrame(tk.Frame):
         self.paddingLabel = tk.Label(self, text="フッターはここ", anchor="e")  # 余白調整用のラベルを追加
         self.paddingLabel.grid(row=0, column=4, sticky=tk.W + tk.E)
 
+        self.process_time = tk.Label(self, text=" ", anchor="e")
+        self.process_time.tooltip = Tooltip(self.fileSizeBar, "処理時間(sec)")
+        self.process_time.grid(row=0, column=5, sticky=tk.W + tk.E)
+
         self.columnconfigure(0, weight=1, minsize=56)
         self.columnconfigure(1, weight=1, minsize=40)
         self.columnconfigure(2, weight=1, minsize=48)
         self.columnconfigure(3, weight=1, minsize=64)
-        self.columnconfigure(4, weight=1, minsize=480)  # 列2（余白調整用のラベル）にweightを設定
+        self.columnconfigure(4, weight=1, minsize=480)  # 余白調整用のラベル）にweightを設定
+        self.columnconfigure(5, weight=1, minsize=64)
 
     def updateStatusBar(self, status: StatusMessage):
         """
@@ -362,11 +369,11 @@ class MainPage(tk.Frame):
                 return
             self.on_save_as(event)
             return
-
+        sw = Stopwatch.start_new()
         self.MainFrame.save(save_file, True)
 
+        self.status_message(f"Save。{save_file.name}", f"{sw.elapsed:.3f}")
         messagebox.showinfo(PROGRAM_NAME, f"ファイルを保存しました。\n\n{save_file}")
-        self.status_message(f"ファイルを保存しました。{save_file}")
 
     def updateFileStatus(self):
         """
@@ -374,8 +381,16 @@ class MainPage(tk.Frame):
         """
         self.FooterFrame.updateStatusBar(self.controller.get_status())
 
-    def status_message(self, text: str):
+    def status_message(self, text: str, time: str = ""):
         """
         フッターのステータスバーのメッセージ欄
         """
         self.FooterFrame.updateMessage(text)
+        if time:
+            self.status_process_time(time)
+
+    def status_process_time(self, time: str = ""):
+        """
+        フッターのステータスバーのメッセージ欄
+        """
+        self.FooterFrame.process_time.configure(text=time)

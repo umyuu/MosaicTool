@@ -113,6 +113,9 @@ class ImageFileService:
         """
         画像保存処理
         """
+        # Todo: PNGINFOの情報はテストパターンを増やす。
+        # ファイルの読み込み処理を改善する。
+        # DataModel側に保持する。
         if ImageFileService.is_png(filename):
             with Image.open(filename) as img:
                 ImageFileService.save_png_metadata(img, _image, output_path)

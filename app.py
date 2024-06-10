@@ -79,9 +79,8 @@ class MyApp(TkinterDnD.Tk):
         # コマンドライン引数で渡されたファイルパスを処理する
         self.controller.handle_select_files_complete(file_paths)
         self.MainPage.updateFileStatus()
-        text = f"起動時間({sw.elapsed:.3f}s)"
-        print(text)
-        self.MainPage.status_message(text)
+        self.MainPage.status_message("起動時間")
+        self.controller.on_file_save(f"{sw.elapsed:.3f}s")
 
 
 if __name__ == "__main__":

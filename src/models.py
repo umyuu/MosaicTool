@@ -7,17 +7,14 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
-from functools import lru_cache
 
 import os
 from pathlib import Path
 from typing import List
-import time
 
 from PIL import Image
 
 from . utils import round_up_decimal
-from . image_file_service import ImageFileService
 
 
 # 画像形式
@@ -178,7 +175,7 @@ class MosaicFilter:
         new_height = max(1, region_height // self.cell_size)
 
         # 縮小してから元のサイズにリサイズ
-        region = region.resize((new_width, new_height), Image.BOX).resize(region.size, Image.Resampling.NEAREST)
+        region = region.resize((new_width, new_height), Image.Resampling.BOX).resize(region.size, Image.Resampling.NEAREST)
         # モザイクをかけた領域を元の画像に戻す
         self._image.paste(region, (start_x, start_y, end_x, end_y))
         return True
