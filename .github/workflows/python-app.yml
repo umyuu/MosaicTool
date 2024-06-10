@@ -46,4 +46,4 @@ jobs:
         flake8 . --count --exit-zero --ignore=E265,W291,E402 --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with unittest
       run: |
-        python -m unittest -v test/test_create_grayscale_gradation.py
+        python -m unittest -v test/test_image_file_service.py

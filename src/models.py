@@ -145,6 +145,7 @@ class MosaicFilter:
     """
     _image: Image.Image
     cell_size: int = field(init=False)  # モザイクのセルサイズ
+    min_cell_size: int = 4  # 最小セルサイズ
 
     def __post_init__(self):
         """
@@ -152,17 +153,22 @@ class MosaicFilter:
         """
         self.cell_size = self.calc_cell_size()
 
-    def apply(self, start_x: int, start_y: int, end_x: int, end_y: int):
+    def apply(self, start_x: int, start_y: int, end_x: int, end_y: int) -> bool:
         """
         指定された領域にモザイクを適用する
         :param start_x: モザイクをかける領域の左上X座標
         :param start_y: モザイクをかける領域の左上Y座標
         :param end_x: モザイクをかける領域の右下X座標
         :param end_y: モザイクをかける領域の右下Y座標
+        :return: モザイクを掛けてたかどうか
         """
         # モザイクをかける領域のサイズを計算
         region_width = end_x - start_x
         region_height = end_y - start_y
+
+        # 領域の幅と高さの値がどちらかが0の場合、モザイク処理をSkipします。
+        if (region_width == 0) or (region_height == 0):
+            return False
 
         # モザイクをかける領域を切り出す
         region = self._image.crop((start_x, start_y, end_x, end_y))
@@ -175,6 +181,7 @@ class MosaicFilter:
         region = region.resize((new_width, new_height), Image.BOX).resize(region.size, Image.Resampling.NEAREST)
         # モザイクをかけた領域を元の画像に戻す
         self._image.paste(region, (start_x, start_y, end_x, end_y))
+        return True
 
     @property
     def Image(self) -> Image.Image:
@@ -193,5 +200,5 @@ class MosaicFilter:
         # 長辺の取得し÷100で割り、小数点以下を切り上げする。
         # セルサイズが4以下（を含む）場合は、最小4ピクセルに設定します。
         long_side = (Decimal(self._image.width).max(Decimal(self._image.height))) / Decimal(100)
-        cell_size = max(4, round_up_decimal(long_side, 0))  # 最小4ピクセル
+        cell_size = max(self.min_cell_size, round_up_decimal(long_side, 0))  # 最小4ピクセル
         return int(cell_size)

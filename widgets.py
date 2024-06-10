@@ -194,9 +194,11 @@ class MainFrame(tk.Frame):
         bottom = max(start_y, end_y)
 
         mosaic = MosaicFilter(self.original_image)
-        mosaic.apply(left, top, right, bottom)
-        self.original_image = mosaic.Image
+        is_apply = mosaic.apply(left, top, right, bottom)
+        if not is_apply:
+            return
 
+        self.original_image = mosaic.Image
         self.photo = ImageTk.PhotoImage(self.original_image)  # 元の画像のコピーをキャンバスに表示
         # キャンバスの画像も更新
         self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
