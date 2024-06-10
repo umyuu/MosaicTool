@@ -3,9 +3,10 @@
     AppController
 """
 from pathlib import Path
+from typing import Iterable
 
 from src.models import DataModel, StatusMessage, MosaicImageFile
-from typing import Iterable
+from src.image_file_service import ImageFileService
 
 
 class AppController:
@@ -85,7 +86,7 @@ class AppController:
         画像情報を表示するをクリック時
         """
         file = self.model.get_current_file()
-        d = MosaicImageFile.get_image_info(file)
+        d = ImageFileService.get_image_info(file)
         print(d)
 
     def display_image(self):
@@ -118,7 +119,7 @@ class AppController:
         :return: Path
         """
         f = self.model.get_current_file()
-        return MosaicImageFile.newFileName(f)
+        return ImageFileService.mosaic_filename(f)
 
     def set_window_title(self, text: Path):
         """
@@ -136,7 +137,7 @@ class AppController:
             return StatusMessage()
 
         filepath = self.model.get_current_file()
-        width, height = MosaicImageFile.get_image_size(filepath)
+        width, height = ImageFileService.get_image_size(filepath)
 
         m = MosaicImageFile(filepath)
 

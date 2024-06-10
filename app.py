@@ -2,7 +2,6 @@
 """
     MosaicTool
 """
-import time
 from functools import partial
 from pathlib import Path
 import sys
