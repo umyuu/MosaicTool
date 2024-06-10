@@ -128,7 +128,7 @@ class ImageFileService:
                 elif isinstance(value, tuple):
                     value = ', '.join(map(str, value))
 
-                new_png_info.add_text(key, value)
+                new_png_info.add_itxt(key, value)
 
             out_image.save(output_path, pnginfo=new_png_info)
             print("PNGINFO saved successfully.")
