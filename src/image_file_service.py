@@ -74,6 +74,13 @@ class ImageFileService:
         return header == b'\xFF\xD8'
 
     @staticmethod
+    def load(file_path: Path) -> Image.Image:
+        # 日本語ファイル名でエラーが発生するため。openを使用する。
+        """
+        """
+        return Image.open(file_path)
+
+    @staticmethod
     def get_image_size(file_path: Path) -> tuple[int, int]:
         """
         画像の大きさを取得します。
@@ -100,6 +107,22 @@ class ImageFileService:
         """
         with Image.open(file_path) as img:
             return img.info
+
+    @staticmethod
+    def save(_image: Image.Image, output_path: Path, filename: Path):
+        """
+        画像保存処理
+        """
+        if ImageFileService.is_png(filename):
+            with Image.open(filename) as img:
+                ImageFileService.save_png_metadata(img, _image, output_path)
+            return
+        if ImageFileService.is_jpg(filename):
+            with Image.open(filename) as img:
+                ImageFileService.save_jpeg_metadata(img, _image, output_path)
+            return
+
+        _image.save(output_path)
 
     @staticmethod
     def save_png_metadata(src_image: Image.Image, out_image: Image.Image, output_path: Path) -> None:

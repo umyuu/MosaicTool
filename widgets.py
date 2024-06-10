@@ -14,9 +14,10 @@ from PIL import Image, ImageTk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 
 from controllers import AppController
-from src.models import MosaicFilter, StatusMessage, ImageFormat, MosaicImageFile
+from src.models import MosaicFilter, StatusMessage, ImageFormat
 from src.utils import round_up_decimal
 from src.widgets_core import WidgetUtils, PhotoImageButton, Tooltip
+from src.image_file_service import ImageFileService
 
 PROGRAM_NAME = 'MosaicTool'
 
@@ -113,14 +114,9 @@ class MainFrame(tk.Frame):
     def updateImage(self, filepath: Path):
         if not filepath.exists():
             return
-        #self.canvas.image = Image.open(filepath)
-        #self.photo = ImageTk.PhotoImage(self.canvas.image)
-        # 日本語ファイル名でエラーが発生するため。openを使用する。
-        with open(filepath, "rb") as f:
-            img = Image.open(f)
-            self.info = img.info
-            self.original_image = img  # 元の画像を開く
-            self.photo = ImageTk.PhotoImage(self.original_image)  # 元の画像のコピーをキャンバスに表示
+
+        self.original_image = ImageFileService.load(filepath)  # 元の画像を開く
+        self.photo = ImageTk.PhotoImage(self.original_image)  # 元の画像のコピーをキャンバスに表示
 
         # 画像を更新
         self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
@@ -207,13 +203,27 @@ class MainFrame(tk.Frame):
         # キャンバスのスクロール領域を設定
         self.canvas.config(scrollregion=(0, 0, self.original_image.width, self.original_image.height))
 
-        # モザイク適用後のファイルを保存します。
-        self.save(self.controller.get_new_file())
+        # モザイク適用後のファイルを自動保存します。
+        self.save(self.controller.get_mosaic_filename())
 
-    def save(self, filename: Path):        
-        current = self.controller.model.get_current_file()
-        mosaic = MosaicFilter(self.original_image)
-        mosaic.save(filename, current)
+    def save(self, output_path: Path, override: bool = False):
+        """
+        モザイク画像を保存する
+        :param output_path: 保存するファイルの名前
+        :param override: 自動保存時に上書きするかの確認
+        """
+        current_file = self.controller.model.get_current_file()
+
+        # 自動保存時に同一ファイル名の場合は、念のため確認メッセージを表示します。
+        if not override:
+            if current_file == output_path:
+                retval = messagebox.askokcancel(
+                    PROGRAM_NAME,
+                    f"{output_path}は既に存在します。\n上書きしますか？")
+                if not retval:
+                    return
+
+        ImageFileService.save(self.original_image, output_path, current_file)
 
 
 class FooterFrame(tk.Frame):
@@ -351,7 +361,7 @@ class MainPage(tk.Frame):
             self.on_save_as(event)
             return
 
-        self.MainFrame.save(save_file)
+        self.MainFrame.save(save_file, True)
 
         messagebox.showinfo(PROGRAM_NAME, f"ファイルを保存しました。\n\n{save_file}")
         self.status_message(f"ファイルを保存しました。{save_file}")

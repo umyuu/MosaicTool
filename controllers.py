@@ -113,7 +113,7 @@ class AppController:
         self.display_image()
         self.view.status_message(f"select files:{count} / {total}")
 
-    def get_new_file(self) -> Path:
+    def get_mosaic_filename(self) -> Path:
         """
         モザイク適用後のファイル名を生成します。
         :return: Path

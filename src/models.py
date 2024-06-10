@@ -152,22 +152,6 @@ class MosaicFilter:
         """
         self.cell_size = self.calc_cell_size()
 
-    def save(self, output_path: Path, filename: Path):
-        """
-        モザイク画像を保存する
-        :param output_path: 保存するファイルの名前
-        """
-        if ImageFileService.is_png(filename):
-            with Image.open(filename) as img:
-                ImageFileService.save_png_metadata(img, self._image, output_path)
-            return
-        if ImageFileService.is_jpg(filename):
-            with Image.open(filename) as img:
-                ImageFileService.save_jpeg_metadata(img, self._image, output_path)
-            return
-
-        self._image.save(output_path)
-
     def apply(self, start_x: int, start_y: int, end_x: int, end_y: int):
         """
         指定された領域にモザイクを適用する
