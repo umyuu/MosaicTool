@@ -93,8 +93,6 @@ if __name__ == '__main__':
     app_file: Path = source_dir / "MosaicTool.exe"
     handouts_file: Path = source_dir / "handouts.txt"
     exclude_files: List[Path] = [output_zip, source_dir / ".gitignore", handouts_file]
-    if output_zip.exists():
-        output_zip.unlink()
 
     hash_value = hash_compute(app_file)
     print(f"compute hash, ({time.perf_counter() - start:.3f}s)")
@@ -104,6 +102,5 @@ if __name__ == '__main__':
 
     compressible_files = get_compressible_files(source_dir, exclude_files)
     print(f"get_compressible_files, ({time.perf_counter() - start:.3f}s)")
-
     count: int = create_zip_file(compressible_files, output_zip)
     print(f"create zip_file store total:{count}, ({time.perf_counter() - start:.3f}s)")
