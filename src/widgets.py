@@ -66,7 +66,7 @@ class HeaderFrame(tk.Frame):
         WidgetUtils.bind_all(self, "", "I", partial(self.controller.handle_info_image))
         self.btn_info_file.grid(row=0, column=4, padx=(4, 0))
 
-        self.widgetHeader = tk.Label(self, text="画面に画像ファイルをドラッグ＆ドロップしてください。", font=("", 14))
+        self.widgetHeader = tk.Label(self, text="画面にフォルダまたはファイルをドラッグ＆ドロップしてください。", font=("", 14))
         self.widgetHeader.grid(row=0, column=5, padx=(4, 0))
 
 
@@ -170,7 +170,7 @@ class MainFrame(tk.Frame):
             # 選択領域にモザイクをかける
             is_apply = self.apply_mosaic(self.start_x, self.start_y, end_x, end_y)
             if is_apply:
-                self.controller.on_file_save(f"{sw.elapsed:.3f}s")
+                self.controller.display_process_time(f"{sw.elapsed:.3f}s")
         except Exception as e:
             print(f"Error applying mosaic: {e}")
             raise e

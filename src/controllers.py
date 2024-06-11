@@ -24,12 +24,11 @@ class AppController:
         パスがディレクトリの場合は、ディレクトリ内のファイルも追加します。
         :return: 追加件数
         """
-        path = file_path
-        if not path.is_dir():
-            return self.model.add_file_path(path)
+        if not file_path.is_dir():  # ファイルの場合
+            return self.model.add_file_path(file_path)
 
         count: int = 0
-        for f in path.glob("*.*"):
+        for f in file_path.glob("*.*"):  # ディレクトリの場合
             count += self.model.add_file_path(f)
         return count
 
@@ -54,6 +53,7 @@ class AppController:
             self.view.status_message(f"received in drop files:{count}")
         else:
             self.view.status_message("No data received in drop event")
+        self.display_process_time(f"{sw.elapsed:.3f}s")
 
     def handle_file_open(self, event=None):
         """
@@ -127,7 +127,10 @@ class AppController:
         """
         self.window_title_callback(text)
 
-    def on_file_save(self, time) -> None:
+    def display_process_time(self, time) -> None:
+        """
+        処理時間の設定
+        """
         self.view.status_process_time(time)
 
     def get_status(self) -> StatusMessage:

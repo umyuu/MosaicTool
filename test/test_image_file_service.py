@@ -1,12 +1,12 @@
 import sys
 import os
+import unittest
+from PIL import Image
+from pathlib import Path
 
 # プロジェクトのルートディレクトリをシステムパスに追加
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import unittest
-from PIL import Image
-from pathlib import Path
 from src.image_file_service import ImageFileService
 
 
