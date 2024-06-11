@@ -7,6 +7,7 @@ from typing import Iterable
 
 from . models import DataModel, StatusMessage, MosaicImageFile
 from . image_file_service import ImageFileService
+from . utils import Stopwatch
 
 
 class AppController:
@@ -36,23 +37,28 @@ class AppController:
         """
         ドロップイベント
         """
-        count: int = 0
-        if event.data:
-            self.model.clear()
-            file_paths = event.data.split('\n')  # 改行で分割
-            for file_path in file_paths:
-                for f in file_path.split():
-                    path = Path(f)
-                    if (path.exists()):
-                        print(f"Processing file: {path}")
-                        count += self.add_file_path(path)
+        sw = Stopwatch.start_new()
 
-            print(self.model)
-            if count > 0:
-                self.display_image()
-            self.view.status_message(f"received in drop files:{count}")
-        else:
+        count: int = 0
+        if not event.data:
             self.view.status_message("No data received in drop event")
+            self.display_process_time(f"{sw.elapsed:.3f}s")
+            return
+
+        self.model.clear()
+        file_paths = event.data.split('\n')  # 改行で分割
+        for file_path in file_paths:
+            for f in file_path.split():
+                path = Path(f)
+                if (path.exists()):
+                    print(f"Processing file: {path}")
+                    count += self.add_file_path(path)
+
+        print(self.model)
+        if count > 0:
+            self.display_image()
+
+        self.view.status_message(f"received in drop files:{count}")
         self.display_process_time(f"{sw.elapsed:.3f}s")
 
     def handle_file_open(self, event=None):

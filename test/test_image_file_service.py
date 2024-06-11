@@ -20,7 +20,7 @@ class TestImageFileService(unittest.TestCase):
             output_path = Path("test_output.png")
 
             # テスト用のPNG情報を準備
-            # Todo:dpiはタプルが正常値。暫定対応。
+            # Todo:dpiはタプルが正常値。暫定対応。PNGINFOでは読めます。
             # {'srgb': 0, 'gamma': 0.45455, 'dpi': (96.012, 96.012)}
             png_info = {
                 "srgb": "0",
