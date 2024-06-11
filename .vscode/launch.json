@@ -4,27 +4,34 @@
     // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-    {
-        "name": "現在のファイル",
-        "type": "debugpy",
-        "request": "launch",
-        "program": "${file}",
-        "console": "integratedTerminal"
-    },
-    {
-        "name": "run app.py",
-        "type": "debugpy",
-        "request": "launch",
-        "program": "app.py",
-        "console": "integratedTerminal",
-        "args": "${command:pickArgs}"
-    },
-    {
-        "name": "Release",
-        "type": "debugpy",
-        "request": "launch",
-        "program": "scripts\\release.py",
-        "console": "integratedTerminal",
-    }
+        {
+            "name": "run app",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "app.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "現在のファイル",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "SendTo app",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "app.py",
+            "console": "integratedTerminal",
+            "args": "${command:pickArgs}"
+        },
+        {
+            "name": "Release",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "scripts\\release.py",
+            "console": "integratedTerminal",
+        }
     ]
 }
