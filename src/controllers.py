@@ -4,6 +4,7 @@
 """
 from pathlib import Path
 from typing import Iterable
+import re
 
 from . models import DataModel, StatusMessage, MosaicImageFile
 from . image_file_service import ImageFileService
@@ -18,6 +19,8 @@ class AppController:
         self.model = model
         self.view = view
         self.window_title_callback = window_title_callback
+        # ドラッグ＆ドロップで渡されたパスを分割する正規表現
+        self.drop_file_split = re.compile(r'([A-Za-z]:[/|\\\\].*?(?=[A-Za-z]:[/|\\\\]|$))', re.RegexFlag.UNICODE)
 
     def add_file_path(self, file_path: Path) -> int:
         """
@@ -40,21 +43,24 @@ class AppController:
         sw = Stopwatch.start_new()
 
         count: int = 0
-        if not event.data:
+        event_data = event.data  # ドラッグ&ドラッグで渡されたファイル名
+        if not event_data:
             self.view.status_message("No data received in drop event")
             self.display_process_time(f"{sw.elapsed:.3f}s")
             return
 
+        print(event_data)
         self.model.clear()
-        file_paths = event.data.split('\n')  # 改行で分割
-        for file_path in file_paths:
-            for f in file_path.split():
-                path = Path(f)
-                if (path.exists()):
-                    print(f"Processing file: {path}")
-                    count += self.add_file_path(path)
+        for match in re.finditer(self.drop_file_split, event_data):
+            group = match.group()
+            if not group:
+                continue
 
-        print(self.model)
+            # 日本語が含まれるパスの場合{C:\画像パス}となるため除外する。
+            f = group.rstrip(" {").rstrip("} ")
+            path = Path(f)
+            count += self.add_file_path(path)
+
         if count > 0:
             self.display_image()
 
