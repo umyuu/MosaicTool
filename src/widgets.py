@@ -9,14 +9,14 @@ from functools import partial
 from decimal import Decimal
 from pathlib import Path
 
-from PIL import Image, ImageTk
+from PIL import ImageTk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 
-from controllers import AppController
-from src.models import MosaicFilter, StatusMessage, ImageFormat
-from src.utils import round_up_decimal, Stopwatch
-from src.widgets_core import WidgetUtils, PhotoImageButton, Tooltip
-from src.image_file_service import ImageFileService
+from . controllers import AppController
+from . models import MosaicFilter, StatusMessage, ImageFormat
+from . utils import round_up_decimal, Stopwatch
+from . widgets_core import WidgetUtils, PhotoImageButton, Tooltip
+from . image_file_service import ImageFileService
 
 PROGRAM_NAME = 'MosaicTool'
 

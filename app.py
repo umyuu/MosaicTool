@@ -13,10 +13,10 @@ import json
 import tkinter as tk
 
 from tkinterdnd2 import TkinterDnD
-from src.models import DataModel
 
-from controllers import AppController
-from widgets import MainPage
+from src.controllers import AppController
+from src.models import DataModel
+from src.widgets import MainPage
 
 
 PROGRAM_NAME = 'MosaicTool'

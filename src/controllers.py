@@ -5,8 +5,8 @@
 from pathlib import Path
 from typing import Iterable
 
-from src.models import DataModel, StatusMessage, MosaicImageFile
-from src.image_file_service import ImageFileService
+from . models import DataModel, StatusMessage, MosaicImageFile
+from . image_file_service import ImageFileService
 
 
 class AppController:
