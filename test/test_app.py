@@ -13,15 +13,19 @@ class TestAppLaunchTime(unittest.TestCase):
     """アプリの起動時間をテストするクラス"""
     def test_app_starts_within_3_seconds(self):
         """
-        3秒未満でアプリが起動する。
+        3秒未満でアプリが起動。
         """
+        current_dir = os.path.dirname(__file__)
+        image_path = os.path.join(current_dir, 'test_files', 'jet_256x256.webp')
+
         sw = Stopwatch.start_new()
 
         test_app = MyApp()
-        test_app.after_launch([])  # ここでアプリの起動をシミュレート
-        elapsed = sw.elapsed
+        test_app.after_launch([image_path])  # ここでアプリの起動をシミュレート
 
-        self.assertTrue(elapsed < 3, f"App launch time was {elapsed} seconds, which is longer than the threshold.")
+        elapsed = sw.elapsed
+        print(f"{elapsed:.3f}", end=None)
+        self.assertTrue(elapsed < 3, f"App launch time was {elapsed:.3f} seconds, which is longer than the threshold.")
 
 
 if __name__ == "__main__":

@@ -2,6 +2,9 @@
 """
     MosaicTool
 """
+from src.utils import get_package_version, Stopwatch
+sw = Stopwatch.start_new()
+
 from functools import partial
 from pathlib import Path
 import sys
@@ -10,16 +13,15 @@ import json
 import tkinter as tk
 
 from tkinterdnd2 import TkinterDnD
-
 from src.models import DataModel
-from src.utils import get_package_version, Stopwatch
+
 from controllers import AppController
 from widgets import MainPage
 
 
 PROGRAM_NAME = 'MosaicTool'
 __version__ = get_package_version()
-sw = Stopwatch.start_new()
+
 
 application_path = os.path.dirname(os.path.abspath(__file__))
 # アイコンのパスを作成
