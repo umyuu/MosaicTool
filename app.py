@@ -2,6 +2,7 @@
 """
     MosaicTool
 """
+import asyncio
 from src.utils import get_package_version, Stopwatch
 sw = Stopwatch.start_new()
 
@@ -88,6 +89,9 @@ class MyApp(TkinterDnD.Tk):
         self.controller.display_process_time(f"{sw.elapsed:.3f}s")
 
 
-if __name__ == "__main__":
+async def main():
     app = MyApp()
     app.mainloop()
+
+if __name__ == "__main__":
+    asyncio.run(main())

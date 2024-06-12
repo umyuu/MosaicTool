@@ -53,7 +53,7 @@ class DataModel:
         処理対象のファイルを追加します。
         :return: 追加件数
         """
-        if file_path.exists():
+        if self.check_image_file(file_path):
             self.file_paths.append(file_path)
             return 1
         return 0
@@ -65,6 +65,36 @@ class DataModel:
         """
         return len(self.file_paths)
 
+    def check_image_file(self, file_path: Path):
+        """
+        画像ファイルの検証
+        ファイルの存在、許可された拡張子かをチェックします。
+
+        Args:
+            file_path: チェックする画像ファイルのパス
+
+        Returns:
+            bool: チェック結果 true は正常、falseは検証エラー
+        """
+        if not file_path.exists():
+            return False
+        return DataModel.is_extension_allowed(file_path)
+
+    @staticmethod
+    def is_extension_allowed(file_path: Path):
+        """
+        ファイルの拡張子が許可されているかどうかをチェックする関数
+
+        Args:
+            file_path: チェックするファイルのパス
+
+        Returns:
+            bool: 拡張子が許可されている場合はTrue、そうでない場合はFalse
+        """
+        # 許可される拡張子のリスト
+        allowed_extensions = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".svg"]
+        return file_path.suffix.lower() in allowed_extensions  # 大文字小文字を無視してチェックする
+
     def clear(self):
         """
         モデルをクリアします。
@@ -75,6 +105,8 @@ class DataModel:
     def set_current(self, current: int):
         """
         現在選択されている画像を設定します。
+        Args:
+            current: インデックス
         """
         if current < 0 or current >= len(self.file_paths):
             raise ValueError(f"current index out of range: {current}")
