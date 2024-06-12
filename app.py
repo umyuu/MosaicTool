@@ -85,7 +85,7 @@ class MyApp(TkinterDnD.Tk):
         """
         # コマンドライン引数で渡されたファイルパスを処理する
         self.controller.handle_select_files_complete(files)
-        self.MainPage.updateFileStatus()
+        self.MainPage.displayFileStatus()
         self.controller.display_process_time(f"{sw.elapsed:.3f}s")
 
 

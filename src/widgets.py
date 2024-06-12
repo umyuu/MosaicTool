@@ -322,7 +322,7 @@ class MainPage(tk.Frame):
         """
         self.MainFrame.updateImage(path)
         self.controller.set_window_title(path)
-        self.updateFileStatus()
+        self.displayFileStatus()
 
     def on_select_files(self, event):
         """
@@ -377,7 +377,7 @@ class MainPage(tk.Frame):
         self.status_message(f"Save。{save_file.name}", f"{sw.elapsed:.3f}")
         messagebox.showinfo(PROGRAM_NAME, f"ファイルを保存しました。\n\n{save_file}")
 
-    def updateFileStatus(self):
+    def displayFileStatus(self):
         """
         フッターのステータスバーを更新
         """

@@ -26,6 +26,7 @@ class AppController:
         """
         ファイルをデータモデルに追加します。
         パスがディレクトリの場合は、ディレクトリ内のファイルも追加します。
+        :param file_path: 画像ファイルのパス
         :return: 追加件数
         """
         if not file_path.is_dir():  # ファイルの場合
@@ -38,12 +39,13 @@ class AppController:
 
     def handle_drop(self, event):
         """
-        ドロップイベント
+        ドロップ完了時に発生する。
+        :param event: ドロップイベント
         """
         sw = Stopwatch.start_new()
 
         count: int = 0
-        event_data = event.data  # ドラッグ&ドラッグで渡されたファイル名
+        event_data = event.data  # ドラッグ&ドロップで渡されたファイル名
         if not event_data:
             self.view.status_message("No data received in drop event")
             self.display_process_time(f"{sw.elapsed:.3f}s")
@@ -70,32 +72,43 @@ class AppController:
     def handle_file_open(self, event=None):
         """
         ファイル選択ボタンクリック時
+        :param event: イベント
         """
         self.view.on_select_files(None)
 
     def handle_save_as(self, event=None):
         """
         ファイルを選択して保存ボタンをクリック時
+        :param event: イベント
         """
         self.view.on_save_as(None)
 
     def handle_back_image(self, event=None):
         """
         前の画像に遷移するをクリック時
+        :param event: イベント
         """
+        sw = Stopwatch.start_new()
         self.model.prev_index()
         self.display_image()
+
+        self.display_process_time(f"{sw.elapsed:.3f}s")
 
     def handle_forward_image(self, event=None):
         """
         次の画像に遷移するをクリック時
+        :param event: イベント
         """
+        sw = Stopwatch.start_new()
         self.model.next_index()
         self.display_image()
+
+        self.display_process_time(f"{sw.elapsed:.3f}s")
 
     def handle_info_image(self, event=None):
         """
         画像情報を表示するをクリック時
+        :param event: イベント
         """
         file = self.model.get_current_file()
         d = ImageFileService.get_image_info(file)
@@ -111,6 +124,7 @@ class AppController:
     def handle_select_files_complete(self, files: Iterable[str]):
         """
         ファイル選択ダイアログよりファイル選択時
+        :param files: ファイル一覧
         """
         count: int = 0
         total: int = 0
@@ -136,12 +150,14 @@ class AppController:
     def set_window_title(self, text: Path):
         """
         タイトルバーの設定
+        :param text: ファイルパス
         """
         self.window_title_callback(text)
 
     def display_process_time(self, time) -> None:
         """
         処理時間の設定
+        :param text: 処理時間
         """
         self.view.status_process_time(time)
 
