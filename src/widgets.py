@@ -30,21 +30,21 @@ class HeaderFrame(tk.Frame):
 
         self.controller = controller
         self.btn_file_open = PhotoImageButton(self,
-                                              image_path=str(Path(icons_path, "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+                                              image_path=str((icons_path / "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                               tooltip_text="Open (Ctrl+O)",
                                               command=self.controller.handle_file_open)
         WidgetUtils.bind_all(self, "Control", "O", partial(self.controller.handle_file_open))
         self.btn_file_open.grid(row=0, column=0, padx=(0, 0))
 
         self.btn_save_as = PhotoImageButton(self,
-                                            image_path=str(Path(icons_path, "save_as_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+                                            image_path=str((icons_path / "save_as_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                             tooltip_text="SaveAs (Ctrl+Shift+S)",
                                             command=self.controller.handle_save_as)
         WidgetUtils.bind_all(self, "Control-Shift", "S", partial(self.controller.handle_save_as))
         self.btn_save_as.grid(row=0, column=1, padx=(4, 0))
 
         self.btn_back = PhotoImageButton(self,
-                                         image_path=str(Path(icons_path, "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+                                         image_path=str((icons_path / "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                          tooltip_text="Previous file (<-)",
                                          command=self.controller.handle_back_image)
         WidgetUtils.bind_all(self, "", "Left", partial(self.controller.handle_back_image))
@@ -52,7 +52,7 @@ class HeaderFrame(tk.Frame):
         self.btn_back.grid(row=0, column=2, padx=(4, 0))
 
         self.btn_forward = PhotoImageButton(self,
-                                            image_path=str(Path(icons_path, "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+                                            image_path=str((icons_path / "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                             tooltip_text="Next file (->)",
                                             command=self.controller.handle_forward_image)
         WidgetUtils.bind_all(self, "", "Right", partial(self.controller.handle_forward_image))
@@ -60,7 +60,7 @@ class HeaderFrame(tk.Frame):
         self.btn_forward.grid(row=0, column=3, padx=(4, 0))
 
         self.btn_info_file = PhotoImageButton(self,
-                                              image_path=str(Path(icons_path, "info_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+                                              image_path=str((icons_path / "info_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                               tooltip_text="Image Information (I)",
                                               command=self.controller.handle_info_image)
         WidgetUtils.bind_all(self, "", "I", partial(self.controller.handle_info_image))
@@ -111,12 +111,14 @@ class MainFrame(tk.Frame):
         self.canvas.bind("<ButtonRelease-1>", self.end_drag)
 
     def updateImage(self, filepath: Path):
+        """
+        表示画像を更新します。
+        :param filepath: 画像ファイルパス
+        """
         if not filepath.exists():
             return
-
         self.original_image = ImageFileService.load(filepath)  # 元の画像を開く
         self.photo = ImageTk.PhotoImage(self.original_image)  # 元の画像のコピーをキャンバスに表示
-
         # 画像を更新
         self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
         # キャンバスのスクロール領域を設定

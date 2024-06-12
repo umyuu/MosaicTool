@@ -1,3 +1,6 @@
+"""
+ImageFileServiceの単体テスト
+"""
 import sys
 import os
 import unittest
@@ -11,7 +14,13 @@ from src.image_file_service import ImageFileService
 
 
 class TestImageFileService(unittest.TestCase):
+    """
+    ImageFileServiceのテストクラス
+    """
     def test_save_png_metadata(self):
+        """
+        PNGINFOの出力確認
+        """
         current_dir = os.path.dirname(__file__)
         image_path = os.path.join(current_dir, 'test_files', 'test_image_png_pnginfo_valid.png')
         # テストに使用する画像と出力先パスを準備

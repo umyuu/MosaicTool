@@ -32,12 +32,12 @@ class StatusMessage:
     """
     ステータスバーのステータスメッセージ
     """
-    width: int = 0
-    height: int = 0
-    current: int = 0
-    total: int = 0
+    width: int = 0  # 幅
+    height: int = 0  # 高さ
+    current: int = 0  # 現在のindex
+    total: int = 0  # トータル
     file_size: int = 0  # ファイルサイズ(バイト単位)
-    mtime: str = ""
+    mtime: str = ""  # モザイクを掛ける対象ファイルの最終更新日時
 
 
 class DataModel:
@@ -59,20 +59,30 @@ class DataModel:
         return 0
 
     def count(self) -> int:
+        """
+        処理対象の総ファイルの件数
+        :return: 総件数
+        """
         return len(self.file_paths)
 
     def clear(self):
+        """
+        モデルをクリアします。
+        """
         self.file_paths = []
         self.current = 0
 
     def set_current(self, current: int):
+        """
+        現在選択されている画像を設定します。
+        """
         if current < 0 or current >= len(self.file_paths):
             raise ValueError(f"current index out of range: {current}")
         self.current = current
 
     def next_index(self):
         """
-        current の次のインデックスに移動します。
+        current を次のインデックスに移動します。
         """
         if self.current < len(self.file_paths) - 1:
             self.current += 1
@@ -81,7 +91,7 @@ class DataModel:
 
     def prev_index(self):
         """
-        current の前のインデックスに移動します。
+        current を前のインデックスに移動します。
         """
         #self.current = (self.current - 1) % len(self.file_paths)
         if self.current > 0:
@@ -92,16 +102,21 @@ class DataModel:
     def get_file_paths(self) -> List[Path]:
         """
         処理対象のファイル一覧
+        :return: ファイル一覧
         """
         return self.file_paths
 
     def get_current_file(self) -> Path:
         """
         現在処理中のファイルパス
+        :return: ファイルパス
         """
         return self.file_paths[self.current]
 
     def __str__(self) -> str:
+        """
+        print用の文字列。デバック用に使用します。
+        """
         return f"current:{self.current}, {self.file_paths}"
 
 

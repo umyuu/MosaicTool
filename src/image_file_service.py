@@ -75,9 +75,17 @@ class ImageFileService:
 
     @staticmethod
     def load(file_path: Path) -> Image.Image:
-        # 日本語ファイル名でエラーが発生するため。openを使用する。
+        """
+        画像ファイルを読み込みます。
+        """
+        #print("load" + str(file_path))
+        return Image.open(file_path)
+
+    @staticmethod
+    async def load_async(file_path: Path) -> Image.Image:
         """
         """
+        print("load_async" + str(file_path))
         return Image.open(file_path)
 
     @staticmethod

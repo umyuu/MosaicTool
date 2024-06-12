@@ -1,3 +1,6 @@
+"""
+AppControllerの単体テスト
+"""
 from dataclasses import dataclass
 import sys
 import os
@@ -14,10 +17,10 @@ from src.widgets import MainPage
 
 
 class TestAppController(unittest.TestCase):
-    """コントローラーをテストするクラス"""
-    def test_drop_file(self):
+    """コントローラーのテストクラス"""
+    def test_drop_file_parser(self):
         """
-        ドラッグ＆ドロップのテスト
+        ドラッグ＆ドロップのパス解析のテスト
         """
         current_dir = Path(__file__).parent
         assets = [
@@ -44,6 +47,7 @@ class TestAppController(unittest.TestCase):
 
     def dummy_func(self, text: str):
         pass
+
 
 if __name__ == "__main__":
     unittest.main()

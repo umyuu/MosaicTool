@@ -18,7 +18,6 @@ from src.controllers import AppController
 from src.models import DataModel
 from src.widgets import MainPage
 
-
 PROGRAM_NAME = 'MosaicTool'
 __version__ = get_package_version()
 
@@ -70,13 +69,18 @@ class MyApp(TkinterDnD.Tk):
         self.MainPage.after(1, partial(self.after_launch, file_paths))
 
     def set_window_title(self, filepath: Path):
+        """
+        ウィンドウタイトルを設定する
+        :param filepath: 画像ファイルパス
+        """
         filename = filepath.name if filepath else ""
         title = f"{filename} - {PROGRAM_NAME} {__version__}" if filename else f"{PROGRAM_NAME} {__version__}"
         self.title(title)
 
     def after_launch(self, files: list[str]):
         """
-        プログラムを開始します。
+        プログラムを開始する。
+        :param files: 起動時に渡されたファイル(送るメニューより)
         """
         # コマンドライン引数で渡されたファイルパスを処理する
         self.controller.handle_select_files_complete(files)
