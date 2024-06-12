@@ -20,7 +20,7 @@ class TestAppController(unittest.TestCase):
     """コントローラーのテストクラス"""
     def test_drop_file_parser(self):
         """
-        ドラッグ＆ドロップのパス解析のテスト
+        ドラッグ＆ドロップのパス解析
         """
         current_dir = Path(__file__).parent
         assets = [

@@ -16,7 +16,7 @@ class TestAppLaunchTime(unittest.TestCase):
     """アプリの起動時間をテストするクラス"""
     def test_app_starts_within_3_seconds(self):
         """
-        3秒未満でアプリが起動。
+        アプリの起動時間が3秒未満
         """
         current_dir = os.path.dirname(__file__)
         image_path = os.path.join(current_dir, 'test_files', 'jet_256x256.webp')
