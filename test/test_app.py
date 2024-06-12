@@ -14,7 +14,7 @@ from app import MyApp
 
 class TestAppLaunchTime(unittest.TestCase):
     """アプリの起動時間をテストするクラス"""
-    @unittest.skipIf("DISPLAY" not in os.environ, "Skipping GUI test on headless environment")
+    @unittest.skipIf(os.name != 'nt', "Skipping The OS is not Windows")
     def test_app_starts_within_3_seconds(self):
         """
         アプリの起動時間が3秒未満

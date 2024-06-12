@@ -50,7 +50,7 @@ class Tooltip:
 
         Parameters:
         widget (tk.Widget): ツールチップを表示する対象のウィジェット
-        text (str): ツールチップに表示するテキスト
+        text: ツールチップに表示するテキスト
         """
         self.widget = widget
         self.text = text
@@ -109,3 +109,7 @@ class PhotoImageButton(tk.Button):
 
         self.photo_image = photo_image  # ガベージコレクションを防ぐために画像を保持
         self.tooltip = Tooltip(self, tooltip_text) if tooltip_text else None
+
+
+class SubWindow(tk.Button):
+    pass

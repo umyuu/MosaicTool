@@ -16,7 +16,7 @@ import tkinter as tk
 from tkinterdnd2 import TkinterDnD
 
 from src.controllers import AppController
-from src.models import DataModel
+from src.models import AppDataModel
 from src.widgets import MainPage
 
 PROGRAM_NAME = 'MosaicTool'
@@ -58,7 +58,7 @@ class MyApp(TkinterDnD.Tk):
         self.minsize(width, height)
         self.set_window_title(Path(""))  # プログラム名とバージョン番号を表示
 
-        self.model = DataModel()
+        self.model = AppDataModel()
         self.controller = AppController(self.model, None, self.set_window_title)
         self.MainPage = MainPage(self, self.controller, icons_path)
         self.MainPage.grid(column=0, row=0, sticky=tk.E + tk.W + tk.S + tk.N)

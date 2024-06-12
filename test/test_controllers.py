@@ -12,13 +12,13 @@ from pathlib import Path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.controllers import AppController
-from src.models import DataModel
+from src.models import AppDataModel
 from src.widgets import MainPage
 
 
 class TestAppController(unittest.TestCase):
     """コントローラーのテストクラス"""
-    @unittest.skipIf("DISPLAY" not in os.environ, "Skipping GUI test on headless environment")
+    @unittest.skipIf(os.name != 'nt', "Skipping The OS is not Windows")
     def test_drop_file_parser(self):
         """
         ドラッグ＆ドロップのパス解析
@@ -36,14 +36,14 @@ class TestAppController(unittest.TestCase):
         class Event:
             data: str
 
-        model = DataModel()
+        model = AppDataModel()
         main_page = Mock(MainPage)
 
         controller = AppController(model, main_page, self.dummy_func)
         event = Event(' '.join(assets))
 
         controller.handle_drop(event)
-        count = controller.model.count()
+        count = controller.model.count
         # 画像ファイルではない、.gitignoreは処理をスキップします。
         # 結果の件数は、3と比較します。
         self.assertTrue(count == 3, f"test_drop_file_parser error {count}")

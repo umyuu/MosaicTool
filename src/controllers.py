@@ -3,19 +3,44 @@
     AppController
 """
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, List, Optional
 import re
 
-from . models import DataModel, StatusMessage, MosaicImageFile
+from . models import AppDataModel, StatusBarInfo, MosaicImageFile
 from . image_file_service import ImageFileService
 from . utils import Stopwatch
+
+
+class ImageController:
+    def __init__(self, model: AppDataModel, view):
+        self.model = model
+        self.view = view
+        self.view.controller = self
+        self.update_view()
+
+    def update_view(self):
+        current_image = self.model.get_current_image()
+        self.view.display_image(current_image)
+
+    def next_image(self):
+        self.model.next_image()
+        self.update_view()
+
+    def previous_image(self):
+        self.model.previous_image()
+        self.update_view()
+
+    def apply_mosaic(self):
+        coordinates = self.view.get_mosaic_coordinates()
+        #modified_image = self.model.apply_mosaic(coordinates)
+        self.view.display_image(modified_image)
 
 
 class AppController:
     """
     コントローラー
     """
-    def __init__(self, model: DataModel, view, window_title_callback):
+    def __init__(self, model: AppDataModel, view, window_title_callback):
         self.model = model
         self.view = view
         self.window_title_callback = window_title_callback
@@ -30,12 +55,18 @@ class AppController:
         :return: 追加件数
         """
         if not file_path.is_dir():  # ファイルの場合
-            return self.model.add_file_path(file_path)
+            return self.model.add_images([file_path])
 
-        count: int = 0
+        files: List[Path] = []
         for f in file_path.glob("*.*"):  # ディレクトリの場合
-            count += self.model.add_file_path(f)
-        return count
+            files.append(f)
+        return self.model.add_images(files)
+
+    def get_current_image(self):
+        """
+        現在選択されている画像のパス
+        """
+        return self.model.get_current_image()
 
     def handle_drop(self, event):
         """
@@ -64,9 +95,9 @@ class AppController:
             count += self.add_file_path(path)
 
         if count > 0:
-            self.display_image()
+            self.update_view(sw)
 
-        self.view.status_message(f"received in drop files:{count}")
+        self.view.set_status_message(f"received in drop files:{count}")
         self.display_process_time(f"{sw.elapsed:.3f}s")
 
     def handle_file_open(self, event=None):
@@ -89,10 +120,8 @@ class AppController:
         :param event: イベント
         """
         sw = Stopwatch.start_new()
-        self.model.prev_index()
-        self.display_image()
-
-        self.display_process_time(f"{sw.elapsed:.3f}s")
+        self.model.previous_image()
+        self.update_view(sw)
 
     def handle_forward_image(self, event=None):
         """
@@ -100,26 +129,31 @@ class AppController:
         :param event: イベント
         """
         sw = Stopwatch.start_new()
-        self.model.next_index()
-        self.display_image()
-
-        self.display_process_time(f"{sw.elapsed:.3f}s")
+        self.model.next_image()
+        self.update_view(sw)
 
     def handle_info_image(self, event=None):
         """
         画像情報を表示するをクリック時
         :param event: イベント
         """
-        file = self.model.get_current_file()
-        d = ImageFileService.get_image_info(file)
-        print(d)
+        if self.model.count == 0:
+            return
+        file = self.model.get_current_image()
+        image_info = ImageFileService.get_image_info(file)
+        self.view.show_file_info(image_info)
+        #print(d)
 
-    def display_image(self):
+    def update_view(self, sw: Optional[Stopwatch] = None):
         """
-        画面に画像を表示します。
+        Viewを更新します。
+        画面に画像と処理時間を表示します。
         """
-        file = self.model.get_current_file()
-        self.view.display_image(file)
+        current_image = self.model.get_current_image()
+        self.view.display_image(current_image)
+        # 処理時間を表示します。
+        if sw:
+            self.display_process_time(f"{sw.elapsed:.3f}s")
 
     def handle_select_files_complete(self, files: Iterable[str]):
         """
@@ -133,18 +167,18 @@ class AppController:
             count += self.add_file_path(Path(file_path))
             total += 1
         if count == 0:
-            self.view.status_message("No image file")
+            self.view.set_status_message("No image file")
             return
 
-        self.display_image()
-        self.view.status_message(f"select files:{count} / {total}")
+        self.update_view()
+        self.view.set_status_message(f"select files:{count} / {total}")
 
     def get_mosaic_filename(self) -> Path:
         """
         モザイク適用後のファイル名を生成します。
         :return: Path
         """
-        f = self.model.get_current_file()
+        f = self.model.get_current_image()
         return ImageFileService.mosaic_filename(f)
 
     def set_window_title(self, text: Path):
@@ -161,21 +195,20 @@ class AppController:
         """
         self.view.status_process_time(time)
 
-    def get_status(self) -> StatusMessage:
+    def get_status(self) -> StatusBarInfo:
         """
         ステータスメッセージを取得します。
         """
-        files = self.model.get_file_paths()
-        total = len(files)
+        total = self.model.count
         if total == 0:
-            return StatusMessage()
+            return StatusBarInfo()
 
-        filepath = self.model.get_current_file()
+        filepath = self.model.get_current_image()
         width, height = ImageFileService.get_image_size(filepath)
 
         m = MosaicImageFile(filepath)
 
-        return StatusMessage(
+        return StatusBarInfo(
             current=self.model.current + 1,
             total=total,
             mtime=m.mtime,

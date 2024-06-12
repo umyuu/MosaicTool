@@ -10,7 +10,7 @@ from decimal import Decimal
 
 import os
 from pathlib import Path
-from typing import List
+from typing import List, Literal
 
 from PIL import Image
 
@@ -28,128 +28,124 @@ ImageFormat = {
 
 
 @dataclass
-class StatusMessage:
+class ImageFileInfo:
     """
     ステータスバーのステータスメッセージ
     """
     width: int = 0  # 幅
     height: int = 0  # 高さ
-    current: int = 0  # 現在のindex
-    total: int = 0  # トータル
     file_size: int = 0  # ファイルサイズ(バイト単位)
     mtime: str = ""  # モザイクを掛ける対象ファイルの最終更新日時
 
 
-class DataModel:
+@dataclass
+class StatusBarInfo(ImageFileInfo):
     """
-    処理対象のファイル
+    ステータスバーのステータスメッセージ
+    """
+    current: int = 0  # 現在のindex
+    total: int = 0  # トータル
+
+
+class AppDataModel:
+    """
+    アプリのデータモデル
     """
     def __init__(self):
-        self.file_paths: List[Path] = []
+        """
+        初期化処理
+        """
+        self.image_list: List[Path] = []
         self.current: int = 0
+        # 許可される拡張子のリスト
+        self.allowed_extensions = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".svg"]
 
-    def add_file_path(self, file_path: Path) -> int:
+    def add_images(self, image_list: List[Path]) -> int:
         """
-        処理対象のファイルを追加します。
-        :return: 追加件数
+        画像ファイルを追加します。
+        :param image_list: 画像ファイルのリスト
+        :return: 追加した件数
         """
-        if self.check_image_file(file_path):
-            self.file_paths.append(file_path)
-            return 1
-        return 0
+        self.image_list.extend(
+            image for image in image_list if self.check_image_file(image)
+        )
+        return len(self.image_list)
 
+    @property
     def count(self) -> int:
         """
-        処理対象の総ファイルの件数
+        処理対象の総件数
         :return: 総件数
         """
-        return len(self.file_paths)
+        return len(self.image_list)
 
-    def check_image_file(self, file_path: Path):
+    def check_image_file(self, file_path: Path) -> bool:
         """
         画像ファイルの検証
         ファイルの存在、許可された拡張子かをチェックします。
-
-        Args:
-            file_path: チェックする画像ファイルのパス
-
-        Returns:
-            bool: チェック結果 true は正常、falseは検証エラー
+        :param file_path: チェックするファイルのパス
+        :return: チェック結果 true は正常、falseは検証エラー
         """
         if not file_path.exists():
             return False
-        return DataModel.is_extension_allowed(file_path)
+        return self.is_allowed_extension(file_path)
 
-    @staticmethod
-    def is_extension_allowed(file_path: Path):
+    def is_allowed_extension(self, file_path: Path) -> bool:
         """
         ファイルの拡張子が許可されているかどうかをチェックする関数
-
-        Args:
-            file_path: チェックするファイルのパス
-
-        Returns:
-            bool: 拡張子が許可されている場合はTrue、そうでない場合はFalse
+        :param file_path: チェックするファイルのパス
+        :return: 拡張子が許可されている場合はTrue、そうでない場合はFalse
         """
-        # 許可される拡張子のリスト
-        allowed_extensions = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".svg"]
-        return file_path.suffix.lower() in allowed_extensions  # 大文字小文字を無視してチェックする
+        # 大文字小文字を無視してチェックする
+        return file_path.suffix.lower() in self.allowed_extensions  
 
     def clear(self):
         """
         モデルをクリアします。
         """
-        self.file_paths = []
+        self.image_list = []
         self.current = 0
 
-    def set_current(self, current: int):
+    def next_image(self):
         """
-        現在選択されている画像を設定します。
-        Args:
-            current: インデックス
+        インデックスを次の画像に移動します。
         """
-        if current < 0 or current >= len(self.file_paths):
-            raise ValueError(f"current index out of range: {current}")
-        self.current = current
-
-    def next_index(self):
-        """
-        current を次のインデックスに移動します。
-        """
-        if self.current < len(self.file_paths) - 1:
+        if self.current < len(self.image_list) - 1:
             self.current += 1
         #else:
         #    raise IndexError("No more files in the list.")
 
-    def prev_index(self):
+    def previous_image(self):
         """
-        current を前のインデックスに移動します。
+        インデックスを前の画像に移動します。
         """
-        #self.current = (self.current - 1) % len(self.file_paths)
         if self.current > 0:
             self.current -= 1
         #else:
         #    raise IndexError("Already at the first file in the list.")
 
-    def get_file_paths(self) -> List[Path]:
-        """
-        処理対象のファイル一覧
-        :return: ファイル一覧
-        """
-        return self.file_paths
+    #def get_file_paths(self) -> List[Path]:
+    #    """
+    #    処理対象のファイル一覧
+    #    :return: ファイル一覧
+    #    """
+    #    return self.image_list
 
-    def get_current_file(self) -> Path:
+    def get_current_image(self) -> Path:
         """
-        現在処理中のファイルパス
+        現在処理中の画像
         :return: ファイルパス
         """
-        return self.file_paths[self.current]
+        if self.image_list:
+            return self.image_list[self.current]
+        return Path("")
+#        return self.file_paths[self.current]
 
     def __str__(self) -> str:
         """
         print用の文字列。デバック用に使用します。
         """
-        return f"current:{self.current}, {self.file_paths}"
+        return f"current:{self.current}, {self.image_list}"
 
 
 @dataclass
