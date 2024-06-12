@@ -18,6 +18,7 @@ from src.widgets import MainPage
 
 class TestAppController(unittest.TestCase):
     """コントローラーのテストクラス"""
+    @unittest.skipIf("DISPLAY" not in os.environ, "Skipping GUI test on headless environment")
     def test_drop_file_parser(self):
         """
         ドラッグ＆ドロップのパス解析
