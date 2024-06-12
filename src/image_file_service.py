@@ -9,6 +9,7 @@ from typing import Any
 
 from PIL import Image
 from PIL.PngImagePlugin import PngInfo
+from src.utils import Stopwatch
 #from .models import MosaicImageFile
 
 
@@ -148,6 +149,7 @@ class ImageFileService:
         Returns:
             None
         """
+        sw = Stopwatch.start_new()
         png_info = src_image.info
         if png_info:
             new_png_info = PngInfo()
@@ -164,8 +166,9 @@ class ImageFileService:
 
                 new_png_info.add_itxt(key, value)
 
+            print(f"png save start.{sw.elapsed:.1f}", end=None)
             out_image.save(output_path, pnginfo=new_png_info)
-            print("PNGINFO saved successfully.")
+            print(f" saved successfully.{sw.elapsed:.1f}")
         else:
             out_image.save(output_path)
 
