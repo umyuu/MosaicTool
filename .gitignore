@@ -1,6 +1,10 @@
+###
 # ignore shortcut link
 build.lnk
 run.lnk
+# ignore CProfile Result
+*.prof
+###
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

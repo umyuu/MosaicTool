@@ -1,17 +1,26 @@
+"""
+ImageFileServiceの単体テスト
+"""
 import sys
 import os
+import unittest
+from PIL import Image
+from pathlib import Path
 
 # プロジェクトのルートディレクトリをシステムパスに追加
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import unittest
-from PIL import Image
-from pathlib import Path
 from src.image_file_service import ImageFileService
 
 
 class TestImageFileService(unittest.TestCase):
+    """
+    ImageFileServiceのテストクラス
+    """
     def test_save_png_metadata(self):
+        """
+        PNGINFOの出力確認
+        """
         current_dir = os.path.dirname(__file__)
         image_path = os.path.join(current_dir, 'test_files', 'test_image_png_pnginfo_valid.png')
         # テストに使用する画像と出力先パスを準備
@@ -20,7 +29,7 @@ class TestImageFileService(unittest.TestCase):
             output_path = Path("test_output.png")
 
             # テスト用のPNG情報を準備
-            # Todo:dpiはタプルが正常値。暫定対応。
+            # Todo:dpiはタプルが正常値。暫定対応。PNGINFOでは読めます。
             # {'srgb': 0, 'gamma': 0.45455, 'dpi': (96.012, 96.012)}
             png_info = {
                 "srgb": "0",

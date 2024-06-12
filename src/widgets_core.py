@@ -100,12 +100,12 @@ class PhotoImageButton(tk.Button):
         :param command: ボタンが押されたときに実行するコマンド
         :param kwargs: その他のオプション
         """
-        img = tk.PhotoImage(file=image_path)
-        img = img.subsample(3, 3)
+        photo_image = tk.PhotoImage(file=image_path)
+        photo_image = photo_image.subsample(3, 3)
         if command is None:
-            super().__init__(master, image=img, compound="top", **kwargs)
+            super().__init__(master, image=photo_image, compound="top", **kwargs)
         else:
-            super().__init__(master, image=img, compound="top", command=command, **kwargs)
+            super().__init__(master, image=photo_image, compound="top", command=command, **kwargs)
 
-        self.img = img  # ガベージコレクションを防ぐために画像を保持
+        self.photo_image = photo_image  # ガベージコレクションを防ぐために画像を保持
         self.tooltip = Tooltip(self, tooltip_text) if tooltip_text else None

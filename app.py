@@ -2,6 +2,10 @@
 """
     MosaicTool
 """
+import asyncio
+from src.utils import get_package_version, Stopwatch
+sw = Stopwatch.start_new()
+
 from functools import partial
 from pathlib import Path
 import sys
@@ -11,15 +15,13 @@ import tkinter as tk
 
 from tkinterdnd2 import TkinterDnD
 
+from src.controllers import AppController
 from src.models import DataModel
-from src.utils import get_package_version, Stopwatch
-from controllers import AppController
-from widgets import MainPage
-
+from src.widgets import MainPage
 
 PROGRAM_NAME = 'MosaicTool'
 __version__ = get_package_version()
-sw = Stopwatch.start_new()
+
 
 application_path = os.path.dirname(os.path.abspath(__file__))
 # アイコンのパスを作成
@@ -65,23 +67,31 @@ class MyApp(TkinterDnD.Tk):
 
         self.controller.view = self.MainPage  # コントローラーにビューを設定
         # 遅延してイベントループで処理をします。
-        self.MainPage.after(1, partial(self.after_launch))
+        self.MainPage.after(1, partial(self.after_launch, file_paths))
 
     def set_window_title(self, filepath: Path):
+        """
+        ウィンドウタイトルを設定する
+        :param filepath: 画像ファイルパス
+        """
         filename = filepath.name if filepath else ""
         title = f"{filename} - {PROGRAM_NAME} {__version__}" if filename else f"{PROGRAM_NAME} {__version__}"
         self.title(title)
 
-    def after_launch(self):
+    def after_launch(self, files: list[str]):
         """
-        プログラムを開始します。
+        プログラムを開始する。
+        :param files: 起動時に渡されたファイル(送るメニューより)
         """
         # コマンドライン引数で渡されたファイルパスを処理する
-        self.controller.handle_select_files_complete(file_paths)
-        self.MainPage.updateFileStatus()
-        self.controller.on_file_save(f"{sw.elapsed:.3f}s")
+        self.controller.handle_select_files_complete(files)
+        self.MainPage.displayFileStatus()
+        self.controller.display_process_time(f"{sw.elapsed:.3f}s")
 
 
-if __name__ == "__main__":
+async def main():
     app = MyApp()
     app.mainloop()
+
+if __name__ == "__main__":
+    asyncio.run(main())

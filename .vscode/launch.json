@@ -1,30 +1,57 @@
 {
-    // IntelliSense を使用して利用可能な属性を学べます。
-    // 既存の属性の説明をホバーして表示します。
-    // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
+  // IntelliSense を使用して利用可能な属性を学べます。
+  // 既存の属性の説明をホバーして表示します。
+  // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
     {
-        "name": "現在のファイル",
-        "type": "debugpy",
-        "request": "launch",
-        "program": "${file}",
-        "console": "integratedTerminal"
+      "name": "Run app",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/app.py",
+      "console": "integratedTerminal"
     },
     {
-        "name": "run app.py",
-        "type": "debugpy",
-        "request": "launch",
-        "program": "app.py",
-        "console": "integratedTerminal",
-        "args": "${command:pickArgs}"
+      "name": "現在のファイル",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal"
     },
     {
-        "name": "Release",
-        "type": "debugpy",
-        "request": "launch",
-        "program": "scripts\\release.py",
-        "console": "integratedTerminal",
+      "name": "SendTo Start app",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/app.py",
+      "console": "integratedTerminal",
+      "args": "${command:pickArgs}"
+    },
+    {
+      "name": "Build",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/build.py",
+      "console": "integratedTerminal",
+      "args": [
+        "app.py",
+        "--onefile",
+        "--windowed",
+        "--name",
+        "MosaicTool",
+        "--noconsole",
+        "--clean",
+        "--collect-data",
+        "tkinterdnd2",
+        "--add-data",
+        "./third_party/icons;./third_party/icons"
+      ]
+    },
+    {
+      "name": "Release",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/release.py",
+      "console": "integratedTerminal"
     }
-    ]
+  ]
 }

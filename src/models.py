@@ -32,12 +32,12 @@ class StatusMessage:
     """
     ステータスバーのステータスメッセージ
     """
-    width: int = 0
-    height: int = 0
-    current: int = 0
-    total: int = 0
+    width: int = 0  # 幅
+    height: int = 0  # 高さ
+    current: int = 0  # 現在のindex
+    total: int = 0  # トータル
     file_size: int = 0  # ファイルサイズ(バイト単位)
-    mtime: str = ""
+    mtime: str = ""  # モザイクを掛ける対象ファイルの最終更新日時
 
 
 class DataModel:
@@ -53,26 +53,68 @@ class DataModel:
         処理対象のファイルを追加します。
         :return: 追加件数
         """
-        if file_path.exists():
+        if self.check_image_file(file_path):
             self.file_paths.append(file_path)
             return 1
         return 0
 
     def count(self) -> int:
+        """
+        処理対象の総ファイルの件数
+        :return: 総件数
+        """
         return len(self.file_paths)
 
+    def check_image_file(self, file_path: Path):
+        """
+        画像ファイルの検証
+        ファイルの存在、許可された拡張子かをチェックします。
+
+        Args:
+            file_path: チェックする画像ファイルのパス
+
+        Returns:
+            bool: チェック結果 true は正常、falseは検証エラー
+        """
+        if not file_path.exists():
+            return False
+        return DataModel.is_extension_allowed(file_path)
+
+    @staticmethod
+    def is_extension_allowed(file_path: Path):
+        """
+        ファイルの拡張子が許可されているかどうかをチェックする関数
+
+        Args:
+            file_path: チェックするファイルのパス
+
+        Returns:
+            bool: 拡張子が許可されている場合はTrue、そうでない場合はFalse
+        """
+        # 許可される拡張子のリスト
+        allowed_extensions = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".svg"]
+        return file_path.suffix.lower() in allowed_extensions  # 大文字小文字を無視してチェックする
+
     def clear(self):
+        """
+        モデルをクリアします。
+        """
         self.file_paths = []
         self.current = 0
 
     def set_current(self, current: int):
+        """
+        現在選択されている画像を設定します。
+        Args:
+            current: インデックス
+        """
         if current < 0 or current >= len(self.file_paths):
             raise ValueError(f"current index out of range: {current}")
         self.current = current
 
     def next_index(self):
         """
-        current の次のインデックスに移動します。
+        current を次のインデックスに移動します。
         """
         if self.current < len(self.file_paths) - 1:
             self.current += 1
@@ -81,7 +123,7 @@ class DataModel:
 
     def prev_index(self):
         """
-        current の前のインデックスに移動します。
+        current を前のインデックスに移動します。
         """
         #self.current = (self.current - 1) % len(self.file_paths)
         if self.current > 0:
@@ -92,16 +134,21 @@ class DataModel:
     def get_file_paths(self) -> List[Path]:
         """
         処理対象のファイル一覧
+        :return: ファイル一覧
         """
         return self.file_paths
 
     def get_current_file(self) -> Path:
         """
         現在処理中のファイルパス
+        :return: ファイルパス
         """
         return self.file_paths[self.current]
 
     def __str__(self) -> str:
+        """
+        print用の文字列。デバック用に使用します。
+        """
         return f"current:{self.current}, {self.file_paths}"
 
 
@@ -171,13 +218,15 @@ class MosaicFilter:
         region = self._image.crop((start_x, start_y, end_x, end_y))
 
         # セルサイズに基づいて縮小後のサイズを計算
-        new_width = max(1, region_width // self.cell_size)
-        new_height = max(1, region_height // self.cell_size)
+        new_width = (region_width // self.cell_size) * self.cell_size
+        new_height = (region_height // self.cell_size) * self.cell_size
 
-        # 縮小してから元のサイズにリサイズ
-        region = region.resize((new_width, new_height), Image.Resampling.BOX).resize(region.size, Image.Resampling.NEAREST)
+        # 領域をセルサイズに揃えてリサイズするための四角形のサイズを計算
+        region = region.resize((new_width // self.cell_size, new_height // self.cell_size), Image.Resampling.BOX)
+        region = region.resize((new_width, new_height), Image.Resampling.NEAREST)
+
         # モザイクをかけた領域を元の画像に戻す
-        self._image.paste(region, (start_x, start_y, end_x, end_y))
+        self._image.paste(region, (start_x, start_y, start_x + new_width, start_y + new_height))
         return True
 
     @property
