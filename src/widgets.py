@@ -8,6 +8,7 @@ from tkinter import filedialog, messagebox
 from functools import partial
 from decimal import Decimal
 from pathlib import Path
+from typing import Optional
 
 from PIL import ImageTk
 from tkinterdnd2 import DND_FILES, TkinterDnD
@@ -27,48 +28,46 @@ class HeaderFrame(tk.Frame):
     """
     def __init__(self, master, controller: AppController, bg: str, icons_path: Path):
         super().__init__(master, bg=bg)
-
         self.controller = controller
-
+        # Widgetを生成します。
         self.action_file_open = PhotoImageButton(self,
                                                  image_path=str((icons_path / "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                  tooltip_text="Open (Ctrl+O)",
                                                  command=self.controller.handle_file_open)
-        WidgetUtils.bind_all(self, "Control", "O", partial(self.controller.handle_file_open))
-        self.action_file_open.grid(row=0, column=0, padx=(0, 0))
-
         self.action_save_as = PhotoImageButton(self,
                                                image_path=str((icons_path / "save_as_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                tooltip_text="SaveAs (Ctrl+Shift+S)",
                                                command=self.controller.handle_save_as)
-        WidgetUtils.bind_all(self, "Control-Shift", "S", partial(self.controller.handle_save_as))
-        self.action_save_as.grid(row=0, column=1, padx=(4, 0))
-
         self.action_back = PhotoImageButton(self,
                                             image_path=str((icons_path / "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                             tooltip_text="Previous file (<-)",
                                             command=self.controller.handle_back_image)
-        WidgetUtils.bind_all(self, "", "Left", partial(self.controller.handle_back_image))
-        WidgetUtils.bind_all(self, "Shift", "Left", partial(self.controller.handle_back_image))
-        self.action_back.grid(row=0, column=2, padx=(4, 0))
-
         self.action_forward = PhotoImageButton(self,
                                                image_path=str((icons_path / "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                tooltip_text="Next file (->)",
                                                command=self.controller.handle_forward_image)
-        WidgetUtils.bind_all(self, "", "Right", partial(self.controller.handle_forward_image))
-        WidgetUtils.bind_all(self, "Shift", "Right", partial(self.controller.handle_forward_image))
-        self.action_forward.grid(row=0, column=3, padx=(4, 0))
-
         self.action_file_info = PhotoImageButton(self,
                                                  image_path=str((icons_path / "info_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                  tooltip_text="Image Information (I)",
                                                  command=self.controller.handle_info_image)
-        WidgetUtils.bind_all(self, "", "I", partial(self.controller.handle_info_image))
-        self.action_file_info.grid(row=0, column=4, padx=(4, 0))
-
         self.widgetHeader = tk.Label(self, text="画面にフォルダまたはファイルをドラッグ＆ドロップしてください。", font=("", 14))
+
+        # Widgetを配置します。
+        self.action_file_open.grid(row=0, column=0, padx=(0, 0))
+        self.action_save_as.grid(row=0, column=1, padx=(4, 0))
+        self.action_back.grid(row=0, column=2, padx=(4, 0))
+        self.action_forward.grid(row=0, column=3, padx=(4, 0))
+        self.action_file_info.grid(row=0, column=4, padx=(4, 0))
         self.widgetHeader.grid(row=0, column=5, padx=(4, 0))
+
+        # キーバインドの設定をします。
+        WidgetUtils.bind_all(self, "Control", "O", partial(self.controller.handle_file_open))
+        WidgetUtils.bind_all(self, "Control-Shift", "S", partial(self.controller.handle_save_as))
+        WidgetUtils.bind_all(self, "", "Left", partial(self.controller.handle_back_image))
+        WidgetUtils.bind_all(self, "Shift", "Left", partial(self.controller.handle_back_image))
+        WidgetUtils.bind_all(self, "", "Right", partial(self.controller.handle_forward_image))
+        WidgetUtils.bind_all(self, "Shift", "Right", partial(self.controller.handle_forward_image))
+        WidgetUtils.bind_all(self, "", "I", partial(self.controller.handle_info_image))
 
 
 class MainFrame(tk.Frame):
@@ -137,26 +136,23 @@ class MainFrame(tk.Frame):
         """
         ドラッグ中
         """
-        #if self.photo is None:
-        #    return
-
         end_x = int(self.canvas.canvasx(event.x))
         end_y = int(self.canvas.canvasy(event.y))
 
-        # 矩形が既に存在する場合は削除する
+        # 矩形が既に存在する場合は削除します。
         if self.rect_tag:
             self.canvas.delete(self.rect_tag)
         if self.size_label:
             self.canvas.delete(self.size_label)
 
-        # 矩形を描画し、タグを付ける
+        # 矩形を描画し、タグを付けます。
         self.rect_tag = self.canvas.create_rectangle(self.start_x, self.start_y, end_x, end_y, outline='red')
 
-        # サイズを計算して表示
+        # サイズを計算して表示します。
         width = abs(end_x - self.start_x)
         height = abs(end_y - self.start_y)
 
-        # サイズラベルの位置をマウスカーソルの近くに設定
+        # サイズラベルの位置をマウスカーソルの近くに設定します。
         label_x = end_x + 10
         label_y = end_y + 10
         self.size_label = self.canvas.create_text((label_x, label_y), font=("", 12), text=f"{width} x {height}", anchor="nw")
@@ -166,11 +162,12 @@ class MainFrame(tk.Frame):
         ドラッグ終了時
         """
         try:
-            # ドラッグ終了位置を取得（キャンバス上の座標に変換）
+            sw = Stopwatch.start_new()
+            # ドラッグ終了位置を取得します。（キャンバス上の座標に変換）
             end_x = int(self.canvas.canvasx(event.x))
             end_y = int(self.canvas.canvasy(event.y))
-            sw = Stopwatch.start_new()
-            # 選択領域にモザイクをかける
+
+            # 選択領域にモザイクをかけます。
             is_apply = self.apply_mosaic(self.start_x, self.start_y, end_x, end_y)
             if is_apply:
                 self.controller.display_process_time(f"{sw.elapsed:.3f}s")
@@ -215,12 +212,11 @@ class MainFrame(tk.Frame):
 
     def save(self, output_path: Path, override: bool = False):
         """
-        モザイク画像を保存する
+        モザイク画像を保存します。
         :param output_path: 保存するファイルの名前
         :param override: 自動保存時に上書きするかの確認
         """
-        # ToDo:モデルを直接みているので、変更します。
-        current_file = self.controller.model.get_current_image()
+        current_file = self.controller.get_current_image()
 
         # 自動保存時に同一ファイル名の場合は、念のため確認メッセージを表示します。
         if not override:
@@ -273,7 +269,7 @@ class FooterFrame(tk.Frame):
         self.columnconfigure(4, weight=1, minsize=400)  # 余白調整用のラベル）にweightを設定
         self.columnconfigure(5, weight=1, minsize=24)
 
-    def updateStatusBar(self, info: StatusBarInfo):
+    def update_status_bar(self, info: StatusBarInfo):
         """
         ステータスバーを更新します。
         :param info: ステータスバーの情報
@@ -290,6 +286,13 @@ class FooterFrame(tk.Frame):
 
     def updateMessage(self, text: str):
         self.paddingLabel.config(text=text)
+
+    def update_process_time(self, text: str):
+        """
+        ステータスバーの処理時間欄
+        :param text: 処理時間欄に表示するテキスト
+        """
+        self.process_time.config(text=text)
 
 
 class FileInfoFrame:
@@ -367,8 +370,9 @@ class MainPage(tk.Frame):
         self.drop_target_register(DND_FILES)
         self.dnd_bind('<<Drop>>', self.controller.handle_drop)
 
-        # イベント
-        self.on_update_status_bar = self.FooterFrame.updateStatusBar
+        # イベントを登録します。
+        self.on_update_status_bar = self.FooterFrame.update_status_bar
+        self.on_update_process_time = self.FooterFrame.update_process_time
 
     def display_image(self, file_path: Path):
         """
@@ -442,15 +446,7 @@ class MainPage(tk.Frame):
         """
         self.FooterFrame.updateMessage(text)
         if time:
-            self.status_process_time(time)
-
-    def status_process_time(self, time: str = ""):
-        """
-        フッターのステータスバーの処理時間欄
-        Parameters:
-        time: 処理時間欄に表示するテキスト
-        """
-        self.FooterFrame.process_time.configure(text=time)
+            self.on_update_process_time(time)
 
     def show_file_info(self):
         aa = FileInfoFrame(self, self.controller, bg="#aaaaaa")

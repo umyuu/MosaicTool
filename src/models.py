@@ -127,13 +127,6 @@ class AppDataModel:
         #else:
         #    raise IndexError("Already at the first file in the list.")
 
-    #def get_file_paths(self) -> List[Path]:
-    #    """
-    #    処理対象のファイル一覧
-    #    :return: ファイル一覧
-    #    """
-    #    return self.image_list
-
     def get_current_image(self) -> Path:
         """
         現在処理中の画像
@@ -142,7 +135,6 @@ class AppDataModel:
         if self.image_list:
             return self.image_list[self.current]
         return Path("")
-#        return self.file_paths[self.current]
 
     def __str__(self) -> str:
         """

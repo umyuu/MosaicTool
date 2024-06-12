@@ -196,12 +196,12 @@ class AppController:
         """
         self.window_title_callback(text)
 
-    def display_process_time(self, time) -> None:
+    def display_process_time(self, time: str) -> None:
         """
         処理時間の設定
-        :param text: 処理時間
+        :param time: 処理時間
         """
-        self.view.status_process_time(time)
+        self.view.on_update_process_time(time)
 
     def get_status(self) -> StatusBarInfo:
         """
