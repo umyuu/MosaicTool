@@ -10,8 +10,13 @@ from pathlib import Path
 import time
 from typing import List
 import zipfile
+import sys
+import os
+# プロジェクトのルートディレクトリをシステムパスに追加
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-__version__ = "0.0.2"
+import app
+__version__ = app.__version__
 
 
 def hash_compute(file_path: Path) -> str:

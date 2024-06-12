@@ -1,9 +1,9 @@
-2024/06/11 ver 0.0.2  
+2024/06/12 ver 0.0.3  
 # 🌟 MosaicTool — モザイク編集のお供に
 ![Python version](https://img.shields.io/badge/python-3.9+-important)  
 
 `MosaicTool`は、手軽にモザイク加工ができるパソコン用アプリです。直感的な操作とストレスフリーを追求し、誰でも簡単にモザイク画像を作成できます。  
-![アプリの初期起動画面](docs/INITIAL_SCREEN.png)  
+![アプリの初期起動画面](docs//initial_screen.png)  
 
 ## 🎉 主な特長  
 - 簡単操作：マウスで範囲を選択するだけで、瞬時にモザイク加工が適用されます。  
@@ -44,7 +44,7 @@
 
 
 ## ハッシュ値  
-MosaicTool.exe Hash Value (SHA-256): E66D6BC8342220B0423152782485F2629794F30ABA536B04BB4F66190C6E3B07
+MosaicTool.exe Hash Value (SHA-256): C0F529F8155E309A7BB205EA7ABBBEE095F92F851C7B4A5959A9B042EE62B9D0
 
 ## 補足説明  
 1. アプリがウィルスソフトで検知された場合は、使用しているライブラリが影響している誤検知です。  
