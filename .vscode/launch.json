@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "run app",
+      "name": "Run app",
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/app.py",
@@ -19,7 +19,7 @@
       "console": "integratedTerminal"
     },
     {
-      "name": "SendTo app",
+      "name": "SendTo Start app",
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/app.py",
@@ -27,15 +27,23 @@
       "args": "${command:pickArgs}"
     },
     {
-      "name": "Python: PyInstaller",
+      "name": "Build",
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/scripts/build.py",
       "console": "integratedTerminal",
       "args": [
-        "pyinstaller",
-        "--onefile --windowed --name 'MosaicTool' --noconsole --clean --collect-data tkinterdnd2 --add-data third_party\\icons;third_party\\icons",
-        "${workspaceFolder}/app.py"
+        "app.py",
+        "--onefile",
+        "--windowed",
+        "--name",
+        "MosaicTool",
+        "--noconsole",
+        "--clean",
+        "--collect-data",
+        "tkinterdnd2",
+        "--add-data",
+        "./third_party/icons;./third_party/icons"
       ]
     },
     {

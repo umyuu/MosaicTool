@@ -7,8 +7,11 @@ import sys
 
 
 def main():
-    args = sys.argv[1:]
-    subprocess.run([sys.executable] + args, check=True)
+    args = [
+        "pyinstaller",
+        *sys.argv[1:]
+    ]
+    subprocess.run(args, check=True)
 
 
 if __name__ == '__main__':
