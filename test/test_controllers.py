@@ -14,11 +14,12 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from src.controllers import AppController
 from src.models import AppDataModel
 from src.widgets import MainPage
+from src.app_config import AppConfig
 
 
 class TestAppController(unittest.TestCase):
     def setUp(self):
-        self.controller = AppController(AppDataModel(), Mock(MainPage), Mock())
+        self.controller = AppController(AppDataModel(Mock(AppConfig)), Mock(MainPage), Mock())
 
         # on_update_process_time メソッドをモックに追加
         self.controller.view.on_update_process_time = Mock()

@@ -7,15 +7,14 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
-
 import os
 from pathlib import Path
-from typing import List, Literal
+from typing import Any, List
 
 from PIL import Image
 
 from . utils import round_up_decimal
-
+from . app_config import AppConfig
 
 # 画像形式
 ImageFormat = {
@@ -51,10 +50,12 @@ class AppDataModel:
     """
     アプリのデータモデル
     """
-    def __init__(self):
+    def __init__(self, settings: AppConfig):
         """
         初期化処理
+        :param settings: アプリの設定情報
         """
+        self.settings = settings
         self.image_list: List[Path] = []
         self.current: int = 0
         # 許可される拡張子のリスト
@@ -73,6 +74,15 @@ class AppDataModel:
             self.image_list.append(image)
             count += 1
         return count
+
+    def get(self, key: str, default=None) -> Any:
+        """
+        設定を取得するメソッド。
+        :param key: 取得する設定のキー
+        :param default: キーが存在しない場合に返されるデフォルト値
+        :return: 設定の値
+        """
+        return self.settings.get(key, default)
 
     @property
     def count(self) -> int:

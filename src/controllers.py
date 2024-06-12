@@ -18,6 +18,9 @@ class AppController(AbstractAppController):
     アプリのコントローラー
     """
     def __init__(self, model: AppDataModel, view: MainPage, window_title_callback):
+        """
+        コンストラクタ
+        """
         self.model = model
         self.view = view
         self.window_title_callback = window_title_callback
@@ -173,9 +176,6 @@ class AppController(AbstractAppController):
         :param text: ファイルパス
         """
         self.window_title_callback(text)
-
-    def setView(self, view):
-        self.view = view
 
     def display_process_time(self, time: str) -> None:
         """

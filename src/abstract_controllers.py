@@ -77,10 +77,6 @@ class AbstractAppController(ABC):
         pass
 
     @abstractmethod
-    def setView(self, view):
-        pass
-
-    @abstractmethod
     def display_process_time(self, time: str) -> None:
         pass
 
