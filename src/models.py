@@ -218,13 +218,15 @@ class MosaicFilter:
         region = self._image.crop((start_x, start_y, end_x, end_y))
 
         # セルサイズに基づいて縮小後のサイズを計算
-        new_width = max(1, region_width // self.cell_size)
-        new_height = max(1, region_height // self.cell_size)
+        new_width = (region_width // self.cell_size) * self.cell_size
+        new_height = (region_height // self.cell_size) * self.cell_size
 
-        # 縮小してから元のサイズにリサイズ
-        region = region.resize((new_width, new_height), Image.Resampling.BOX).resize(region.size, Image.Resampling.NEAREST)
+        # 領域をセルサイズに揃えてリサイズするための四角形のサイズを計算
+        region = region.resize((new_width // self.cell_size, new_height // self.cell_size), Image.Resampling.BOX)
+        region = region.resize((new_width, new_height), Image.Resampling.NEAREST)
+
         # モザイクをかけた領域を元の画像に戻す
-        self._image.paste(region, (start_x, start_y, end_x, end_y))
+        self._image.paste(region, (start_x, start_y, start_x + new_width, start_y + new_height))
         return True
 
     @property
