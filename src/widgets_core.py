@@ -46,11 +46,9 @@ class Tooltip:
     """
     def __init__(self, widget, text: str):
         """
-        初期化メソッド
-
-        Parameters:
-        widget (tk.Widget): ツールチップを表示する対象のウィジェット
-        text: ツールチップに表示するテキスト
+        コンストラクタ
+        :param widget (tk.Widget): ツールチップを表示する対象のウィジェット
+        :param text: ツールチップに表示するテキスト
         """
         self.widget = widget
         self.text = text
@@ -109,6 +107,42 @@ class PhotoImageButton(tk.Button):
 
         self.photo_image = photo_image  # ガベージコレクションを防ぐために画像を保持
         self.tooltip = Tooltip(self, tooltip_text) if tooltip_text else None
+
+
+class LabelTextEntry(tk.Frame):
+    """
+    ラベルとテキストの複合コンポーネント
+    """
+    def __init__(self, parent, text):
+        """
+        コンストラクタ
+        :param master: 親ウィジェット
+        :param label_text: ラベルに表示するテキスト
+        """
+        super().__init__(parent)
+
+        self.label = tk.Label(self, text=text)
+        self.label.pack(side=tk.LEFT)
+
+        self.text_entry = tk.Text(self, height=1, width=20)
+        self.text_entry.pack(side=tk.LEFT)
+
+    def get_text(self) -> str:
+        """
+        テキストエントリの内容を取得するメソッド。
+
+        Returns:
+            str: テキストエントリの内容。
+        """
+        return self.text_entry.get("1.0", tk.END).strip()
+
+    def set_text(self, text: str):
+        """
+        テキストエントリに指定されたテキストを設定するメソッド。
+        :param label_text: 設定するテキスト
+        """
+        self.text_entry.delete("1.0", tk.END)
+        self.text_entry.insert("1.0", text)
 
 
 class SubWindow(tk.Button):

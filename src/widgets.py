@@ -16,7 +16,7 @@ from tkinterdnd2 import DND_FILES, TkinterDnD
 from . abstract_controllers import AbstractAppController
 from . models import MosaicFilter, StatusBarInfo, ImageFormat
 from . utils import round_up_decimal, Stopwatch
-from . widgets_core import WidgetUtils, PhotoImageButton, Tooltip
+from . widgets_core import WidgetUtils, PhotoImageButton, Tooltip, LabelTextEntry
 from . image_file_service import ImageFileService
 
 PROGRAM_NAME = 'MosaicTool'
@@ -301,21 +301,27 @@ class FileInfoFrame:
     """
     def __init__(self, master, controller: AbstractAppController, bg: str):
         #super().__init__(master, bg=bg)
-        self.win = tk.Toplevel()
-        self.win.geometry("300x100")
+        self.win = tk.Toplevel(master)
+        self.win.title(f"{PROGRAM_NAME} - File Information")
+        self.win.geometry("300x500")
         self.win.protocol('WM_DELETE_WINDOW', self.on_window_exit)
         self.controller = controller
 
         self.top_frame = tk.Frame(self.win, bg='cyan', width=450, height=50, pady=3)
-        self.file_name = tk.Label(self.win, text="File name:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.folder = tk.Label(self.win, text="Folder:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.full_path = tk.Label(self.win, text="Full path:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.file_size = tk.Label(self.win, text="File Size:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.mosaic_file_name = tk.Label(self.win, text="Mosaic File Name:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.extra = tk.Label(self.win, text="Mosaic File Name:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.action_copy = tk.Button(self.win, text="Copy", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.extra_text = tk.Text(self.win, bd=1, relief=tk.SUNKEN)
-        self.action_ok = tk.Label(self.win, text="OK", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.top_frame.pack(fill=tk.BOTH, expand=True)
+
+        self.file_name = LabelTextEntry(self.top_frame, text="File name:")
+        self.folder = LabelTextEntry(self.top_frame, text="Folder:")
+
+        #self.file_name = tk.Label(self.top_frame, text="File name:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        #self.folder = tk.Label(self.top_frame, text="Folder:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.full_path = tk.Label(self.top_frame, text="Full path:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.file_size = tk.Label(self.top_frame, text="File Size:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.mosaic_file_name = tk.Label(self.top_frame, text="Mosaic File Name:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.extra = tk.Label(self.top_frame, text="Mosaic File Name:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.action_copy = tk.Button(self.top_frame, text="Copy", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.extra_text = tk.Text(self.top_frame, bd=1, relief=tk.SUNKEN)
+        self.action_ok = tk.Button(self.top_frame, text="OK", command=self.on_window_exit)
 
         # Widgetの配置
         self.file_name.grid(row=0, column=0, sticky=tk.W + tk.E)
@@ -326,18 +332,17 @@ class FileInfoFrame:
         self.extra.grid(row=5, column=0, sticky=tk.W + tk.E)
         self.action_copy.grid(row=6, column=0, sticky=tk.W + tk.E)
         self.extra_text.grid(row=7, column=0, sticky=tk.W + tk.E)
+        #self.ent_file_name.grid(row=7, column=1, sticky=tk.W + tk.E)
         self.action_ok.grid(row=8, column=0, sticky=tk.W + tk.E)
-
-        self.top_frame.pack()
 
     def on_window_open(self):
         print("on_window_open")
-        self.win.withdraw()
-        self.win.focus()
+        #self.win.withdraw()
+        #self.win.focus()
+        self.win.deiconify()
 
     def on_window_exit(self):
         print("on_window_exit")
-        self.win.deiconify()
         self.win.withdraw()
         #self.var.set(False)
 
@@ -349,7 +354,7 @@ class MainPage(tk.Frame):
     def __init__(self, master: TkinterDnD.Tk, controller: AbstractAppController, icons_path: Path):
         super().__init__(master, bg="#00C8B4")
         self.controller = controller
-
+        self.file_info_window: Optional[FileInfoFrame] = None
         # Widgetの生成
         self.HeaderFrame = HeaderFrame(self, controller, "#44F7D3", icons_path)
         self.MainFrame = MainFrame(self, controller, bg="#88FFEB")
@@ -381,7 +386,7 @@ class MainPage(tk.Frame):
         """
         self.MainFrame.updateImage(file_path)
         self.controller.set_window_title(file_path)
-        self.on_update_status_bar(self.controller.get_status())
+        self.controller.update_status_bar_file_info()
 
     def on_select_files(self, event):
         """
@@ -448,8 +453,10 @@ class MainPage(tk.Frame):
         if time:
             self.on_update_process_time(time)
 
-    def show_file_info(self):
-        aa = FileInfoFrame(self, self.controller, bg="#aaaaaa")
-        #()
+    def show_file_info(self, file_info):
+        if self.file_info_window is None:
+            self.file_info_window = FileInfoFrame(self, self.controller, bg="#aaaaaa")
+        self.after(1, self.file_info_window.on_window_open)    
+
         print("aaa")
-        self.after(1, aa.on_window_open)
+        #self.file_info_window.on_window_open()
