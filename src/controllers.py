@@ -11,31 +11,6 @@ from . image_file_service import ImageFileService
 from . utils import Stopwatch
 
 
-class ImageController:
-    def __init__(self, model: AppDataModel, view):
-        self.model = model
-        self.view = view
-        self.view.controller = self
-        self.update_view()
-
-    def update_view(self):
-        current_image = self.model.get_current_image()
-        self.view.display_image(current_image)
-
-    def next_image(self):
-        self.model.next_image()
-        self.update_view()
-
-    def previous_image(self):
-        self.model.previous_image()
-        self.update_view()
-
-    def apply_mosaic(self):
-        coordinates = self.view.get_mosaic_coordinates()
-        #modified_image = self.model.apply_mosaic(coordinates)
-        self.view.display_image(modified_image)
-
-
 class AppController:
     """
     コントローラー
@@ -46,6 +21,7 @@ class AppController:
         self.window_title_callback = window_title_callback
         # ドラッグ＆ドロップで渡されたパスを分割する正規表現
         self.drop_file_split = re.compile(r'([A-Za-z]:[/|\\\\].*?(?=[A-Za-z]:[/|\\\\]|$))', re.RegexFlag.UNICODE)
+        self.image_controller = ImageController(self)
 
     def add_file_path(self, file_path: Path) -> int:
         """
@@ -196,6 +172,9 @@ class AppController:
         """
         self.window_title_callback(text)
 
+    def setView(self, view):
+        self.view = view
+
     def display_process_time(self, time: str) -> None:
         """
         処理時間の設定
@@ -224,3 +203,32 @@ class AppController:
             width=width,
             height=height
         )
+
+    def get_view(self):
+        return self.view
+
+
+class ImageController:
+    def __init__(self, app_controller: AppController):
+        self.app_controller = app_controller
+
+    def update_view(self):
+        pass
+        #current_image = self.model.get_current_image()
+        #view = self.app_controller.get_view()
+        #        view.display_image(current_image)
+
+    def next_image(self):
+        #       self.model.next_image()
+        #view = self.app_controller.get_view()
+        self.update_view()
+
+    def previous_image(self):
+        #        self.model.previous_image()
+        self.update_view()
+
+    def apply_mosaic(self):
+        pass
+        #coordinates = self.view.get_mosaic_coordinates()
+        #modified_image = self.model.apply_mosaic(coordinates)
+        # self.view.display_image(modified_image)

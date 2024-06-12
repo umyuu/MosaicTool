@@ -61,6 +61,7 @@ class MyApp(TkinterDnD.Tk):
         self.model = AppDataModel()
         self.controller = AppController(self.model, None, self.set_window_title)
         self.MainPage = MainPage(self, self.controller, icons_path)
+
         self.MainPage.grid(column=0, row=0, sticky=tk.E + tk.W + tk.S + tk.N)
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)

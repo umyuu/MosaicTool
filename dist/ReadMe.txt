@@ -1,4 +1,4 @@
-2024/06/12 ver 0.0.3  
+2024/06/13 ver 0.0.4  
 # 🌟 MosaicTool — モザイク編集のお供に
 ![Python version](https://img.shields.io/badge/python-3.9+-important)  
 
