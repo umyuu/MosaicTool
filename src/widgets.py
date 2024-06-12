@@ -13,7 +13,7 @@ from typing import Optional
 from PIL import ImageTk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 
-from . controllers import AppController
+from . abstract_controllers import AbstractAppController
 from . models import MosaicFilter, StatusBarInfo, ImageFormat
 from . utils import round_up_decimal, Stopwatch
 from . widgets_core import WidgetUtils, PhotoImageButton, Tooltip
@@ -26,7 +26,7 @@ class HeaderFrame(tk.Frame):
     """
     画面のヘッダー部
     """
-    def __init__(self, master, controller: AppController, bg: str, icons_path: Path):
+    def __init__(self, master, controller: AbstractAppController, bg: str, icons_path: Path):
         super().__init__(master, bg=bg)
         self.controller = controller
         # Widgetを生成します。
@@ -75,7 +75,7 @@ class MainFrame(tk.Frame):
     画面のメイン部
     ToDo:ImageEditorクラスを新設する予定です。
     """
-    def __init__(self, master, controller: AppController, bg: str):
+    def __init__(self, master, controller: AbstractAppController, bg: str):
         super().__init__(master, bg=bg)
 
         self.controller = controller
@@ -299,7 +299,7 @@ class FileInfoFrame:
     """
     画像情報のダイアログ
     """
-    def __init__(self, master, controller: AppController, bg: str):
+    def __init__(self, master, controller: AbstractAppController, bg: str):
         #super().__init__(master, bg=bg)
         self.win = tk.Toplevel()
         self.win.geometry("300x100")
@@ -346,7 +346,7 @@ class MainPage(tk.Frame):
     """
     メインページ
     """
-    def __init__(self, master: TkinterDnD.Tk, controller: AppController, icons_path: Path):
+    def __init__(self, master: TkinterDnD.Tk, controller: AbstractAppController, icons_path: Path):
         super().__init__(master, bg="#00C8B4")
         self.controller = controller
 

@@ -9,13 +9,15 @@ import re
 from . models import AppDataModel, StatusBarInfo, MosaicImageFile
 from . image_file_service import ImageFileService
 from . utils import Stopwatch
+from . abstract_controllers import AbstractAppController
+from . widgets import MainPage
 
 
-class AppController:
+class AppController(AbstractAppController):
     """
-    コントローラー
+    アプリのコントローラー
     """
-    def __init__(self, model: AppDataModel, view, window_title_callback):
+    def __init__(self, model: AppDataModel, view: MainPage, window_title_callback):
         self.model = model
         self.view = view
         self.window_title_callback = window_title_callback
@@ -38,7 +40,7 @@ class AppController:
             files.append(f)
         return self.model.add_images(files)
 
-    def get_current_image(self):
+    def get_current_image(self) -> Path:
         """
         現在選択されている画像のパス
         """
@@ -54,7 +56,7 @@ class AppController:
         count: int = 0
         event_data = event.data  # ドラッグ&ドロップで渡されたファイル名
         if not event_data:
-            self.view.status_message("No data received in drop event")
+            self.view.set_status_message("No data received in drop event")
             self.display_process_time(f"{sw.elapsed:.3f}s")
             return
 
