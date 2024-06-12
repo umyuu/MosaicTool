@@ -276,7 +276,7 @@ class FooterFrame(tk.Frame):
     def updateStatusBar(self, info: StatusBarInfo):
         """
         ステータスバーを更新します。
-        :prame
+        :param info: ステータスバーの情報
         """
         # 画像の幅と高さ
         self.imageSizeBar.config(text=f"{info.width} x {info.height}")
@@ -367,6 +367,9 @@ class MainPage(tk.Frame):
         self.drop_target_register(DND_FILES)
         self.dnd_bind('<<Drop>>', self.controller.handle_drop)
 
+        # イベント
+        self.on_update_status_bar = self.FooterFrame.updateStatusBar
+
     def display_image(self, file_path: Path):
         """
         画像ファイルを選択時
@@ -374,7 +377,7 @@ class MainPage(tk.Frame):
         """
         self.MainFrame.updateImage(file_path)
         self.controller.set_window_title(file_path)
-        self.displayFileStatus()
+        self.on_update_status_bar(self.controller.get_status())
 
     def on_select_files(self, event):
         """
@@ -430,12 +433,6 @@ class MainPage(tk.Frame):
 
         self.set_status_message(f"Save。{save_file.name}", f"{sw.elapsed:.3f}")
         messagebox.showinfo(PROGRAM_NAME, f"ファイルを保存しました。\n\n{save_file}")
-
-    def displayFileStatus(self):
-        """
-        フッターのステータスバーを更新
-        """
-        self.FooterFrame.updateStatusBar(self.controller.get_status())
 
     def set_status_message(self, text: str, time: str = ""):
         """

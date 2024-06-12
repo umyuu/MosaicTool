@@ -66,10 +66,13 @@ class AppDataModel:
         :param image_list: 画像ファイルのリスト
         :return: 追加した件数
         """
-        self.image_list.extend(
-            image for image in image_list if self.check_image_file(image)
-        )
-        return len(self.image_list)
+        count: int = 0
+        for image in image_list:
+            if not self.check_image_file(image):
+                continue
+            self.image_list.append(image)
+            count += 1
+        return count
 
     @property
     def count(self) -> int:

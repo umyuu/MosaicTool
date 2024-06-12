@@ -155,23 +155,31 @@ class AppController:
         if sw:
             self.display_process_time(f"{sw.elapsed:.3f}s")
 
+    def update_status_bar_file_info(self):
+        """
+        ステータスバーのファイル情報部分を更新します。
+        """
+        self.view.on_update_status_bar(self.get_status())
+
     def handle_select_files_complete(self, files: Iterable[str]):
         """
         ファイル選択ダイアログよりファイル選択時
         :param files: ファイル一覧
         """
-        count: int = 0
-        total: int = 0
+        sw = Stopwatch.start_new()
+        count: int = 0  # カウントは画像件数
+        total: int = 0  # ファイル選択ダイアログより選択した件数(画像ファイル以外も含みます)
+
         self.model.clear()
         for file_path in files:
             count += self.add_file_path(Path(file_path))
             total += 1
         if count == 0:
-            self.view.set_status_message("No image file")
+            self.view.set_status_message("No image file selected")
             return
 
-        self.update_view()
-        self.view.set_status_message(f"select files:{count} / {total}")
+        self.update_view(sw)
+        self.view.set_status_message(f"Select files:{count} / {total}")
 
     def get_mosaic_filename(self) -> Path:
         """
