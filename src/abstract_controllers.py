@@ -5,7 +5,7 @@
 """
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Literal
 
 from . models import AppDataModel, StatusBarInfo
 from . utils import Stopwatch
@@ -16,13 +16,10 @@ class AbstractAppController(ABC):
     AppControllerの抽象クラス
     """
     def __init__(self, model: AppDataModel, view, window_title_callback):
+        """
+        コンストラクタ
+        """
         pass
-        #self.model = model
-        #self.view = view
-        #self.window_title_callback = window_title_callback
-        # ドラッグ＆ドロップで渡されたパスを分割する正規表現
-        #self.drop_file_split = re.compile(r'([A-Za-z]:[/|\\\\].*?(?=[A-Za-z]:[/|\\\\]|$))', re.RegexFlag.UNICODE)
-        #self.image_controller = ImageController(self)
 
     @abstractmethod
     def add_file_path(self, item) -> int:
@@ -70,6 +67,15 @@ class AbstractAppController(ABC):
 
     @abstractmethod
     def get_mosaic_filename(self) -> Path:
+        pass
+
+    @abstractmethod
+    def get_font_size(self, heading: Literal["h1", "h2", "h3", "h4", "h5"]) -> int:
+        """
+        指定した要素（見出しや本文）のフォントサイズを取得するメソッドです。
+        :param element: 見出しの種類（'h1', 'h2', 'h3', 'h4', 'h5'）または 'body'（本文）
+        :return: フォントサイズ
+        """
         pass
 
     @abstractmethod

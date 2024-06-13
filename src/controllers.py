@@ -3,7 +3,7 @@
     AppController
 """
 from pathlib import Path
-from typing import Iterable, List, Optional
+from typing import Iterable, List, Optional, Literal
 import re
 
 from . models import AppDataModel, StatusBarInfo, MosaicImageFile
@@ -161,6 +161,14 @@ class AppController(AbstractAppController):
 
         self.update_view(sw)
         self.view.set_status_message(f"Select files:{count} / {total}")
+
+    def get_font_size(self, element: Literal["h1", "h2", "h3", "h4", "h5", "body"]) -> int:
+        """
+        指定した要素（見出しや本文）のフォントサイズを取得するメソッドです。
+        :param element: 見出しの種類（'h1', 'h2', 'h3', 'h4', 'h5'）または 'body'（本文）
+        :return: フォントサイズ
+        """
+        return self.model.get_font_size(element)
 
     def get_mosaic_filename(self) -> Path:
         """
