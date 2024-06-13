@@ -85,8 +85,8 @@ class AppConfig:
                 "theme_colors": {
                     "primary_hue": "#44F7D3",
                     "secondary_hue": "#2ECC71",
-                    "neutral_hue": "#95A5A6",
-                    "accent": "#FF0000",
+                    "neutral_hue": "SystemWindow",
+                    "accent": "RosyBrown",
                 },
                 "font_sizes": {
                     "h1": 24,

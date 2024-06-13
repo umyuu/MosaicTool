@@ -151,7 +151,9 @@ class MainFrame(tk.Frame):
             self.canvas.delete(self.size_label)
 
         # 矩形を描画し、タグを付けます。
-        self.rect_tag = self.canvas.create_rectangle(self.start_x, self.start_y, end_x, end_y, outline='red')
+        self.rect_tag = self.canvas.create_rectangle(
+            self.start_x, self.start_y, end_x, end_y,
+            outline=self.controller.get_config().theme_colors.accent)
 
         # サイズを計算して表示します。
         width = abs(end_x - self.start_x)
@@ -161,7 +163,10 @@ class MainFrame(tk.Frame):
         label_x = end_x + 10
         label_y = end_y + 10
         # font sizeを固定から修正します。
-        self.size_label = self.canvas.create_text((label_x, label_y), font=("", 12), text=f"{width} x {height}", anchor="nw")
+        self.size_label = self.canvas.create_text(
+            (label_x, label_y),
+            font=("", self.controller.get_config().font_sizes.h5), text=f"{width} x {height}",
+            anchor="nw")
 
     def handle_end_drag(self, event):
         """
@@ -190,6 +195,7 @@ class MainFrame(tk.Frame):
     def apply_mosaic(self, start_x: int, start_y: int, end_x: int, end_y: int) -> bool:
         """
         モザイクを適用します。
+        :return: モザイクを掛けてたかどうか
         """
         if self.photo is None:
             return False
@@ -338,14 +344,20 @@ class FilePropertyWindow:
         """ファイル情報の設定を行います。"""
         self.info_frame = tk.LabelFrame(self.main_frame,
                                         bg=theme_colors.neutral_hue, text="File Property", font=("", font_sizes.h5))
+
         self.file_name_var = tk.StringVar()
         self.file_name_var.set("")
-
         self.file_name = tk.Entry(self.info_frame, font=("", font_sizes.body), textvariable=self.file_name_var)
+
         self.folder = LabelTextEntry(self.info_frame, text="Folder:", font=("", font_sizes.body), textvariable=None)
+        self.folder.set_label_background_color(theme_colors.neutral_hue)
+
         self.full_path = LabelTextEntry(self.info_frame, text="Full Path:", font=("", font_sizes.body), textvariable=None)
+        self.full_path.set_label_background_color(theme_colors.neutral_hue)
+
         self.mosaic_file_name = LabelTextEntry(self.info_frame,
                                                text="Mosaic File:", font=("", font_sizes.body), textvariable=None)
+        self.mosaic_file_name.set_label_background_color(theme_colors.neutral_hue)
 
         self.action_folder_mask = tk.Button(self.info_frame,
                                             text="Folder Mask", bd=1, bg=theme_colors.secondary_hue,
@@ -355,6 +367,7 @@ class FilePropertyWindow:
         self.action_copy = tk.Button(self.info_frame, text="Copy Extra Text", bd=1, bg=theme_colors.secondary_hue,
                                      relief=tk.RAISED, anchor=tk.W, 
                                      command=self.handle_copy_text, font=("", font_sizes.body), pady=4)
+
         self.setup_extra(font_sizes, theme_colors)
 
     def setup_extra(self, font_sizes, theme_colors):
@@ -366,7 +379,7 @@ class FilePropertyWindow:
         # Textウィジェットとスクロールバーを連動させる
         self.extra_text.config(yscrollcommand=self.extra_text_scrollbar.set)
 
-        self.extra_text.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
+        self.extra_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(4, 0), pady=4)
         self.extra_text_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
     def setup_footer(self, font_sizes, theme_colors):

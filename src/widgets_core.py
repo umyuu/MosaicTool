@@ -135,11 +135,15 @@ class LabelTextEntry(tk.Frame):
     def get_text(self) -> str:
         """
         テキストエントリの内容を取得するメソッド。
-
-        Returns:
-            str: テキストエントリの内容。
+        :return: テキストエントリの内容。
         """
         return self.text_entry.get()
+
+    def set_label_background_color(self, value: str):
+        """
+        ラベルの背景色を設定します。
+        """
+        self.label.config(bg=value)
 
     def set_text(self, text: str):
         """
@@ -148,6 +152,31 @@ class LabelTextEntry(tk.Frame):
         """
         self.text_entry.delete(0, tk.END)  # 既存のテキストを削除
         self.text_entry.insert(0, text)
+
+
+class CustomScrollbar(tk.Scrollbar):
+    """
+    スクロールバーを選択時のマウスカーソルを設定するためのカスタムコントロール
+    """
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, **kwargs)
+        self.bind("<Enter>", self.on_enter)
+        self.bind("<Leave>", self.on_leave)
+        self.bind("<FocusIn>", self.on_focus_in)
+        self.bind("<FocusOut>", self.on_focus_out)
+
+    def on_enter(self, event):
+        if self.focus_get() == self:
+            self.config(cursor="hand2")
+
+    def on_leave(self, event):
+        self.config(cursor="arrow")
+
+    def on_focus_in(self, event):
+        self.config(cursor="hand2")
+
+    def on_focus_out(self, event):
+        self.config(cursor="arrow")
 
 
 class RightClickMenu(tk.Menu):
