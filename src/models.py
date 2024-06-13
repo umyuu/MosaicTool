@@ -9,7 +9,7 @@ from datetime import datetime
 from decimal import Decimal
 import os
 from pathlib import Path
-from typing import Any, List, Literal
+from typing import Any, List
 
 from PIL import Image
 
@@ -83,7 +83,7 @@ class AppDataModel:
         self.current: int = 0
         # 許可される拡張子のリスト
         self.allowed_extensions = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".svg"]
-        self.get_font_size = self.settings.get_font_size
+        self.file_property_visible: bool = False
 
     def add_images(self, image_list: List[Path]) -> int:
         """
@@ -107,9 +107,6 @@ class AppDataModel:
         :return: 設定の値
         """
         return self.settings.get(key, default)
-
-    #def get_font_size(self, element: Literal["h1", "h2", "h3", "h4", "h5", "body"]) -> int:
-    #    return self.settings.get_font_size(element)
 
     @property
     def settings(self) -> AppConfig:

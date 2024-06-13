@@ -105,6 +105,10 @@ class AppController(AbstractAppController):
         self.model.previous_image()
         self.update_view(sw)
 
+        is_visible: bool = self.model.file_property_visible
+        if is_visible:
+            self.handle_file_property(None)
+
     def handle_forward_image(self, event=None):
         """
         次の画像に遷移するをクリック時
@@ -113,8 +117,11 @@ class AppController(AbstractAppController):
         sw = Stopwatch.start_new()
         self.model.next_image()
         self.update_view(sw)
+        is_visible: bool = self.model.file_property_visible
+        if is_visible:
+            self.handle_file_property(None)
 
-    def handle_info_image(self, event=None):
+    def handle_file_property(self, event=None):
         """
         画像情報を表示するをクリック時
         :param event: イベント
@@ -125,8 +132,21 @@ class AppController(AbstractAppController):
 
         status = self.get_status()
         image_info = ImageFileService.get_image_info(file)
-
         self.view.show_file_info(status, str(image_info))
+
+    def set_file_property_visible(self, visible: bool):
+        """
+        ファイルプロパティウィンドウの表示・非表示状態を設定します。
+        :param visible: true:表示, false: 非表示
+        """
+        self.model.file_property_visible = visible
+
+    def is_file_property_visible(self):
+        """
+        画像ファイルのプロパティウィンドウの表示・非表示状態
+        :return: true:表示, false: 非表示
+        """
+        return self.model.file_property_visible
 
     def update_view(self, sw: Optional[Stopwatch] = None):
         """

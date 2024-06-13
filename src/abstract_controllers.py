@@ -5,7 +5,7 @@
 """
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Iterable, Optional, Literal
+from typing import Iterable, Optional
 
 from . app_config import AppConfig, FontSize
 from . models import AppDataModel, StatusBarInfo
@@ -51,7 +51,7 @@ class AbstractAppController(ABC):
         pass
 
     @abstractmethod
-    def handle_info_image(self, event=None):
+    def handle_file_property(self, event=None):
         pass
 
     @abstractmethod
@@ -76,8 +76,7 @@ class AbstractAppController(ABC):
         フォントサイズを取得します。
         :return: フォントサイズ
         """
-        # ToDo: デバック用なので、あとで修正します。
-        return FontSize(h1=44, h2=20, h3=18, h4=16, h5=14, body=16)
+        raise NotImplementedError()
 
     @abstractmethod
     def set_window_title(self, text: Path):
@@ -97,4 +96,12 @@ class AbstractAppController(ABC):
 
     @abstractmethod
     def get_config(self) -> AppConfig:
+        pass
+
+    @abstractmethod
+    def set_file_property_visible(self, visible: bool):
+        pass
+
+    @abstractmethod
+    def is_file_property_visible(self) -> bool:
         pass
