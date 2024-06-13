@@ -29,12 +29,35 @@ ImageFormat = {
 @dataclass(frozen=True)
 class ImageFileInfo:
     """
-    ステータスバーのステータスメッセージ
+    画像ファイル情報
     """
     width: int = 0  # 幅
     height: int = 0  # 高さ
-    file_size: int = 0  # ファイルサイズ(バイト単位)
-    mtime: str = ""  # モザイクを掛ける対象ファイルの最終更新日時
+    file_path: Path = Path("")  # ファイルパス
+    #file_size: int = 0  # ファイルサイズ(バイト単位)
+    #mtime: str = ""  # モザイクを掛ける対象ファイルの最終更新日時
+
+    @property
+    def mtime(self) -> str:
+        """
+        最終更新日時をISO 8601形式で取得するプロパティ
+        :return: 最終更新日時の文字列
+        """
+        # ファイルのメタデータを取得
+        file_stat = self.file_path.stat()
+        # 最終更新日時を取得
+        timestamp = file_stat.st_mtime
+        # タイムスタンプをローカルタイムに変換し、ISO 8601形式に変換
+        local_time = datetime.fromtimestamp(timestamp)
+        return local_time.strftime('%Y-%m-%dT%H:%M:%S')
+
+    @property
+    def file_size(self) -> int:
+        """
+        ファイルサイズを取得するプロパティ
+        :return: ファイルサイズ（バイト）
+        """
+        return os.path.getsize(self.file_path)
 
 
 @dataclass(frozen=True)
@@ -155,36 +178,6 @@ class AppDataModel:
         print用の文字列。デバック用に使用します。
         """
         return f"current:{self.current}, {self.image_list}"
-
-
-@dataclass
-class MosaicImageFile:
-    """
-    モザイク画像ファイルの情報を管理するクラス
-    """
-    file_path: Path
-
-    @property
-    def mtime(self) -> str:
-        """
-        最終更新日時をISO 8601形式で取得するプロパティ
-        :return: 最終更新日時の文字列
-        """
-        # ファイルのメタデータを取得
-        file_stat = self.file_path.stat()
-        # 最終更新日時を取得
-        timestamp = file_stat.st_mtime
-        # タイムスタンプをローカルタイムに変換し、ISO 8601形式に変換
-        local_time = datetime.fromtimestamp(timestamp)
-        return local_time.strftime('%Y-%m-%dT%H:%M:%S')
-
-    @property
-    def st_size(self) -> int:
-        """
-        ファイルサイズを取得するプロパティ
-        :return: ファイルサイズ（バイト）
-        """
-        return os.path.getsize(self.file_path)
 
 
 @dataclass

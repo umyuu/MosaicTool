@@ -16,7 +16,7 @@ from tkinterdnd2 import DND_FILES, TkinterDnD
 from . abstract_controllers import AbstractAppController
 from . models import MosaicFilter, StatusBarInfo, ImageFormat
 from . utils import round_up_decimal, Stopwatch
-from . widgets_core import WidgetUtils, PhotoImageButton, Tooltip, LabelTextEntry
+from . widgets_core import WidgetUtils, PhotoImageButton, Tooltip, LabelTextEntry, RightClickMenu
 from . image_file_service import ImageFileService
 
 PROGRAM_NAME = 'MosaicTool'
@@ -299,7 +299,6 @@ class FooterFrame(tk.Frame):
         """
         self.process_time.config(text=text)
 
-
 class FileInfoFrame:
     """
     画像情報のダイアログ
@@ -308,7 +307,7 @@ class FileInfoFrame:
         #super().__init__(master, bg=bg)
         self.win = tk.Toplevel(master)
         self.win.title(f"{PROGRAM_NAME} - File Information")
-        self.win.geometry("300x500")
+        self.win.geometry("500x500")
         self.win.protocol('WM_DELETE_WINDOW', self.on_window_exit)
         self.controller = controller
 
@@ -317,7 +316,7 @@ class FileInfoFrame:
         self.top_frame = tk.Frame(self.win, bg='cyan', width=450, height=50, pady=3)
         self.top_frame.pack(fill=tk.BOTH, expand=True)
 
-        self.file_name = LabelTextEntry(self.top_frame, text="File name:", front=("", font_size_body), textvariable=None)
+        self.file_name = LabelTextEntry(self.top_frame, text="", front=("", font_size_body), textvariable=None)
         self.folder = LabelTextEntry(self.top_frame, text="Folder:", front=("", font_size_body), textvariable=None)
         self.full_path = LabelTextEntry(self.top_frame, text="Full path:", front=("", font_size_body), textvariable=None)
         self.file_size = LabelTextEntry(self.top_frame, text="File Size:", front=("", font_size_body), textvariable=None)
@@ -343,6 +342,18 @@ class FileInfoFrame:
         self.var = tk.StringVar()
         self.extra_text = tk.Text(self.top_frame, bd=1, relief=tk.SUNKEN)
         self.action_ok = tk.Button(self.top_frame, text="OK", command=self.on_window_exit)
+
+        # 右クリックメニューの作成
+        self.right_click_menu = RightClickMenu(self.win)
+
+        # エントリウィジェットに右クリックイベントをバインド
+        for entry in (self.file_name.text_entry,
+                      self.folder.text_entry,
+                      self.full_path.text_entry,
+                      self.file_size.text_entry,
+                      self.mosaic_file_name.text_entry):
+            entry.bind("<Button-3>", self.right_click_menu.show_menu)
+
         # Widgetの配置
         self.file_name.grid(row=0, column=0, sticky=tk.W + tk.E)
         self.folder.grid(row=1, column=0, sticky=tk.W + tk.E)
@@ -361,15 +372,30 @@ class FileInfoFrame:
         self.win.clipboard_append(text)  # テキストをクリップボードに追加
 
     def on_window_open(self):
-        print("on_window_open")
-        #self.win.withdraw()
-        #self.win.focus()
+        """
+        ファイル情報を開く
+        """
         self.win.deiconify()
 
     def on_window_exit(self):
-        print("on_window_exit")
+        """
+        ファイル情報ウィンドウを閉じる
+        """
         self.win.withdraw()
-        #self.var.set(False)
+
+    def set_file_status(self, status: StatusBarInfo):
+        """
+        ファイル情報を表示します。
+        """
+        file_path: Path = status.file_path
+
+        self.file_name.set_text(file_path.name)
+        self.folder.set_text(str(file_path.parent))
+        self.full_path.set_text(str(file_path))
+        # ファイルサイズ
+        filesize_kb = Decimal(status.file_size) / Decimal(1024)
+        self.file_size.set_text(str(round_up_decimal(Decimal(filesize_kb), 2)) + " KB")
+        self.mosaic_file_name.set_text(str(round_up_decimal(Decimal(filesize_kb), 2)) + " KB")
 
     def set_extra_text(self, text: str):
         """
@@ -487,9 +513,11 @@ class MainPage(tk.Frame):
         if time:
             self.on_update_process_time(time)
 
-    def show_file_info(self, file_info):
+    def show_file_info(self, status: StatusBarInfo, file_info):
         if self.file_info_window is None:
             self.file_info_window = FileInfoFrame(self, self.controller, bg="#aaaaaa")
+
+        self.file_info_window.set_file_status(status)
         if file_info:
             self.file_info_window.set_extra_text(file_info)
         else:

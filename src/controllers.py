@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Iterable, List, Optional, Literal
 import re
 
-from . models import AppDataModel, StatusBarInfo, MosaicImageFile
+from . models import AppDataModel, StatusBarInfo
 from . image_file_service import ImageFileService
 from . utils import Stopwatch
 from . abstract_controllers import AbstractAppController
@@ -121,9 +121,11 @@ class AppController(AbstractAppController):
         if self.model.count == 0:
             return
         file = self.model.get_current_image()
+
+        status = self.get_status()
         image_info = ImageFileService.get_image_info(file)
 
-        self.view.show_file_info(str(image_info))
+        self.view.show_file_info(status, str(image_info))
 
     def update_view(self, sw: Optional[Stopwatch] = None):
         """
@@ -200,16 +202,13 @@ class AppController(AbstractAppController):
         if total == 0:
             return StatusBarInfo()
 
-        filepath = self.model.get_current_image()
-        width, height = ImageFileService.get_image_size(filepath)
-
-        m = MosaicImageFile(filepath)
+        file_path = self.model.get_current_image()
+        width, height = ImageFileService.get_image_size(file_path)
 
         return StatusBarInfo(
             current=self.model.current + 1,
             total=total,
-            mtime=m.mtime,
-            file_size=m.st_size,
+            file_path=file_path,
             width=width,
             height=height
         )

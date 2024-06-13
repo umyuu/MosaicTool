@@ -136,15 +136,44 @@ class LabelTextEntry(tk.Frame):
         Returns:
             str: テキストエントリの内容。
         """
-        return self.text_entry.get("1.0", tk.END).strip()
+        return self.text_entry.get()
 
     def set_text(self, text: str):
         """
         テキストエントリに指定されたテキストを設定するメソッド。
         :param label_text: 設定するテキスト
         """
-        self.text_entry.delete("1.0", tk.END)
-        self.text_entry.insert("1.0", text)
+        self.text_entry.delete(0, tk.END)  # 既存のテキストを削除
+        self.text_entry.insert(0, text)
+
+
+class RightClickMenu(tk.Menu):
+    """
+    右クリックメニュー
+    """
+    def __init__(self, root):
+        super().__init__(root, tearoff=0)
+        #self.menu = tk.Menu(root, tearoff=0)
+        self.add_command(label="カット", command=self.cut)
+        self.add_command(label="コピー", command=self.copy)
+        self.add_command(label="ペースト", command=self.paste)
+        self.widget = None
+
+    def show_menu(self, event):
+        self.widget = event.widget
+        self.tk_popup(event.x_root, event.y_root)
+
+    def cut(self):
+        if self.widget:
+            self.widget.event_generate("<<Cut>>")
+
+    def copy(self):
+        if self.widget:
+            self.widget.event_generate("<<Copy>>")
+
+    def paste(self):
+        if self.widget:
+            self.widget.event_generate("<<Paste>>")
 
 
 class SubWindow(tk.Button):
