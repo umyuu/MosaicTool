@@ -13,6 +13,7 @@ from typing import Optional
 from PIL import ImageTk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 
+from . app_config import AppConfig
 from . abstract_controllers import AbstractAppController
 from . models import MosaicFilter, StatusBarInfo, ImageFormat
 from . utils import round_up_decimal, Stopwatch
@@ -29,7 +30,7 @@ class HeaderFrame(tk.Frame):
     def __init__(self, master, controller: AbstractAppController, bg: str, icons_path: Path):
         super().__init__(master, bg=bg)
         self.controller = controller
-        
+
         # Widgetを生成します。
         self.action_file_open = PhotoImageButton(self,
                                                  image_path=str((icons_path / "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
@@ -316,6 +317,7 @@ class FileInfoFrame:
         self.win.protocol('WM_DELETE_WINDOW', self.on_window_exit)
         self.controller = controller
 
+        font_size_h1 = self.controller.get_font_size("h1")
         font_size_body = self.controller.get_font_size("body")
 
         self.main_frame = tk.Frame(self.win, bg='cyan', width=450)
@@ -324,7 +326,7 @@ class FileInfoFrame:
         #self.main_frame = tk.Frame(self.win, bg='cyan', pady=3)
         self.main_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=(0, 8))  # padx=8を追加
 
-        self.info_frame = tk.LabelFrame(self.main_frame, text="File Information")
+        self.info_frame = tk.LabelFrame(self.main_frame, text="File Information", font=("", font_size_h1))
         self.info_frame.pack(fill=tk.BOTH, expand=True)
 
         self.file_name = LabelTextEntry(self.info_frame, text="", font=("", font_size_body), textvariable=None)
@@ -439,12 +441,16 @@ class MainPage(tk.Frame):
     def __init__(self, master: TkinterDnD.Tk, controller: AbstractAppController, icons_path: Path):
         super().__init__(master, bg="#00C8B4")
         self.controller = controller
+        config = self.controller.get_config()
+        print(config)
         self.file_info_window: Optional[FileInfoFrame] = None
-
+        self.apply_theme(config)
         # Widgetの生成
-        self.HeaderFrame = HeaderFrame(self, controller, "#44F7D3", icons_path)
+        self.HeaderFrame = HeaderFrame(self, controller, config.primary_hue, icons_path)
         self.MainFrame = MainFrame(self, controller, bg="#88FFEB")
         self.FooterFrame = FooterFrame(self, bg="#FFBB9D")
+        #self.MainFrame = MainFrame(self, controller, bg="#88FFEB")
+        #self.FooterFrame = FooterFrame(self, bg="#FFBB9D")
 
         # Widgetの配置
         self.HeaderFrame.grid(column=0, row=0, sticky=(tk.E + tk.W + tk.S + tk.N))
@@ -464,6 +470,17 @@ class MainPage(tk.Frame):
         # イベントを登録します。
         self.on_update_status_bar = self.FooterFrame.update_status_bar
         self.on_update_process_time = self.FooterFrame.update_process_time
+
+    def apply_theme(self, config: AppConfig):
+        from tkinter import ttk
+        self.configure(bg=config.neutral_hue)
+        style = ttk.Style()
+        style.theme_use('default')
+        style.configure('TLabel', background=config.neutral_hue, font=("", config.font_sizes.body))
+        style.configure('TButton', background=config.primary_hue, font=("", config.font_sizes.body))
+        style.configure('TFrame', background=config.neutral_hue)
+        style.configure('TLabelframe', background=config.neutral_hue)
+        style.configure('TLabelframe.Label', background=config.neutral_hue, font=("", config.font_sizes.body))
 
     def display_image(self, file_path: Path):
         """

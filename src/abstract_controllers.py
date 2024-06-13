@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Iterable, Optional, Literal
 
+from . app_config import AppConfig
 from . models import AppDataModel, StatusBarInfo
 from . utils import Stopwatch
 
@@ -92,4 +93,8 @@ class AbstractAppController(ABC):
 
     @abstractmethod
     def get_view(self):
+        pass
+
+    @abstractmethod
+    def get_config(self) -> AppConfig:
         pass

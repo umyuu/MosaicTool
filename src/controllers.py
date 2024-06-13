@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Iterable, List, Optional, Literal
 import re
 
+from . app_config import AppConfig
 from . models import AppDataModel, StatusBarInfo
 from . image_file_service import ImageFileService
 from . utils import Stopwatch
@@ -215,6 +216,9 @@ class AppController(AbstractAppController):
 
     def get_view(self):
         return self.view
+
+    def get_config(self) -> AppConfig:
+        return self.model.settings
 
 
 class ImageController:

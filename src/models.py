@@ -78,7 +78,7 @@ class AppDataModel:
         初期化処理
         :param settings: アプリの設定情報
         """
-        self.settings = settings
+        self._settings = settings
         self.image_list: List[Path] = []
         self.current: int = 0
         # 許可される拡張子のリスト
@@ -110,6 +110,10 @@ class AppDataModel:
 
     #def get_font_size(self, element: Literal["h1", "h2", "h3", "h4", "h5", "body"]) -> int:
     #    return self.settings.get_font_size(element)
+
+    @property
+    def settings(self) -> AppConfig:
+        return self._settings
 
     @property
     def count(self) -> int:

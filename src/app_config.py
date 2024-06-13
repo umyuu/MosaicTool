@@ -2,9 +2,20 @@
 """
     AppConfig
 """
+from dataclasses import dataclass
 import json
 from pathlib import Path
 from typing import Any, Literal
+
+
+@dataclass(frozen=True)
+class FontSize:
+    h1: str
+    h2: str
+    h3: str
+    h4: str
+    h5: str
+    body: str
 
 
 class AppConfig:
@@ -19,6 +30,14 @@ class AppConfig:
         self.config_file = config_file
         self.settings = self.load_config()
 
+        font_sizes = self.settings['font_sizes']
+        self._font_sizes = FontSize(h1=font_sizes.get("h1"),
+                                   h2=font_sizes.get("h2"),
+                                   h3=font_sizes.get("h3"),
+                                   h4=font_sizes.get("h4"),
+                                   h5=font_sizes.get("h5"),
+                                   body=font_sizes.get("body"))
+
     def load_config(self) -> dict:
         """
         JSONファイルから設定を読み込むメソッド。
@@ -30,6 +49,11 @@ class AppConfig:
         except FileNotFoundError:
             # ファイルが存在しない場合のデフォルト設定
             config = {
+                "themes": {
+                    "primary_hue": "#44F7D3",
+                    "secondary_hue": "#2ecc71",
+                    "neutral_hue": "#95a5a6",
+                },
                 "font_sizes": {
                     "h1": 24,
                     "h2": 20,
@@ -57,9 +81,85 @@ class AppConfig:
         """
         return self.settings.get(key, default)
 
+    @property
+    def primary_hue(self) -> str:
+        """
+        プライマリ色
+        :return: 色
+        """
+        return self.settings['themes'].get("primary_hue")
+
+    @property
+    def secondary_hue(self) -> str:
+        """
+        セカンダリ色
+        :return: 色
+        """
+        return self.settings['themes'].get("secondary_hue")
+
+    @property
+    def neutral_hue(self) -> str:
+        """
+        ニュートラル色
+        :return: 色
+        """
+        return self.settings['themes'].get("neutral_hue")
+
+    @property
+    def font_sizes(self) -> FontSize:
+        return self._font_sizes
+
+    @property
+    def font_size_h1(self) -> int:
+        """
+        h1のフォントサイズ
+        :return: フォントサイズ
+        """
+        return self.get_font_size("h1")
+
+    @property
+    def font_size_h2(self) -> int:
+        """
+        h2のフォントサイズ
+        :return: フォントサイズ
+        """
+        return self.get_font_size("h2")
+
+    @property
+    def font_size_h3(self) -> int:
+        """
+        h3のフォントサイズ
+        :return: フォントサイズ
+        """
+        return self.get_font_size("h3")
+
+    @property
+    def font_size_h4(self) -> int:
+        """
+        h3のフォントサイズ
+        :return: フォントサイズ
+        """
+        return self.get_font_size("h4")
+
+    @property
+    def font_size_h5(self) -> int:
+        """
+        h3のフォントサイズ
+        :return: フォントサイズ
+        """
+        return self.get_font_size("h5")
+
+    @property
+    def font_size_body(self) -> int:
+        """
+        'body'（本文）のフォントサイズ
+        :return: フォントサイズ
+        """
+        return self.get_font_size("body")
+
     def get_font_size(self, element: Literal["h1", "h2", "h3", "h4", "h5", "body"]) -> int:
         """
-        指定した要素（見出しや本文）のフォントサイズを取得するメソッドです。
+        指定した要素（見出しや本文）の文字サイズを取得するメソッドです。
         :param element: 見出しの種類（'h1', 'h2', 'h3', 'h4', 'h5'）または 'body'（本文）
         :return: フォントサイズ
         """
@@ -73,3 +173,6 @@ class AppConfig:
         """
         self.settings[key] = value
         self.save_config()
+
+    def __str__(self) -> str:
+        return str(self.settings)
