@@ -54,7 +54,6 @@ class MyApp(TkinterDnD.Tk):
         width = initial_window_size.get("width")
         height = initial_window_size.get("height")
         self.geometry(f'{width}x{height}')  # ウィンドウサイズ
-        self.minsize(width, height)
 
         self.controller = AppController(self.model, None, self.set_window_title)
         self.MainPage = MainPage(self, self.controller, icons_path)

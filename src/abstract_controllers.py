@@ -51,7 +51,7 @@ class AbstractAppController(ABC):
         pass
 
     @abstractmethod
-    def handle_file_property(self, event=None):
+    def on_show_file_property(self, event=None):
         pass
 
     @abstractmethod

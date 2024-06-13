@@ -107,7 +107,7 @@ class AppController(AbstractAppController):
 
         is_visible: bool = self.model.file_property_visible
         if is_visible:
-            self.handle_file_property(None)
+            self.on_show_file_property(None)
 
     def handle_forward_image(self, event=None):
         """
@@ -119,9 +119,9 @@ class AppController(AbstractAppController):
         self.update_view(sw)
         is_visible: bool = self.model.file_property_visible
         if is_visible:
-            self.handle_file_property(None)
+            self.on_show_file_property(None)
 
-    def handle_file_property(self, event=None):
+    def on_show_file_property(self, event=None):
         """
         画像情報を表示するをクリック時
         :param event: イベント
@@ -132,7 +132,7 @@ class AppController(AbstractAppController):
 
         status = self.get_status()
         image_info = ImageFileService.get_image_info(file)
-        self.view.show_file_info(status, str(image_info))
+        self.view.on_show_file_property(status, str(image_info))
 
     def set_file_property_visible(self, visible: bool):
         """

@@ -51,7 +51,7 @@ class HeaderFrame(tk.Frame):
         self.action_file_info = PhotoImageButton(self,
                                                  image_path=str((icons_path / "info_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                  tooltip_text="Image Information (I)",
-                                                 command=self.controller.handle_file_property)
+                                                 command=self.controller.on_show_file_property)
 
         font_size_h4: int = self.controller.font_sizes.h4
         self.widgetHeader = tk.Label(self,
@@ -73,7 +73,7 @@ class HeaderFrame(tk.Frame):
         WidgetUtils.bind_all(self, "Shift", "Left", partial(self.controller.handle_back_image))
         WidgetUtils.bind_all(self, "", "Right", partial(self.controller.handle_forward_image))
         WidgetUtils.bind_all(self, "Shift", "Right", partial(self.controller.handle_forward_image))
-        WidgetUtils.bind_all(self, "", "I", partial(self.controller.handle_file_property))
+        WidgetUtils.bind_all(self, "", "I", partial(self.controller.on_show_file_property))
 
 
 class MainFrame(tk.Frame):
@@ -473,7 +473,7 @@ class MainPage(tk.Frame):
         self.controller = controller
         config = self.controller.get_config()
         print(config)
-        self.file_info_window: Optional[FilePropertyWindow] = None
+        self.file_property_window: Optional[FilePropertyWindow] = None
         #self.apply_theme(config)
         # Widgetの生成
         self.HeaderFrame = HeaderFrame(self, controller, config.theme_colors.primary_hue, icons_path)
@@ -590,14 +590,19 @@ class MainPage(tk.Frame):
         if time:
             self.on_update_process_time(time)
 
-    def show_file_info(self, status: StatusBarInfo, file_info):
-        if self.file_info_window is None:
-            self.file_info_window = FilePropertyWindow(self, self.controller)
+    def on_show_file_property(self, status: StatusBarInfo, image_info):
+        """
+        ファイルのプロパティ画面を表示します。
+        :param status: ステータスバーの情報
+        :param image_info: Exif/PNGinfoの情報
+        """
+        if self.file_property_window is None:
+            self.file_property_window = FilePropertyWindow(self, self.controller)
 
-        self.file_info_window.set_file_status(status)
-        if file_info:
-            self.file_info_window.set_extra_text(file_info)
+        self.file_property_window.set_file_status(status)
+        if image_info:
+            self.file_property_window.set_extra_text(image_info)
         else:
-            self.file_info_window.set_extra_text("")
+            self.file_property_window.set_extra_text("")
 
-        self.after(1, self.file_info_window.on_window_open)    
+        self.after(1, self.file_property_window.on_window_open)    
