@@ -113,18 +113,20 @@ class LabelTextEntry(tk.Frame):
     """
     ラベルとテキストの複合コンポーネント
     """
-    def __init__(self, parent, text):
+    def __init__(self, parent, text: str, front):
         """
         コンストラクタ
         :param master: 親ウィジェット
         :param label_text: ラベルに表示するテキスト
+        :param front: フォント
         """
         super().__init__(parent)
 
-        self.label = tk.Label(self, text=text)
+        _, font_size = front
+        self.label = tk.Label(self, text=text, font=front)
         self.label.pack(side=tk.LEFT)
 
-        self.text_entry = tk.Text(self, height=1, width=20)
+        self.text_entry = tk.Text(self, height=1, width=20, font=front)
         self.text_entry.pack(side=tk.LEFT)
 
     def get_text(self) -> str:

@@ -29,6 +29,7 @@ class HeaderFrame(tk.Frame):
     def __init__(self, master, controller: AbstractAppController, bg: str, icons_path: Path):
         super().__init__(master, bg=bg)
         self.controller = controller
+        
         # Widgetを生成します。
         self.action_file_open = PhotoImageButton(self,
                                                  image_path=str((icons_path / "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
@@ -50,7 +51,11 @@ class HeaderFrame(tk.Frame):
                                                  image_path=str((icons_path / "info_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                  tooltip_text="Image Information (I)",
                                                  command=self.controller.handle_info_image)
-        self.widgetHeader = tk.Label(self, text="画面にフォルダまたはファイルをドラッグ＆ドロップしてください。", font=("", 14))
+
+        font_size_h4: int = self.controller.get_font_size("h4")
+        self.widgetHeader = tk.Label(self,
+                                     text="画面にフォルダまたはファイルをドラッグ＆ドロップしてください。",
+                                     font=("", font_size_h4))
 
         # Widgetを配置します。
         self.action_file_open.grid(row=0, column=0, padx=(0, 0))
@@ -307,11 +312,13 @@ class FileInfoFrame:
         self.win.protocol('WM_DELETE_WINDOW', self.on_window_exit)
         self.controller = controller
 
+        font_size_h3 = self.controller.get_font_size("h3")
+
         self.top_frame = tk.Frame(self.win, bg='cyan', width=450, height=50, pady=3)
         self.top_frame.pack(fill=tk.BOTH, expand=True)
 
-        self.file_name = LabelTextEntry(self.top_frame, text="File name:")
-        self.folder = LabelTextEntry(self.top_frame, text="Folder:")
+        self.file_name = LabelTextEntry(self.top_frame, text="File name:", front=("", font_size_h3))
+        self.folder = LabelTextEntry(self.top_frame, text="Folder:", front=("", font_size_h3))
 
         #self.file_name = tk.Label(self.top_frame, text="File name:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
         #self.folder = tk.Label(self.top_frame, text="Folder:", bd=1, relief=tk.SUNKEN, anchor=tk.W)

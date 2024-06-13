@@ -70,7 +70,7 @@ class AbstractAppController(ABC):
         pass
 
     @abstractmethod
-    def get_font_size(self, heading: Literal["h1", "h2", "h3", "h4", "h5"]) -> int:
+    def get_font_size(self, heading: Literal["h1", "h2", "h3", "h4", "h5", "body"]) -> int:
         """
         指定した要素（見出しや本文）のフォントサイズを取得するメソッドです。
         :param element: 見出しの種類（'h1', 'h2', 'h3', 'h4', 'h5'）または 'body'（本文）
