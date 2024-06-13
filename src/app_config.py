@@ -73,6 +73,15 @@ class AppConfig:
         except FileNotFoundError:
             # ファイルが存在しない場合のデフォルト設定
             config = {
+                "version": 1,
+                "initialWindowSize": {
+                    "width": 800,
+                    "height": 600,
+                },
+                "filePropertyWindowSize": {
+                    "width": 600,
+                    "height": 500,
+                },
                 "theme_colors": {
                     "primary_hue": "#44F7D3",
                     "secondary_hue": "#2ECC71",

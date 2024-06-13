@@ -4,7 +4,7 @@
     画面パーツのコア部分
 """
 import tkinter as tk
-from typing import Optional, Literal, Tuple
+from typing import Optional, Literal
 
 
 class WidgetUtils(object):
@@ -53,17 +53,17 @@ class Tooltip:
         self.widget = widget
         self.text = text
         self.tooltip = None
-        self.widget.bind("<Enter>", self.enter)  # マウスがウィジェットに入ったときにenterメソッドを呼び出す
-        self.widget.bind("<Leave>", self.leave)  # マウスがウィジェットから離れたときにleaveメソッドを呼び出す
+        self.widget.bind("<Enter>", self.handle_enter)
+        self.widget.bind("<Leave>", self.handle_leave)
 
-    def enter(self, event=None):
+    def handle_enter(self, event=None):
         """
         マウスがウィジェットに入ったときに発生します。
         :param event: イベント
         """
-        self.id = self.widget.after(500, self.show_tooltip)  # 500ミリ秒後にshow_tooltipメソッドを呼び出す
+        self.id = self.widget.after(500, self.on_show_tooltip)  # 500ミリ秒後にshow_tooltipメソッドを呼び出す
 
-    def leave(self, event=None):
+    def handle_leave(self, event=None):
         """
         マウスがウィジェットから離れたときに発生します。
         :param event: イベント
@@ -73,9 +73,9 @@ class Tooltip:
             if self.tooltip:
                 self.tooltip.destroy()  # ツールチップが表示されていればそれを破棄する
 
-    def show_tooltip(self, event=None):
+    def on_show_tooltip(self, event=None):
         """
-        ツールチップを表示するメソッド
+        ツールチップを表示する
         :param event: イベント
         """
         x, y, _, _ = self.widget.bbox("insert")
@@ -116,20 +116,20 @@ class LabelTextEntry(tk.Frame):
     """
     ラベルとテキストのカスタムコンポーネント
     """
-    def __init__(self, parent, text: str, font: Tuple[str, int], textvariable):
+    def __init__(self, master=None, **kwargs):
         """
         コンストラクタ
         :param master: 親ウィジェット
         :param text: ラベルに表示するテキスト
         :param front: フォント
         """
-        super().__init__(parent)
+        super().__init__(master)
 
-        _, font_size = font
-        self.label = tk.Label(self, text=text, font=font)
+        #_, font_size = font
+        self.label = tk.Label(self, **kwargs)
         self.label.pack(side=tk.LEFT)
 
-        self.text_entry = tk.Entry(self, font=font, textvariable=textvariable)
+        self.text_entry = tk.Entry(self, **kwargs)
         self.text_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
     def get_text(self) -> str:

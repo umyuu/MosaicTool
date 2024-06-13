@@ -3,7 +3,7 @@
     AppController
 """
 from pathlib import Path
-from typing import Iterable, List, Optional, Literal
+from typing import Iterable, List, Optional
 import re
 
 from . app_config import AppConfig, FontSize
@@ -105,10 +105,6 @@ class AppController(AbstractAppController):
         self.model.previous_image()
         self.update_view(sw)
 
-        is_visible: bool = self.model.file_property_visible
-        if is_visible:
-            self.on_show_file_property(None)
-
     def handle_forward_image(self, event=None):
         """
         次の画像に遷移するをクリック時
@@ -117,9 +113,6 @@ class AppController(AbstractAppController):
         sw = Stopwatch.start_new()
         self.model.next_image()
         self.update_view(sw)
-        is_visible: bool = self.model.file_property_visible
-        if is_visible:
-            self.on_show_file_property(None)
 
     def on_show_file_property(self, event=None):
         """
@@ -128,10 +121,8 @@ class AppController(AbstractAppController):
         """
         if self.model.count == 0:
             return
-        file = self.model.get_current_image()
-
         status = self.get_status()
-        image_info = ImageFileService.get_image_info(file)
+        image_info = ImageFileService.get_image_info(status.file_path)
         self.view.on_show_file_property(status, str(image_info))
 
     def set_file_property_visible(self, visible: bool):
@@ -155,6 +146,11 @@ class AppController(AbstractAppController):
         """
         current_image = self.model.get_current_image()
         self.view.display_image(current_image)
+
+        is_visible: bool = self.model.file_property_visible
+        if is_visible:  # ファイルのプロパティウィンドウが表示中
+            self.on_show_file_property(None)
+
         # 処理時間を表示します。
         if sw:
             self.display_process_time(f"{sw.elapsed:.3f}s")

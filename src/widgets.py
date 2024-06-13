@@ -13,7 +13,6 @@ from typing import Optional
 from PIL import ImageTk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 
-from . app_config import AppConfig
 from . abstract_controllers import AbstractAppController
 from . models import MosaicFilter, StatusBarInfo, ImageFormat
 from . utils import round_up_decimal, Stopwatch
@@ -308,122 +307,123 @@ class FooterFrame(tk.Frame):
 
 class FilePropertyWindow:
     """
-    画像情報のダイアログ
+    ファイルプロパティウィンドウ
     """
     def __init__(self, master, controller: AbstractAppController):
         self.controller = controller
-
-        self.win = tk.Toplevel(master)
-        self.win.title(f"{PROGRAM_NAME} - File Information")
-        width: int = 500
-        height: int = 500
-        self.win.geometry(f"{width}x{height}")
-        self.win.protocol('WM_DELETE_WINDOW', self.on_window_exit)
         config = self.controller.get_config()
         font_sizes = config.font_sizes
         theme_colors = config.theme_colors
+        window_size = config.get("filePropertyWindowSize", {"width": 500, "height": 500})
+        width = window_size.get("width")
+        height = window_size.get("height")
+        self.win = tk.Toplevel(master, bg=theme_colors.neutral_hue)
+        self.win.title(f"{PROGRAM_NAME} - File Property")
+        self.win.geometry(f"{width}x{height}")
+        self.win.protocol('WM_DELETE_WINDOW', self.on_window_close)
 
-        self.main_frame = tk.Frame(self.win, bg='cyan', width=width)
-
-        self.info_frame = tk.LabelFrame(self.main_frame, text="File Information", font=("", font_sizes.h5))
-        self.file_name = LabelTextEntry(self.info_frame, text="", font=("", font_sizes.body), textvariable=None)
-        self.folder = LabelTextEntry(self.info_frame, text="Folder:", font=("", font_sizes.body), textvariable=None)
-        self.full_path = LabelTextEntry(self.info_frame, text="Full Path:", font=("", font_sizes.body), textvariable=None)
-        self.mosaic_file_name = LabelTextEntry(self.info_frame,
-                                               text="Mosaic File:",
-                                               font=("", font_sizes.body),
-                                               textvariable=None)
-        self.extra = tk.Label(self.info_frame, text="Extra", bd=1, relief=tk.SUNKEN, anchor=tk.W, font=("", font_sizes.body))
-        #self.action_copy = PhotoImageButton(self.main_frame,
-        #                                    image_path=str((icons_path / "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
-        #                                    tooltip_text="Copy Text",)
-        self.action_copy = tk.Button(self.info_frame,
-                                     text="Copy Extra Text",
-                                     bd=1,
-                                     bg=theme_colors.secondary_hue,
-                                     relief=tk.RAISED,
-                                     anchor=tk.W,
-                                     command=self.handle_copy_text,
-                                     font=("", font_sizes.body),
-                                     pady=4)
-
-        self.var = tk.StringVar()
-
-        # extra
-        self.extra_frame = tk.LabelFrame(self.info_frame, text="Extra", font=("", font_sizes.h5))
-        self.extra_text = tk.Text(self.extra_frame, bd=1, relief=tk.SUNKEN)
-
-        # スクロールバーの作成
-        self.extra_text_scrollbar = tk.Scrollbar(self.extra_frame, command=self.extra_text.yview)
-        self.extra_text_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        # Textウィジェットとスクロールバーを連動させる
-        self.extra_text.config(yscrollcommand=self.extra_text_scrollbar.set)
-
-        # フッター領域
-        self.footer_frame = tk.Frame(self.main_frame)
-        self.action_ok = tk.Button(self.footer_frame,
-                                   text="OK",
-                                   relief=tk.RAISED,
-                                   bg=theme_colors.primary_hue,
-                                   command=self.on_window_exit,
-                                   font=("", font_sizes.h3))
+        self.main_frame = tk.Frame(self.win, bg=theme_colors.neutral_hue, width=width)
+        self.main_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=(0, 8))
 
         self.right_click_menu = RightClickMenu(self.win)
+
+        self.setup_file_info(font_sizes, theme_colors)
+        self.setup_footer(font_sizes, theme_colors)
         self.setup_right_click_menu_bind()
 
         # Widgetの配置
-        self.setup_bindings()
+        self.setup_grid()
+
+    def setup_file_info(self, font_sizes, theme_colors):
+        """ファイル情報の設定を行います。"""
+        self.info_frame = tk.LabelFrame(self.main_frame,
+                                        bg=theme_colors.neutral_hue, text="File Property", font=("", font_sizes.h5))
+        self.file_name_var = tk.StringVar()
+        self.file_name_var.set("")
+
+        self.file_name = tk.Entry(self.info_frame, font=("", font_sizes.body), textvariable=self.file_name_var)
+        self.folder = LabelTextEntry(self.info_frame, text="Folder:", font=("", font_sizes.body), textvariable=None)
+        self.full_path = LabelTextEntry(self.info_frame, text="Full Path:", font=("", font_sizes.body), textvariable=None)
+        self.mosaic_file_name = LabelTextEntry(self.info_frame,
+                                               text="Mosaic File:", font=("", font_sizes.body), textvariable=None)
+
+        self.action_folder_mask = tk.Button(self.info_frame,
+                                            text="Folder Mask", bd=1, bg=theme_colors.secondary_hue,
+                                            relief=tk.RAISED, anchor=tk.W,
+                                            command=self.handle_folder_mask, font=("", font_sizes.body), pady=4)
+
+        self.action_copy = tk.Button(self.info_frame, text="Copy Extra Text", bd=1, bg=theme_colors.secondary_hue,
+                                     relief=tk.RAISED, anchor=tk.W, 
+                                     command=self.handle_copy_text, font=("", font_sizes.body), pady=4)
+        self.setup_extra(font_sizes, theme_colors)
+
+    def setup_extra(self, font_sizes, theme_colors):
+        """EXIFとPNGInfo表示領域の設定を行います。"""
+        self.extra_frame = tk.LabelFrame(self.info_frame, bg=theme_colors.neutral_hue, text="Extra", font=("", font_sizes.h5))
+        self.extra_text = tk.Text(self.extra_frame, bd=1, relief=tk.SUNKEN)
+        # スクロールバーの作成
+        self.extra_text_scrollbar = tk.Scrollbar(self.extra_text, command=self.extra_text.yview)
+        # Textウィジェットとスクロールバーを連動させる
+        self.extra_text.config(yscrollcommand=self.extra_text_scrollbar.set)
+
+        self.extra_text.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
+        self.extra_text_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    def setup_footer(self, font_sizes, theme_colors):
+        """フッターの設定を行います。"""
+        self.footer_frame = tk.Frame(self.main_frame, bg=theme_colors.neutral_hue)
+        self.action_ok = tk.Button(self.footer_frame, text="OK", relief=tk.RAISED, bg=theme_colors.primary_hue,
+                                   command=self.on_window_close, font=("", font_sizes.h3))
+        self.action_ok.pack(fill=tk.X)
+
+    def setup_grid(self):
+        """Widgetを配置します。"""
+        self.win.grid_rowconfigure(0, weight=1)
+        self.win.grid_columnconfigure(0, weight=1)
+        self.main_frame.grid(row=0, column=0, sticky="nsew")
+
+        self.main_frame.grid_rowconfigure(0, weight=1)
+        self.main_frame.grid_rowconfigure(1, weight=0)
+        self.main_frame.grid_columnconfigure(0, weight=1)
+        self.info_frame.grid(row=0, column=0, padx=8, sticky="nsew")
+        self.footer_frame.grid(row=1, column=0, padx=8, pady=8, sticky="ew")
+
+        self.info_frame.rowconfigure(5, weight=1)
+        self.info_frame.columnconfigure(0, weight=1)
+        self.info_frame.columnconfigure(1, weight=1)
+
+        self.file_name.grid(row=0, column=0, columnspan=2, sticky="ew", padx=4, pady=(4, 0))
+        self.folder.grid(row=1, column=0, columnspan=2, sticky="ew", padx=4, pady=(4, 0))
+        self.full_path.grid(row=2, column=0, columnspan=2, sticky="ew", padx=4, pady=(4, 0))
+        self.mosaic_file_name.grid(row=3, column=0, columnspan=2, sticky="ew", padx=4, pady=(4, 0))
+        self.action_folder_mask.grid(row=4, column=0, sticky="ew", padx=4, pady=(4, 0))
+        self.action_copy.grid(row=4, column=1, sticky="ew", padx=4, pady=(4, 0))
+        self.extra_frame.grid(row=5, column=0, columnspan=2, sticky="nsew", padx=4, pady=(4, 0))
 
     def setup_right_click_menu_bind(self):
         """
         右クリックメニューにテキスト項目をbindします。
         """
-        for entry in (self.file_name.text_entry,
+        for entry in (self.file_name,
                       self.folder.text_entry,
                       self.full_path.text_entry,
                       self.mosaic_file_name.text_entry,
                       self.extra_text):
             entry.bind("<Button-3>", self.right_click_menu.on_show_menu)
 
-    def setup_bindings(self):
+    def handle_folder_mask(self):
         """
-        Widgetを配置します。
+        フォルダーマスクボタン
+        :param text: 表示するテキスト
         """
-        self.info_frame.rowconfigure(6, weight=1)
-        self.info_frame.columnconfigure(0, weight=1)
-        self.info_frame.columnconfigure(1, weight=1)
-
-        self.file_name.grid(row=0, column=0, columnspan=2, sticky=tk.W + tk.E)
-        self.folder.grid(row=1, column=0, columnspan=2, sticky=tk.W + tk.E)
-        self.full_path.grid(row=2, column=0, columnspan=2, sticky=tk.W + tk.E)
-        self.mosaic_file_name.grid(row=3, column=0, columnspan=2, sticky=tk.W + tk.E)
-        self.action_copy.grid(row=4, column=1, sticky=tk.W + tk.E)
-        self.extra_frame.grid(row=5, column=0, columnspan=2, sticky=tk.W + tk.E)
-        self.extra_text.pack(fill=tk.BOTH)
-
-        self.action_ok.pack(side=tk.BOTTOM, fill=tk.X)
-
-        #self.footer_frame.grid(row=6, column=0, sticky=tk.EW)  # footer_frame を行 6 に配置
-        #self.action_ok.grid(row=0, column=0, sticky=tk.EW)     # action_ok を footer_frame 内に配置
-
-        #self.main_frame.grid_rowconfigure(2, weight=1)  # info_frame が終わる row 2 を垂直方向に拡張する
-        #self.main_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=(0, 8))
-        #self.main_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=(0, 8))
-        #self.win.grid_rowconfigure(0, weight=1)
-        #self.win.grid_columnconfigure(0, weight=1)
-        self.main_frame.grid(sticky=tk.NSEW)
-        #self.main_frame.rowconfigure(0, weight=0)
-        #self.main_frame.rowconfigure(1, weight=1)
-        #self.main_frame.columnconfigure(0, weight=1)
-
-        self.info_frame.pack(fill=tk.BOTH, expand=True)
-        self.footer_frame.pack(fill=tk.X, pady=(8, 0))
+        self.folder.set_text("")
+        self.full_path.set_text("")
+        self.mosaic_file_name.set_text("")
 
     def handle_copy_text(self):
         """
         コピーボタン
-        :param text: 表示するテキスト
+        クリップボードにコピーします。
         """
         text = self.extra_text.get("1.0", "end-1c")  # 1行目から最後の文字を取得
         self.win.clipboard_clear()  # クリップボードをクリア
@@ -436,7 +436,7 @@ class FilePropertyWindow:
         self.win.deiconify()
         self.controller.set_file_property_visible(True)
 
-    def on_window_exit(self):
+    def on_window_close(self):
         """
         ファイル情報ウィンドウを閉じる
         """
@@ -450,7 +450,7 @@ class FilePropertyWindow:
         """
         file_path: Path = status.file_path
 
-        self.file_name.set_text(file_path.name)
+        self.file_name_var.set(file_path.name)
         self.folder.set_text(str(file_path.parent))
         self.full_path.set_text(str(file_path))
         self.mosaic_file_name.set_text(str(self.controller.get_mosaic_filename().name))
