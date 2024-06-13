@@ -49,7 +49,6 @@ class MyApp(TkinterDnD.Tk):
     def __init__(self):
         super().__init__()
         self.set_window_title(Path(""))  # プログラム名とバージョン番号を表示
-
         self.model = AppDataModel(config)
         initial_window_size = self.model.get("initialWindowSize", {"width": 800, "height": 600})
         width = initial_window_size.get("width")

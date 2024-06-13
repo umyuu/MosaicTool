@@ -34,16 +34,19 @@
       "console": "integratedTerminal",
       "args": [
         "app.py",
-        "--onefile",
+        "--icon=assets/icons/app_icon.ico",
         "--windowed",
         "--name",
         "MosaicTool",
+        "--noconfirm",
         "--noconsole",
         "--clean",
         "--collect-data",
         "tkinterdnd2",
         "--add-data",
-        "./third_party/icons;./third_party/icons"
+        "./assets;./assets",
+        "--add-data",
+        "./third_party;./third_party"
       ]
     },
     {
