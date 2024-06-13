@@ -2,23 +2,10 @@
 """
     AppConfig
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 import json
 from pathlib import Path
 from typing import Any
-
-
-@dataclass(frozen=True)
-class FontSize:
-    """
-    フォントサイズ
-    """
-    h1: int  # 見出し1
-    h2: int  # 見出し2
-    h3: int  # 見出し3
-    h4: int  # 見出し4
-    h5: int  # 見出し5
-    body: int  # 本文
 
 
 @dataclass(frozen=True)
@@ -26,10 +13,24 @@ class ThemeColors:
     """
     テーマ色
     """
-    primary_hue: str  # プライマリ色
-    secondary_hue: str  # セカンダリ色
-    neutral_hue: str  # ニュートラル色
-    accent: str  # アクセント色
+    primary: str = "#44F7D3"  # プライマリ色
+    secondary: str = "#CCCCCC"  # セカンダリ色
+    neutral: str = "SystemWindow"  # ニュートラル色
+    info: str = "RosyBrown"  # アクセント色
+    text: str = "ivory"  # テキストの色
+
+
+@dataclass(frozen=True)
+class FontSize:
+    """
+    フォントサイズ
+    """
+    h1: int = 24  # 見出し1
+    h2: int = 20  # 見出し2
+    h3: int = 18  # 見出し3
+    h4: int = 16  # 見出し4
+    h5: int = 14  # 見出し5
+    body: int = 16  # 本文
 
 
 class AppConfig:
@@ -46,10 +47,11 @@ class AppConfig:
 
         theme_colors = self.settings['theme_colors']
         self._theme_colors = ThemeColors(
-            primary_hue=theme_colors.get("primary_hue"),
-            secondary_hue=theme_colors.get("secondary_hue"),
-            neutral_hue=theme_colors.get("neutral_hue"),
-            accent=theme_colors.get("accent"),
+            primary=theme_colors.get("primary"),
+            secondary=theme_colors.get("secondary"),
+            neutral=theme_colors.get("neutral"),
+            info=theme_colors.get("info"),
+            text=theme_colors.get("text"),
         )
 
         font_sizes = self.settings['font_sizes']
@@ -82,20 +84,8 @@ class AppConfig:
                     "width": 600,
                     "height": 500,
                 },
-                "theme_colors": {
-                    "primary_hue": "#44F7D3",
-                    "secondary_hue": "#2ECC71",
-                    "neutral_hue": "SystemWindow",
-                    "accent": "RosyBrown",
-                },
-                "font_sizes": {
-                    "h1": 24,
-                    "h2": 20,
-                    "h3": 18,
-                    "h4": 16,
-                    "h5": 14,
-                    "body": 16  # 本文のデフォルトフォントサイズ
-                }
+                "theme_colors": asdict(ThemeColors()),
+                "font_sizes": asdict(FontSize()),
             }
             return config
 

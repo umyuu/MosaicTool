@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Iterable, Optional
 
-from . app_config import AppConfig, FontSize
+from . app_config import AppConfig, FontSize, ThemeColors
 from . models import AppDataModel, StatusBarInfo
 from . utils import Stopwatch
 
@@ -75,6 +75,14 @@ class AbstractAppController(ABC):
         """
         フォントサイズを取得します。
         :return: フォントサイズ
+        """
+        raise NotImplementedError()
+
+    @property
+    def theme_colors(self) -> ThemeColors:
+        """
+        テーマ色を取得します。
+        :return: テーマ色フォントサイズ
         """
         raise NotImplementedError()
 

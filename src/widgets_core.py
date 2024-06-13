@@ -139,11 +139,19 @@ class LabelTextEntry(tk.Frame):
         """
         return self.text_entry.get()
 
-    def set_label_background_color(self, value: str):
+    def set_label_background_color(self, bg: str):
         """
         ラベルの背景色を設定します。
+        :param bg: 設定する背景色
         """
-        self.label.config(bg=value)
+        self.label.config(bg=bg)
+
+    def set_text_background_color(self, bg: str):
+        """
+        テキストの背景色を設定します。
+        :param bg: 設定する背景色
+        """
+        self.text_entry.config(bg=bg)
 
     def set_text(self, text: str):
         """

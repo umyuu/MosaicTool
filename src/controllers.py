@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Iterable, List, Optional
 import re
 
-from . app_config import AppConfig, FontSize
+from . app_config import AppConfig, FontSize, ThemeColors
 from . models import AppDataModel, StatusBarInfo
 from . image_file_service import ImageFileService
 from . utils import Stopwatch
@@ -87,14 +87,14 @@ class AppController(AbstractAppController):
         ファイル選択ボタンクリック時
         :param event: イベント
         """
-        self.view.on_select_files(None)
+        self.view.handle_file_open(None)
 
     def handle_save_as(self, event=None):
         """
         ファイルを選択して保存ボタンをクリック時
         :param event: イベント
         """
-        self.view.on_save_as(None)
+        self.view.handle_save_as(None)
 
     def handle_back_image(self, event=None):
         """
@@ -184,6 +184,10 @@ class AppController(AbstractAppController):
     @property
     def font_sizes(self) -> FontSize:
         return self.model.settings.font_sizes
+
+    @property
+    def theme_colors(self) -> ThemeColors:
+        return self.model.settings.theme_colors
 
     def get_mosaic_filename(self) -> Path:
         """

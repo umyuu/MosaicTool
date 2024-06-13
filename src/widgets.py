@@ -13,6 +13,7 @@ from typing import Optional
 from PIL import ImageTk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 
+from . app_config import FontSize, ThemeColors
 from . abstract_controllers import AbstractAppController
 from . models import MosaicFilter, StatusBarInfo, ImageFormat
 from . utils import round_up_decimal, Stopwatch
@@ -30,30 +31,36 @@ class HeaderFrame(tk.Frame):
         super().__init__(master, bg=bg)
         self.controller = controller
 
+        theme_colors = self.controller.theme_colors
         # Widgetを生成します。
         self.action_file_open = PhotoImageButton(self,
                                                  image_path=str((icons_path / "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                  tooltip_text="Open (Ctrl+O)",
+                                                 bg=theme_colors.secondary,
                                                  command=self.controller.handle_file_open)
         self.action_save_as = PhotoImageButton(self,
                                                image_path=str((icons_path / "save_as_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                tooltip_text="SaveAs (Ctrl+Shift+S)",
+                                               bg=theme_colors.secondary,
                                                command=self.controller.handle_save_as)
         self.action_back = PhotoImageButton(self,
                                             image_path=str((icons_path / "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                             tooltip_text="Previous file (<-)",
+                                            bg=theme_colors.secondary,
                                             command=self.controller.handle_back_image)
         self.action_forward = PhotoImageButton(self,
                                                image_path=str((icons_path / "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                tooltip_text="Next file (->)",
+                                               bg=theme_colors.secondary,
                                                command=self.controller.handle_forward_image)
         self.action_file_info = PhotoImageButton(self,
                                                  image_path=str((icons_path / "info_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                  tooltip_text="Image Information (I)",
+                                                 bg=theme_colors.secondary,
                                                  command=self.controller.on_show_file_property)
 
         font_size_h4: int = self.controller.font_sizes.h4
-        self.widgetHeader = tk.Label(self,
+        self.widgetHeader = tk.Label(self, bg=theme_colors.primary,
                                      text="画面にフォルダまたはファイルをドラッグ＆ドロップしてください。",
                                      font=("", font_size_h4))
 
@@ -153,7 +160,7 @@ class MainFrame(tk.Frame):
         # 矩形を描画し、タグを付けます。
         self.rect_tag = self.canvas.create_rectangle(
             self.start_x, self.start_y, end_x, end_y,
-            outline=self.controller.get_config().theme_colors.accent)
+            outline=self.controller.get_config().theme_colors.info)
 
         # サイズを計算して表示します。
         width = abs(end_x - self.start_x)
@@ -262,8 +269,8 @@ class FooterFrame(tk.Frame):
         self.modified = tk.Label(self, text=" ", bd=1, relief=tk.SUNKEN, anchor=tk.W)
         self.modified.tooltip = Tooltip(self.modified, "モザイク加工対象ファイルの最終更新日時")
 
-        self.paddingLabel = tk.Label(self, text="フッターはここ", anchor="e")  # 余白調整用のラベルを追加
-        self.process_time = tk.Label(self, text=" ", anchor="e")
+        self.paddingLabel = tk.Label(self, text="フッターはここ", anchor=tk.E)  # 余白調整用のラベルを追加
+        self.process_time = tk.Label(self, text=" ", anchor=tk.E)
         self.process_time.tooltip = Tooltip(self.process_time, "処理時間(sec)")
 
         # Widgetの配置
@@ -317,18 +324,20 @@ class FilePropertyWindow:
     """
     def __init__(self, master, controller: AbstractAppController):
         self.controller = controller
+
         config = self.controller.get_config()
         font_sizes = config.font_sizes
         theme_colors = config.theme_colors
+
         window_size = config.get("filePropertyWindowSize", {"width": 500, "height": 500})
         width = window_size.get("width")
         height = window_size.get("height")
-        self.win = tk.Toplevel(master, bg=theme_colors.neutral_hue)
+        self.win = tk.Toplevel(master, bg=theme_colors.neutral)
         self.win.title(f"{PROGRAM_NAME} - File Property")
         self.win.geometry(f"{width}x{height}")
         self.win.protocol('WM_DELETE_WINDOW', self.on_window_close)
 
-        self.main_frame = tk.Frame(self.win, bg=theme_colors.neutral_hue, width=width)
+        self.main_frame = tk.Frame(self.win, bg=theme_colors.neutral, width=width)
         self.main_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=(0, 8))
 
         self.right_click_menu = RightClickMenu(self.win)
@@ -340,31 +349,37 @@ class FilePropertyWindow:
         # Widgetの配置
         self.setup_grid()
 
-    def setup_file_info(self, font_sizes, theme_colors):
+    def setup_file_info(self, font_sizes: FontSize, theme_colors: ThemeColors):
         """ファイル情報の設定を行います。"""
         self.info_frame = tk.LabelFrame(self.main_frame,
-                                        bg=theme_colors.neutral_hue, text="File Property", font=("", font_sizes.h5))
+                                        bg=theme_colors.neutral, text="File Property", font=("", font_sizes.h5))
 
         self.file_name_var = tk.StringVar()
         self.file_name_var.set("")
-        self.file_name = tk.Entry(self.info_frame, font=("", font_sizes.body), textvariable=self.file_name_var)
+        self.file_name = tk.Entry(self.info_frame,
+                                  font=("", font_sizes.body),
+                                  bg=theme_colors.text,
+                                  textvariable=self.file_name_var)
 
         self.folder = LabelTextEntry(self.info_frame, text="Folder:", font=("", font_sizes.body), textvariable=None)
-        self.folder.set_label_background_color(theme_colors.neutral_hue)
+        self.folder.set_label_background_color(theme_colors.neutral)
+        self.folder.set_text_background_color(theme_colors.text)
 
         self.full_path = LabelTextEntry(self.info_frame, text="Full Path:", font=("", font_sizes.body), textvariable=None)
-        self.full_path.set_label_background_color(theme_colors.neutral_hue)
+        self.full_path.set_label_background_color(theme_colors.neutral)
+        self.full_path.set_text_background_color(theme_colors.text)
 
         self.mosaic_file_name = LabelTextEntry(self.info_frame,
                                                text="Mosaic File:", font=("", font_sizes.body), textvariable=None)
-        self.mosaic_file_name.set_label_background_color(theme_colors.neutral_hue)
+        self.mosaic_file_name.set_label_background_color(theme_colors.neutral)
+        self.mosaic_file_name.set_text_background_color(theme_colors.text)
 
         self.action_folder_mask = tk.Button(self.info_frame,
-                                            text="Folder Mask", bd=1, bg=theme_colors.secondary_hue,
+                                            text="Folder Mask", bd=1, bg=theme_colors.secondary,
                                             relief=tk.RAISED, anchor=tk.W,
                                             command=self.handle_folder_mask, font=("", font_sizes.body), pady=4)
 
-        self.action_copy = tk.Button(self.info_frame, text="Copy Extra Text", bd=1, bg=theme_colors.secondary_hue,
+        self.action_copy = tk.Button(self.info_frame, text="Copy Extra Text", bd=1, bg=theme_colors.secondary,
                                      relief=tk.RAISED, anchor=tk.W, 
                                      command=self.handle_copy_text, font=("", font_sizes.body), pady=4)
 
@@ -382,10 +397,10 @@ class FilePropertyWindow:
         self.extra_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(4, 0), pady=4)
         self.extra_text_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-    def setup_footer(self, font_sizes, theme_colors):
+    def setup_footer(self, font_sizes: FontSize, theme_colors: ThemeColors):
         """フッターの設定を行います。"""
-        self.footer_frame = tk.Frame(self.main_frame, bg=theme_colors.neutral_hue)
-        self.action_ok = tk.Button(self.footer_frame, text="OK", relief=tk.RAISED, bg=theme_colors.primary_hue,
+        self.footer_frame = tk.Frame(self.main_frame, bg=theme_colors.neutral)
+        self.action_ok = tk.Button(self.footer_frame, text="OK", relief=tk.RAISED, bg=theme_colors.primary,
                                    command=self.on_window_close, font=("", font_sizes.h3))
         self.action_ok.pack(fill=tk.X)
 
@@ -482,16 +497,15 @@ class MainPage(tk.Frame):
     メインページ
     """
     def __init__(self, master: TkinterDnD.Tk, controller: AbstractAppController, icons_path: Path):
-        super().__init__(master, bg=controller.get_config().theme_colors.neutral_hue)
+        super().__init__(master, bg=controller.get_config().theme_colors.neutral)
         self.controller = controller
+
         config = self.controller.get_config()
-        print(config)
         self.file_property_window: Optional[FilePropertyWindow] = None
-        #self.apply_theme(config)
         # Widgetの生成
-        self.HeaderFrame = HeaderFrame(self, controller, config.theme_colors.primary_hue, icons_path)
-        self.MainFrame = MainFrame(self, controller, bg=config.theme_colors.neutral_hue)
-        self.FooterFrame = FooterFrame(self, bg=config.theme_colors.neutral_hue)
+        self.HeaderFrame = HeaderFrame(self, controller, config.theme_colors.primary, icons_path)
+        self.MainFrame = MainFrame(self, controller, bg=config.theme_colors.neutral)
+        self.FooterFrame = FooterFrame(self, bg=config.theme_colors.info)
 
         self.setup_bindings()
 
@@ -538,7 +552,7 @@ class MainPage(tk.Frame):
         self.controller.set_window_title(file_path)
         self.controller.update_status_bar_file_info()
 
-    def on_select_files(self, event):
+    def handle_file_open(self, event):
         """
         ファイル選択ボタン
         :param event: イベント
@@ -557,7 +571,7 @@ class MainPage(tk.Frame):
             return
         self.controller.handle_select_files_complete(files)
 
-    def on_save_as(self, event):
+    def handle_save_as(self, event):
         """
         ファイルを選択して保存ボタン
         :param event: イベント
