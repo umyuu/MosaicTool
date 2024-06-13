@@ -108,13 +108,13 @@ class MainFrame(tk.Frame):
         self.rect_tag = None  # 矩形のタグ
         self.size_label = None  # サイズ表示用ラベル
         # ドラッグ開始時のイベントをバインド
-        self.canvas.bind("<Button-1>", self.start_drag)
+        self.canvas.bind("<Button-1>", self.handle_start_drag)
 
         # ドラッグ中のイベントをバインド
-        self.canvas.bind("<B1-Motion>", self.dragging)
+        self.canvas.bind("<B1-Motion>", self.handle_dragging)
 
         # ドラッグ終了時のイベントをバインド
-        self.canvas.bind("<ButtonRelease-1>", self.end_drag)
+        self.canvas.bind("<ButtonRelease-1>", self.handle_end_drag)
 
     def updateImage(self, filepath: Path):
         """
@@ -130,7 +130,7 @@ class MainFrame(tk.Frame):
         # キャンバスのスクロール領域を設定
         self.canvas.config(scrollregion=(0, 0, self.original_image.width, self.original_image.height))
 
-    def start_drag(self, event):
+    def handle_start_drag(self, event):
         """
         ドラッグ開始
         """
@@ -138,7 +138,7 @@ class MainFrame(tk.Frame):
         self.start_x = int(self.canvas.canvasx(event.x))
         self.start_y = int(self.canvas.canvasy(event.y))
 
-    def dragging(self, event):
+    def handle_dragging(self, event):
         """
         ドラッグ中
         """
@@ -164,7 +164,7 @@ class MainFrame(tk.Frame):
         # font sizeを固定から修正します。
         self.size_label = self.canvas.create_text((label_x, label_y), font=("", 12), text=f"{width} x {height}", anchor="nw")
 
-    def end_drag(self, event):
+    def handle_end_drag(self, event):
         """
         ドラッグ終了時
         """
@@ -315,20 +315,17 @@ class FilePropertyWindow:
 
         self.win = tk.Toplevel(master)
         self.win.title(f"{PROGRAM_NAME} - File Information")
-        self.win.geometry("500x500")
+        width: int = 500
+        height: int = 500
+        self.win.geometry(f"{width}x{height}")
         self.win.protocol('WM_DELETE_WINDOW', self.on_window_exit)
         config = self.controller.get_config()
         font_sizes = config.font_sizes
         theme_colors = config.theme_colors
-        self.main_frame = tk.Frame(self.win, bg='cyan', width=450)
-        #self.main_frame.pack(fill=tk.BOTH, expand=True)
 
-        #self.main_frame = tk.Frame(self.win, bg='cyan', pady=3)
-        self.main_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=(0, 8))
+        self.main_frame = tk.Frame(self.win, bg='cyan', width=width)
 
         self.info_frame = tk.LabelFrame(self.main_frame, text="File Information", font=("", font_sizes.h5))
-        self.info_frame.pack(fill=tk.BOTH, expand=True)
-
         self.file_name = LabelTextEntry(self.info_frame, text="", font=("", font_sizes.body), textvariable=None)
         self.folder = LabelTextEntry(self.info_frame, text="Folder:", font=("", font_sizes.body), textvariable=None)
         self.full_path = LabelTextEntry(self.info_frame, text="Full Path:", font=("", font_sizes.body), textvariable=None)
@@ -372,21 +369,30 @@ class FilePropertyWindow:
                                    command=self.on_window_exit,
                                    font=("", font_sizes.h3))
 
-        # 右クリックメニューの作成
         self.right_click_menu = RightClickMenu(self.win)
+        self.setup_right_click_menu_bind()
 
-        # エントリウィジェットに右クリックイベントをバインド
+        # Widgetの配置
+        self.setup_bindings()
+
+    def setup_right_click_menu_bind(self):
+        """
+        右クリックメニューにテキスト項目をbindします。
+        """
         for entry in (self.file_name.text_entry,
                       self.folder.text_entry,
                       self.full_path.text_entry,
                       self.mosaic_file_name.text_entry,
                       self.extra_text):
-            entry.bind("<Button-3>", self.right_click_menu.show_menu)
+            entry.bind("<Button-3>", self.right_click_menu.on_show_menu)
 
-        # Widgetの配置
-        self.info_frame.grid_rowconfigure(5, weight=1)
-        self.info_frame.grid_columnconfigure(0, weight=1)
-        self.info_frame.grid_columnconfigure(1, weight=1)
+    def setup_bindings(self):
+        """
+        Widgetを配置します。
+        """
+        self.info_frame.rowconfigure(6, weight=1)
+        self.info_frame.columnconfigure(0, weight=1)
+        self.info_frame.columnconfigure(1, weight=1)
 
         self.file_name.grid(row=0, column=0, columnspan=2, sticky=tk.W + tk.E)
         self.folder.grid(row=1, column=0, columnspan=2, sticky=tk.W + tk.E)
@@ -394,10 +400,25 @@ class FilePropertyWindow:
         self.mosaic_file_name.grid(row=3, column=0, columnspan=2, sticky=tk.W + tk.E)
         self.action_copy.grid(row=4, column=1, sticky=tk.W + tk.E)
         self.extra_frame.grid(row=5, column=0, columnspan=2, sticky=tk.W + tk.E)
-        self.extra_text.pack(fill=tk.Y)
+        self.extra_text.pack(fill=tk.BOTH)
 
-        self.footer_frame.pack(fill=tk.X, pady=(8, 0))
         self.action_ok.pack(side=tk.BOTTOM, fill=tk.X)
+
+        #self.footer_frame.grid(row=6, column=0, sticky=tk.EW)  # footer_frame を行 6 に配置
+        #self.action_ok.grid(row=0, column=0, sticky=tk.EW)     # action_ok を footer_frame 内に配置
+
+        #self.main_frame.grid_rowconfigure(2, weight=1)  # info_frame が終わる row 2 を垂直方向に拡張する
+        #self.main_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=(0, 8))
+        #self.main_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=(0, 8))
+        #self.win.grid_rowconfigure(0, weight=1)
+        #self.win.grid_columnconfigure(0, weight=1)
+        self.main_frame.grid(sticky=tk.NSEW)
+        #self.main_frame.rowconfigure(0, weight=0)
+        #self.main_frame.rowconfigure(1, weight=1)
+        #self.main_frame.columnconfigure(0, weight=1)
+
+        self.info_frame.pack(fill=tk.BOTH, expand=True)
+        self.footer_frame.pack(fill=tk.X, pady=(8, 0))
 
     def handle_copy_text(self):
         """
@@ -459,7 +480,18 @@ class MainPage(tk.Frame):
         self.MainFrame = MainFrame(self, controller, bg=config.theme_colors.neutral_hue)
         self.FooterFrame = FooterFrame(self, bg=config.theme_colors.neutral_hue)
 
-        # Widgetの配置
+        self.setup_bindings()
+
+        # イベントを登録します。
+        self.drop_target_register(DND_FILES)
+        self.dnd_bind('<<Drop>>', self.controller.handle_drop)
+        self.on_update_status_bar = self.FooterFrame.update_status_bar
+        self.on_update_process_time = self.FooterFrame.update_process_time
+
+    def setup_bindings(self):
+        """
+        Widgetの配置
+        """
         self.HeaderFrame.grid(column=0, row=0, sticky=(tk.E + tk.W + tk.S + tk.N))
         self.MainFrame.grid(column=0, row=1, sticky=(tk.E + tk.W + tk.S + tk.N))
         self.FooterFrame.grid(column=0, row=2, sticky=(tk.E + tk.W + tk.S + tk.N))
@@ -470,13 +502,6 @@ class MainPage(tk.Frame):
         self.grid_rowconfigure(1, weight=1)
         # ヘッダーをウィンドウ幅まで拡張する
         self.columnconfigure(0, weight=1)  
-
-        self.drop_target_register(DND_FILES)
-        self.dnd_bind('<<Drop>>', self.controller.handle_drop)
-
-        # イベントを登録します。
-        self.on_update_status_bar = self.FooterFrame.update_status_bar
-        self.on_update_process_time = self.FooterFrame.update_process_time
 
     #def apply_theme(self, config: AppConfig):
     #    from tkinter import ttk

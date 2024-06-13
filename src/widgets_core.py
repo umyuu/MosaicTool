@@ -156,33 +156,33 @@ class RightClickMenu(tk.Menu):
     """
     def __init__(self, root):
         super().__init__(root, tearoff=0)
-        self.add_command(label="カット", command=self.cut)
-        self.add_command(label="コピー", command=self.copy)
-        self.add_command(label="ペースト", command=self.paste)
+        self.add_command(label="カット", command=self.handle_cut)
+        self.add_command(label="コピー", command=self.handle_copy)
+        self.add_command(label="ペースト", command=self.handle_paste)
         self.widget = None
 
-    def show_menu(self, event):
+    def on_show_menu(self, event):
         """
         右クリックメニューを表示します
         """
         self.widget = event.widget
         self.tk_popup(event.x_root, event.y_root)
 
-    def cut(self):
+    def handle_cut(self):
         """
         切り取りボタンをクリック時に発生します。
         """
         if self.widget:
             self.widget.event_generate("<<Cut>>")
 
-    def copy(self):
+    def handle_copy(self):
         """
         コピーボタンをクリック時に発生します。
         """
         if self.widget:
             self.widget.event_generate("<<Copy>>")
 
-    def paste(self):
+    def handle_paste(self):
         """
         貼り付けボタンをクリック時に発生します。
         """
