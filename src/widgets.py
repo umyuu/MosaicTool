@@ -53,7 +53,7 @@ class HeaderFrame(tk.Frame):
                                                  tooltip_text="Image Information (I)",
                                                  command=self.controller.handle_info_image)
 
-        font_size_h4: int = self.controller.get_font_size("h4")
+        font_size_h4: int = self.controller.font_sizes.h4
         self.widgetHeader = tk.Label(self,
                                      text="画面にフォルダまたはファイルをドラッグ＆ドロップしてください。",
                                      font=("", font_size_h4))
@@ -244,8 +244,8 @@ class FooterFrame(tk.Frame):
         super().__init__(master, bg=bg)
 
         # Widgetの生成
-        self.imageSizeBar = tk.Label(self, text=" ", bd=1, relief=tk.SUNKEN, anchor=tk.W)  # 画像サイズ表示用のラベルを追加
-        self.imageSizeBar.tooltip = Tooltip(self.imageSizeBar, "Width x Height")
+        self.image_size = tk.Label(self, text=" ", bd=1, relief=tk.SUNKEN, anchor=tk.W)  # 画像サイズ表示用のラベルを追加
+        self.image_size.tooltip = Tooltip(self.image_size, "Width x Height")
 
         self.count = tk.Label(self, text="  1 /  1 ", bd=1, relief=tk.SUNKEN, anchor=tk.W)
         self.count.tooltip = Tooltip(self.count, "Current / Total")
@@ -261,7 +261,7 @@ class FooterFrame(tk.Frame):
         self.process_time.tooltip = Tooltip(self.process_time, "処理時間(sec)")
 
         # Widgetの配置
-        self.imageSizeBar.grid(row=0, column=0, sticky=tk.W + tk.E)
+        self.image_size.grid(row=0, column=0, sticky=tk.W + tk.E)
         self.count.grid(row=0, column=1, sticky=tk.W + tk.E)
         self.fileSizeBar.grid(row=0, column=2, sticky=tk.W + tk.E)
         self.modified.grid(row=0, column=3, sticky=tk.W + tk.E)
@@ -281,7 +281,7 @@ class FooterFrame(tk.Frame):
         :param info: ステータスバーの情報
         """
         # 画像の幅と高さ
-        self.imageSizeBar.config(text=f"{info.width} x {info.height}")
+        self.image_size.config(text=f"{info.width} x {info.height}")
         # 件数
         self.count.config(text=f"{info.current} / {info.total}")
         # ファイルサイズ
@@ -317,8 +317,8 @@ class FileInfoFrame:
         self.win.protocol('WM_DELETE_WINDOW', self.on_window_exit)
         self.controller = controller
 
-        font_size_h1 = self.controller.get_font_size("h1")
-        font_size_body = self.controller.get_font_size("body")
+        font_size_h1 = self.controller.font_sizes.h1
+        font_size_body = self.controller.font_sizes.body
 
         self.main_frame = tk.Frame(self.win, bg='cyan', width=450)
         #self.main_frame.pack(fill=tk.BOTH, expand=True)
@@ -447,7 +447,7 @@ class MainPage(tk.Frame):
         self.apply_theme(config)
         # Widgetの生成
         self.HeaderFrame = HeaderFrame(self, controller, config.primary_hue, icons_path)
-        self.MainFrame = MainFrame(self, controller, bg="#88FFEB")
+        self.MainFrame = MainFrame(self, controller, bg=config.primary_hue)
         self.FooterFrame = FooterFrame(self, bg="#FFBB9D")
         #self.MainFrame = MainFrame(self, controller, bg="#88FFEB")
         #self.FooterFrame = FooterFrame(self, bg="#FFBB9D")

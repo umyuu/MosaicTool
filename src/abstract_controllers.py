@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Iterable, Optional, Literal
 
-from . app_config import AppConfig
+from . app_config import AppConfig, FontSize
 from . models import AppDataModel, StatusBarInfo
 from . utils import Stopwatch
 
@@ -70,14 +70,14 @@ class AbstractAppController(ABC):
     def get_mosaic_filename(self) -> Path:
         pass
 
-    @abstractmethod
-    def get_font_size(self, heading: Literal["h1", "h2", "h3", "h4", "h5", "body"]) -> int:
+    @property
+    def font_sizes(self) -> FontSize:
         """
-        指定した要素（見出しや本文）のフォントサイズを取得するメソッドです。
-        :param element: 見出しの種類（'h1', 'h2', 'h3', 'h4', 'h5'）または 'body'（本文）
+        フォントサイズを取得します。
         :return: フォントサイズ
         """
-        pass
+        # ToDo: デバック用なので、あとで修正します。
+        return FontSize(h1=44, h2=20, h3=18, h4=16, h5=14, body=16)
 
     @abstractmethod
     def set_window_title(self, text: Path):

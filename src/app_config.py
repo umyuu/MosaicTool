@@ -10,12 +10,12 @@ from typing import Any, Literal
 
 @dataclass(frozen=True)
 class FontSize:
-    h1: str
-    h2: str
-    h3: str
-    h4: str
-    h5: str
-    body: str
+    h1: int
+    h2: int
+    h3: int
+    h4: int
+    h5: int
+    body: int
 
 
 class AppConfig:
@@ -31,12 +31,12 @@ class AppConfig:
         self.settings = self.load_config()
 
         font_sizes = self.settings['font_sizes']
-        self._font_sizes = FontSize(h1=font_sizes.get("h1"),
-                                   h2=font_sizes.get("h2"),
-                                   h3=font_sizes.get("h3"),
-                                   h4=font_sizes.get("h4"),
-                                   h5=font_sizes.get("h5"),
-                                   body=font_sizes.get("body"))
+        self._font_sizes = FontSize(h1=int(font_sizes.get("h1")),
+                                    h2=int(font_sizes.get("h2")),
+                                    h3=int(font_sizes.get("h3")),
+                                    h4=int(font_sizes.get("h4")),
+                                    h5=int(font_sizes.get("h5")),
+                                    body=int(font_sizes.get("body")))
 
     def load_config(self) -> dict:
         """
@@ -107,55 +107,11 @@ class AppConfig:
 
     @property
     def font_sizes(self) -> FontSize:
+        """
+        フォントサイズ
+        :return: フォントサイズ
+        """
         return self._font_sizes
-
-    @property
-    def font_size_h1(self) -> int:
-        """
-        h1のフォントサイズ
-        :return: フォントサイズ
-        """
-        return self.get_font_size("h1")
-
-    @property
-    def font_size_h2(self) -> int:
-        """
-        h2のフォントサイズ
-        :return: フォントサイズ
-        """
-        return self.get_font_size("h2")
-
-    @property
-    def font_size_h3(self) -> int:
-        """
-        h3のフォントサイズ
-        :return: フォントサイズ
-        """
-        return self.get_font_size("h3")
-
-    @property
-    def font_size_h4(self) -> int:
-        """
-        h3のフォントサイズ
-        :return: フォントサイズ
-        """
-        return self.get_font_size("h4")
-
-    @property
-    def font_size_h5(self) -> int:
-        """
-        h3のフォントサイズ
-        :return: フォントサイズ
-        """
-        return self.get_font_size("h5")
-
-    @property
-    def font_size_body(self) -> int:
-        """
-        'body'（本文）のフォントサイズ
-        :return: フォントサイズ
-        """
-        return self.get_font_size("body")
 
     def get_font_size(self, element: Literal["h1", "h2", "h3", "h4", "h5", "body"]) -> int:
         """
