@@ -7,6 +7,7 @@
     "ipadx",
     "pnginfo",
     "scrollregion",
+    "tearoff",
     "textvariable",
     "tkinterdnd",
     "xscrollcommand",

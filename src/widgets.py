@@ -290,12 +290,16 @@ class FooterFrame(tk.Frame):
         self.modified.config(text=info.mtime)
 
     def updateMessage(self, text: str):
+        """
+        ステータスバーのメッセージ欄欄
+        :param text: 表示するテキスト
+        """
         self.paddingLabel.config(text=text)
 
     def update_process_time(self, text: str):
         """
         ステータスバーの処理時間欄
-        :param text: 処理時間欄に表示するテキスト
+        :param text: 表示するテキスト
         """
         self.process_time.config(text=text)
 
@@ -314,14 +318,20 @@ class FileInfoFrame:
 
         font_size_body = self.controller.get_font_size("body")
 
-        self.main_frame = tk.Frame(self.win, bg='cyan', width=450, height=50, pady=3)
-        self.main_frame.pack(fill=tk.BOTH, expand=True)
+        self.main_frame = tk.Frame(self.win, bg='cyan', width=450)
+        #self.main_frame.pack(fill=tk.BOTH, expand=True)
 
-        self.file_name = LabelTextEntry(self.main_frame, text="", font=("", font_size_body), textvariable=None)
-        self.folder = LabelTextEntry(self.main_frame, text="Folder:", font=("", font_size_body), textvariable=None)
-        self.full_path = LabelTextEntry(self.main_frame, text="Full path:", font=("", font_size_body), textvariable=None)
-        self.file_size = LabelTextEntry(self.main_frame, text="File Size:", font=("", font_size_body), textvariable=None)
-        self.mosaic_file_name = LabelTextEntry(self.main_frame, text="Mosaic File Name:", font=("", font_size_body), textvariable=None)
+        #self.main_frame = tk.Frame(self.win, bg='cyan', pady=3)
+        self.main_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=(0, 8))  # padx=8を追加
+
+        self.info_frame = tk.LabelFrame(self.main_frame, text="File Information")
+        self.info_frame.pack(fill=tk.BOTH, expand=True)
+
+        self.file_name = LabelTextEntry(self.info_frame, text="", font=("", font_size_body), textvariable=None)
+        self.folder = LabelTextEntry(self.info_frame, text="Folder:", font=("", font_size_body), textvariable=None)
+        self.full_path = LabelTextEntry(self.info_frame, text="Full path:", font=("", font_size_body), textvariable=None)
+        self.file_size = LabelTextEntry(self.info_frame, text="File Size:", font=("", font_size_body), textvariable=None)
+        self.mosaic_file_name = LabelTextEntry(self.info_frame, text="Mosaic File Name:", font=("", font_size_body), textvariable=None)
         #self.folder = LabelTextEntry(self.main_frame, text="Folder:", font=("", font_size_body), textvariable=None)
 
         #self.file_name = tk.Label(self.main_frame, text="File name:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
@@ -329,21 +339,24 @@ class FileInfoFrame:
         #self.full_path = tk.Label(self.main_frame, text="Full path:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
         #self.file_size = tk.Label(self.main_frame, text="File Size:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
         #self.mosaic_file_name = tk.Label(self.main_frame, text="Mosaic File Name:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.extra = tk.Label(self.main_frame, text="Extra", bd=1, relief=tk.SUNKEN, anchor=tk.W, font=("", font_size_body))
+        self.extra = tk.Label(self.info_frame, text="Extra", bd=1, relief=tk.SUNKEN, anchor=tk.W, font=("", font_size_body))
         #self.action_copy = PhotoImageButton(self.main_frame,
         #                                    image_path=str((icons_path / "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
         #                                    tooltip_text="Copy Text",)
 
-        self.action_copy = tk.Button(self.main_frame,
+        self.action_copy = tk.Button(self.info_frame,
                                      text="Copy Text",
                                      bd=1,
                                      relief=tk.SUNKEN,
                                      anchor=tk.W,
-                                     command=self.copy_text,
+                                     command=self.handle_copy_text,
                                      font=("", font_size_body))
         self.var = tk.StringVar()
-        self.extra_text = tk.Text(self.main_frame, bd=1, relief=tk.SUNKEN)
-        self.action_ok = tk.Button(self.main_frame, text="OK", command=self.on_window_exit)
+        self.extra_text = tk.Text(self.info_frame, bd=1, relief=tk.SUNKEN)
+
+        # フッター領域
+        self.footer_frame = tk.Frame(self.main_frame)
+        self.action_ok = tk.Button(self.footer_frame, text="OK", command=self.on_window_exit, font=("", font_size_body))
 
         # 右クリックメニューの作成
         self.right_click_menu = RightClickMenu(self.win)
@@ -357,9 +370,10 @@ class FileInfoFrame:
             entry.bind("<Button-3>", self.right_click_menu.show_menu)
 
         # Widgetの配置
-        self.main_frame.grid_rowconfigure(7, weight=1)
-        self.main_frame.grid_columnconfigure(0, weight=1)
-        self.main_frame.grid_columnconfigure(1, weight=1)
+        self.info_frame.grid_rowconfigure(7, weight=1)
+        self.info_frame.grid_columnconfigure(0, weight=1)
+        self.info_frame.grid_columnconfigure(1, weight=1)
+
         self.file_name.grid(row=0, column=0, columnspan=2, sticky=tk.W + tk.E)
         self.folder.grid(row=1, column=0, columnspan=2, sticky=tk.W + tk.E)
         self.full_path.grid(row=2, column=0, columnspan=2, sticky=tk.W + tk.E)
@@ -369,9 +383,15 @@ class FileInfoFrame:
         self.action_copy.grid(row=5, column=1, sticky=tk.W + tk.E)
         self.extra_text.grid(row=6, column=0, columnspan=2, sticky=tk.W + tk.E)
         #self.ent_file_name.grid(row=7, column=1, sticky=tk.W + tk.E)
-        self.action_ok.grid(row=7, column=0, columnspan=2, sticky=tk.W + tk.E)
 
-    def copy_text(self):
+        self.footer_frame.pack(fill=tk.X, pady=(8, 0))
+        self.action_ok.pack(side=tk.BOTTOM, fill=tk.X)
+
+    def handle_copy_text(self):
+        """
+        コピーボタン
+        :param text: 表示するテキスト
+        """
         text = self.extra_text.get("1.0", "end-1c")  # 1行目から最後の文字を取得
         self.win.clipboard_clear()  # クリップボードをクリア
         self.win.clipboard_append(text)  # テキストをクリップボードに追加
@@ -391,6 +411,7 @@ class FileInfoFrame:
     def set_file_status(self, status: StatusBarInfo):
         """
         ファイル情報を表示します。
+        :param status: ファイル情報
         """
         file_path: Path = status.file_path
 
@@ -405,10 +426,10 @@ class FileInfoFrame:
     def set_extra_text(self, text: str):
         """
         拡張情報を設定します。
+        :param text: 設定するテキスト
         """
         self.extra_text.delete("1.0", "end")  # テキスト全体を削除
         self.extra_text.insert("1.0", text)  # 新しいテキストを挿入
-        #self.var.set(text)
 
 
 class MainPage(tk.Frame):

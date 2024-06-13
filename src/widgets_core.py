@@ -9,7 +9,7 @@ from typing import Optional, Literal, Tuple
 
 class WidgetUtils(object):
     """
-    ウィジェット用のユーティリティクラス
+    ウィジェット用のユーティリティ
     """
     @staticmethod
     def bind_all(widget: tk.Widget,
@@ -42,7 +42,7 @@ class WidgetUtils(object):
 
 class Tooltip:
     """
-    ウィジェットにツールチップを表示するクラス
+    ウィジェットにツールチップを表示する
     """
     def __init__(self, widget, text: str):
         """
@@ -58,13 +58,15 @@ class Tooltip:
 
     def enter(self, event=None):
         """
-        マウスがウィジェットに入ったときに呼び出されるメソッド
+        マウスがウィジェットに入ったときに発生します。
+        :param event: イベント
         """
         self.id = self.widget.after(500, self.show_tooltip)  # 500ミリ秒後にshow_tooltipメソッドを呼び出す
 
     def leave(self, event=None):
         """
-        マウスがウィジェットから離れたときに呼び出されるメソッド
+        マウスがウィジェットから離れたときに発生します。
+        :param event: イベント
         """
         if hasattr(self, 'id'):
             self.widget.after_cancel(self.id)  # 予定されていたツールチップ表示をキャンセルする
@@ -74,6 +76,7 @@ class Tooltip:
     def show_tooltip(self, event=None):
         """
         ツールチップを表示するメソッド
+        :param event: イベント
         """
         x, y, _, _ = self.widget.bbox("insert")
         x += self.widget.winfo_rootx() + 32
@@ -111,13 +114,13 @@ class PhotoImageButton(tk.Button):
 
 class LabelTextEntry(tk.Frame):
     """
-    ラベルとテキストの複合コンポーネント
+    ラベルとテキストのカスタムコンポーネント
     """
     def __init__(self, parent, text: str, font: Tuple[str, int], textvariable):
         """
         コンストラクタ
         :param master: 親ウィジェット
-        :param label_text: ラベルに表示するテキスト
+        :param text: ラベルに表示するテキスト
         :param front: フォント
         """
         super().__init__(parent)
@@ -127,7 +130,7 @@ class LabelTextEntry(tk.Frame):
         self.label.pack(side=tk.LEFT)
 
         self.text_entry = tk.Entry(self, font=font, textvariable=textvariable)
-        self.text_entry.pack(side=tk.LEFT)
+        self.text_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
     def get_text(self) -> str:
         """
@@ -153,25 +156,36 @@ class RightClickMenu(tk.Menu):
     """
     def __init__(self, root):
         super().__init__(root, tearoff=0)
-        #self.menu = tk.Menu(root, tearoff=0)
         self.add_command(label="カット", command=self.cut)
         self.add_command(label="コピー", command=self.copy)
         self.add_command(label="ペースト", command=self.paste)
         self.widget = None
 
     def show_menu(self, event):
+        """
+        右クリックメニューを表示します
+        """
         self.widget = event.widget
         self.tk_popup(event.x_root, event.y_root)
 
     def cut(self):
+        """
+        切り取りボタンをクリック時に発生します。
+        """
         if self.widget:
             self.widget.event_generate("<<Cut>>")
 
     def copy(self):
+        """
+        コピーボタンをクリック時に発生します。
+        """
         if self.widget:
             self.widget.event_generate("<<Copy>>")
 
     def paste(self):
+        """
+        貼り付けボタンをクリック時に発生します。
+        """
         if self.widget:
             self.widget.event_generate("<<Paste>>")
 
