@@ -299,6 +299,7 @@ class FooterFrame(tk.Frame):
         """
         self.process_time.config(text=text)
 
+
 class FileInfoFrame:
     """
     画像情報のダイアログ
@@ -313,35 +314,36 @@ class FileInfoFrame:
 
         font_size_body = self.controller.get_font_size("body")
 
-        self.top_frame = tk.Frame(self.win, bg='cyan', width=450, height=50, pady=3)
-        self.top_frame.pack(fill=tk.BOTH, expand=True)
+        self.main_frame = tk.Frame(self.win, bg='cyan', width=450, height=50, pady=3)
+        self.main_frame.pack(fill=tk.BOTH, expand=True)
 
-        self.file_name = LabelTextEntry(self.top_frame, text="", front=("", font_size_body), textvariable=None)
-        self.folder = LabelTextEntry(self.top_frame, text="Folder:", front=("", font_size_body), textvariable=None)
-        self.full_path = LabelTextEntry(self.top_frame, text="Full path:", front=("", font_size_body), textvariable=None)
-        self.file_size = LabelTextEntry(self.top_frame, text="File Size:", front=("", font_size_body), textvariable=None)
-        self.mosaic_file_name = LabelTextEntry(self.top_frame, text="Mosaic File Name:", front=("", font_size_body), textvariable=None)
-        self.folder = LabelTextEntry(self.top_frame, text="Folder:", front=("", font_size_body), textvariable=None)
+        self.file_name = LabelTextEntry(self.main_frame, text="", font=("", font_size_body), textvariable=None)
+        self.folder = LabelTextEntry(self.main_frame, text="Folder:", font=("", font_size_body), textvariable=None)
+        self.full_path = LabelTextEntry(self.main_frame, text="Full path:", font=("", font_size_body), textvariable=None)
+        self.file_size = LabelTextEntry(self.main_frame, text="File Size:", font=("", font_size_body), textvariable=None)
+        self.mosaic_file_name = LabelTextEntry(self.main_frame, text="Mosaic File Name:", font=("", font_size_body), textvariable=None)
+        #self.folder = LabelTextEntry(self.main_frame, text="Folder:", font=("", font_size_body), textvariable=None)
 
-        #self.file_name = tk.Label(self.top_frame, text="File name:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        #self.folder = tk.Label(self.top_frame, text="Folder:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        #self.full_path = tk.Label(self.top_frame, text="Full path:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        #self.file_size = tk.Label(self.top_frame, text="File Size:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        #self.mosaic_file_name = tk.Label(self.top_frame, text="Mosaic File Name:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.extra = tk.Label(self.top_frame, text="Extra", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        #self.action_copy = PhotoImageButton(self.top_frame,
+        #self.file_name = tk.Label(self.main_frame, text="File name:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        #self.folder = tk.Label(self.main_frame, text="Folder:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        #self.full_path = tk.Label(self.main_frame, text="Full path:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        #self.file_size = tk.Label(self.main_frame, text="File Size:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        #self.mosaic_file_name = tk.Label(self.main_frame, text="Mosaic File Name:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.extra = tk.Label(self.main_frame, text="Extra", bd=1, relief=tk.SUNKEN, anchor=tk.W, font=("", font_size_body))
+        #self.action_copy = PhotoImageButton(self.main_frame,
         #                                    image_path=str((icons_path / "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
         #                                    tooltip_text="Copy Text",)
 
-        self.action_copy = tk.Button(self.top_frame,
+        self.action_copy = tk.Button(self.main_frame,
                                      text="Copy Text",
                                      bd=1,
                                      relief=tk.SUNKEN,
                                      anchor=tk.W,
-                                     command=self.copy_text)
+                                     command=self.copy_text,
+                                     font=("", font_size_body))
         self.var = tk.StringVar()
-        self.extra_text = tk.Text(self.top_frame, bd=1, relief=tk.SUNKEN)
-        self.action_ok = tk.Button(self.top_frame, text="OK", command=self.on_window_exit)
+        self.extra_text = tk.Text(self.main_frame, bd=1, relief=tk.SUNKEN)
+        self.action_ok = tk.Button(self.main_frame, text="OK", command=self.on_window_exit)
 
         # 右クリックメニューの作成
         self.right_click_menu = RightClickMenu(self.win)
@@ -355,16 +357,19 @@ class FileInfoFrame:
             entry.bind("<Button-3>", self.right_click_menu.show_menu)
 
         # Widgetの配置
-        self.file_name.grid(row=0, column=0, sticky=tk.W + tk.E)
-        self.folder.grid(row=1, column=0, sticky=tk.W + tk.E)
-        self.full_path.grid(row=2, column=0, sticky=tk.W + tk.E)
-        self.file_size.grid(row=3, column=0, sticky=tk.W + tk.E)
-        self.mosaic_file_name.grid(row=4, column=0, sticky=tk.W + tk.E)
+        self.main_frame.grid_rowconfigure(7, weight=1)
+        self.main_frame.grid_columnconfigure(0, weight=1)
+        self.main_frame.grid_columnconfigure(1, weight=1)
+        self.file_name.grid(row=0, column=0, columnspan=2, sticky=tk.W + tk.E)
+        self.folder.grid(row=1, column=0, columnspan=2, sticky=tk.W + tk.E)
+        self.full_path.grid(row=2, column=0, columnspan=2, sticky=tk.W + tk.E)
+        self.file_size.grid(row=3, column=0, columnspan=2, sticky=tk.W + tk.E)
+        self.mosaic_file_name.grid(row=4, column=0, columnspan=2, sticky=tk.W + tk.E)
         self.extra.grid(row=5, column=0, sticky=tk.W + tk.E)
-        self.action_copy.grid(row=6, column=0, sticky=tk.W + tk.E)
-        self.extra_text.grid(row=7, column=0, sticky=tk.W + tk.E)
+        self.action_copy.grid(row=5, column=1, sticky=tk.W + tk.E)
+        self.extra_text.grid(row=6, column=0, columnspan=2, sticky=tk.W + tk.E)
         #self.ent_file_name.grid(row=7, column=1, sticky=tk.W + tk.E)
-        self.action_ok.grid(row=8, column=0, sticky=tk.W + tk.E)
+        self.action_ok.grid(row=7, column=0, columnspan=2, sticky=tk.W + tk.E)
 
     def copy_text(self):
         text = self.extra_text.get("1.0", "end-1c")  # 1行目から最後の文字を取得

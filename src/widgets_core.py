@@ -4,7 +4,7 @@
     画面パーツのコア部分
 """
 import tkinter as tk
-from typing import Optional, Literal
+from typing import Optional, Literal, Tuple
 
 
 class WidgetUtils(object):
@@ -113,7 +113,7 @@ class LabelTextEntry(tk.Frame):
     """
     ラベルとテキストの複合コンポーネント
     """
-    def __init__(self, parent, text: str, front, textvariable):
+    def __init__(self, parent, text: str, font: Tuple[str, int], textvariable):
         """
         コンストラクタ
         :param master: 親ウィジェット
@@ -122,11 +122,11 @@ class LabelTextEntry(tk.Frame):
         """
         super().__init__(parent)
 
-        _, font_size = front
-        self.label = tk.Label(self, text=text, font=front)
+        _, font_size = font
+        self.label = tk.Label(self, text=text, font=font)
         self.label.pack(side=tk.LEFT)
 
-        self.text_entry = tk.Entry(self, font=front, textvariable=textvariable)
+        self.text_entry = tk.Entry(self, font=font, textvariable=textvariable)
         self.text_entry.pack(side=tk.LEFT)
 
     def get_text(self) -> str:
