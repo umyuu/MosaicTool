@@ -10,7 +10,6 @@ from functools import partial
 from pathlib import Path
 import sys
 import os
-import json
 import tkinter as tk
 
 from tkinterdnd2 import TkinterDnD

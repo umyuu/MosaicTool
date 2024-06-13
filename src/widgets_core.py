@@ -113,7 +113,7 @@ class LabelTextEntry(tk.Frame):
     """
     ラベルとテキストの複合コンポーネント
     """
-    def __init__(self, parent, text: str, front):
+    def __init__(self, parent, text: str, front, textvariable):
         """
         コンストラクタ
         :param master: 親ウィジェット
@@ -126,7 +126,7 @@ class LabelTextEntry(tk.Frame):
         self.label = tk.Label(self, text=text, font=front)
         self.label.pack(side=tk.LEFT)
 
-        self.text_entry = tk.Text(self, height=1, width=20, font=front)
+        self.text_entry = tk.Entry(self, font=front, textvariable=textvariable)
         self.text_entry.pack(side=tk.LEFT)
 
     def get_text(self) -> str:

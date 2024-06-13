@@ -26,7 +26,7 @@ ImageFormat = {
 }
 
 
-@dataclass
+@dataclass(frozen=True)
 class ImageFileInfo:
     """
     ステータスバーのステータスメッセージ
@@ -37,7 +37,7 @@ class ImageFileInfo:
     mtime: str = ""  # モザイクを掛ける対象ファイルの最終更新日時
 
 
-@dataclass
+@dataclass(frozen=True)
 class StatusBarInfo(ImageFileInfo):
     """
     ステータスバーのステータスメッセージ

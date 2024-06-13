@@ -122,8 +122,8 @@ class AppController(AbstractAppController):
             return
         file = self.model.get_current_image()
         image_info = ImageFileService.get_image_info(file)
-        self.view.show_file_info(image_info)
-        #print(d)
+
+        self.view.show_file_info(str(image_info))
 
     def update_view(self, sw: Optional[Stopwatch] = None):
         """

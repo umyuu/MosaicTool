@@ -312,24 +312,37 @@ class FileInfoFrame:
         self.win.protocol('WM_DELETE_WINDOW', self.on_window_exit)
         self.controller = controller
 
-        font_size_h3 = self.controller.get_font_size("h3")
+        font_size_body = self.controller.get_font_size("body")
 
         self.top_frame = tk.Frame(self.win, bg='cyan', width=450, height=50, pady=3)
         self.top_frame.pack(fill=tk.BOTH, expand=True)
 
-        self.file_name = LabelTextEntry(self.top_frame, text="File name:", front=("", font_size_h3))
-        self.folder = LabelTextEntry(self.top_frame, text="Folder:", front=("", font_size_h3))
+        self.file_name = LabelTextEntry(self.top_frame, text="File name:", front=("", font_size_body), textvariable=None)
+        self.folder = LabelTextEntry(self.top_frame, text="Folder:", front=("", font_size_body), textvariable=None)
+        self.full_path = LabelTextEntry(self.top_frame, text="Full path:", front=("", font_size_body), textvariable=None)
+        self.file_size = LabelTextEntry(self.top_frame, text="File Size:", front=("", font_size_body), textvariable=None)
+        self.mosaic_file_name = LabelTextEntry(self.top_frame, text="Mosaic File Name:", front=("", font_size_body), textvariable=None)
+        self.folder = LabelTextEntry(self.top_frame, text="Folder:", front=("", font_size_body), textvariable=None)
 
         #self.file_name = tk.Label(self.top_frame, text="File name:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
         #self.folder = tk.Label(self.top_frame, text="Folder:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.full_path = tk.Label(self.top_frame, text="Full path:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.file_size = tk.Label(self.top_frame, text="File Size:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.mosaic_file_name = tk.Label(self.top_frame, text="Mosaic File Name:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.extra = tk.Label(self.top_frame, text="Mosaic File Name:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.action_copy = tk.Button(self.top_frame, text="Copy", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        #self.full_path = tk.Label(self.top_frame, text="Full path:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        #self.file_size = tk.Label(self.top_frame, text="File Size:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        #self.mosaic_file_name = tk.Label(self.top_frame, text="Mosaic File Name:", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.extra = tk.Label(self.top_frame, text="Extra", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        #self.action_copy = PhotoImageButton(self.top_frame,
+        #                                    image_path=str((icons_path / "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+        #                                    tooltip_text="Copy Text",)
+
+        self.action_copy = tk.Button(self.top_frame,
+                                     text="Copy Text",
+                                     bd=1,
+                                     relief=tk.SUNKEN,
+                                     anchor=tk.W,
+                                     command=self.copy_text)
+        self.var = tk.StringVar()
         self.extra_text = tk.Text(self.top_frame, bd=1, relief=tk.SUNKEN)
         self.action_ok = tk.Button(self.top_frame, text="OK", command=self.on_window_exit)
-
         # Widgetの配置
         self.file_name.grid(row=0, column=0, sticky=tk.W + tk.E)
         self.folder.grid(row=1, column=0, sticky=tk.W + tk.E)
@@ -342,6 +355,11 @@ class FileInfoFrame:
         #self.ent_file_name.grid(row=7, column=1, sticky=tk.W + tk.E)
         self.action_ok.grid(row=8, column=0, sticky=tk.W + tk.E)
 
+    def copy_text(self):
+        text = self.extra_text.get("1.0", "end-1c")  # 1行目から最後の文字を取得
+        self.win.clipboard_clear()  # クリップボードをクリア
+        self.win.clipboard_append(text)  # テキストをクリップボードに追加
+
     def on_window_open(self):
         print("on_window_open")
         #self.win.withdraw()
@@ -353,6 +371,14 @@ class FileInfoFrame:
         self.win.withdraw()
         #self.var.set(False)
 
+    def set_extra_text(self, text: str):
+        """
+        拡張情報を設定します。
+        """
+        self.extra_text.delete("1.0", "end")  # テキスト全体を削除
+        self.extra_text.insert("1.0", text)  # 新しいテキストを挿入
+        #self.var.set(text)
+
 
 class MainPage(tk.Frame):
     """
@@ -362,6 +388,7 @@ class MainPage(tk.Frame):
         super().__init__(master, bg="#00C8B4")
         self.controller = controller
         self.file_info_window: Optional[FileInfoFrame] = None
+
         # Widgetの生成
         self.HeaderFrame = HeaderFrame(self, controller, "#44F7D3", icons_path)
         self.MainFrame = MainFrame(self, controller, bg="#88FFEB")
@@ -463,7 +490,11 @@ class MainPage(tk.Frame):
     def show_file_info(self, file_info):
         if self.file_info_window is None:
             self.file_info_window = FileInfoFrame(self, self.controller, bg="#aaaaaa")
+        if file_info:
+            self.file_info_window.set_extra_text(file_info)
+        else:
+            self.file_info_window.set_extra_text("")
+
         self.after(1, self.file_info_window.on_window_open)    
 
         print("aaa")
-        #self.file_info_window.on_window_open()
