@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_data_files
 
-datas = [('./assets', './assets'), ('./third_party/icons', './third_party/icons')]
+datas = [('./assets', './assets'), ('./third_party', './third_party')]
 datas += collect_data_files('tkinterdnd2')
 
 

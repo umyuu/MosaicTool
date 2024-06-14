@@ -1,4 +1,4 @@
-2024/06/13 ver 0.0.4  
+2024/06/14 ver 0.0.4  
 # 🌟 MosaicTool — モザイク編集のお供に
 ![Python version](https://img.shields.io/badge/python-3.9+-important)  
 
@@ -44,7 +44,7 @@
 
 
 ## ハッシュ値  
-MosaicTool.exe Hash Value (SHA-256): C0F529F8155E309A7BB205EA7ABBBEE095F92F851C7B4A5959A9B042EE62B9D0
+MosaicTool.exe Hash Value (SHA-256): C82A12CEF1FD521459E459A710CAF7D6675A6E103E55EA1BFA109816B6EE8266
 
 ## 補足説明  
 1. アプリがウィルスソフトで検知された場合は、使用しているライブラリが影響している誤検知です。  
