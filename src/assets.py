@@ -2,12 +2,10 @@
 """
     Assets
 """
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal
+import json
 
 
-@dataclass(frozen=True)
 class Assets:
     """
     Assetを管理
@@ -41,5 +39,3 @@ class Assets:
                 }
             }
             return config
-
-
