@@ -13,11 +13,12 @@ class ThemeColors:
     """
     テーマ色
     """
-    primary: str = "#44F7D3"  # プライマリ色
-    secondary: str = "#CCCCCC"  # セカンダリ色
-    neutral: str = "SystemWindow"  # ニュートラル色
-    info: str = "RosyBrown"  # アクセント色
-    text: str = "ivory"  # テキストの色
+    bg_primary: str = "#44F7D3"  # 背景色:プライマリ色
+    bg_secondary: str = "#CCCCCC"  # 背景色:セカンダリ色
+    bg_neutral: str = "SystemWindow"  # 背景色:ニュートラル色
+    bg_white: str = "#FFFFFF"  # 背景色:白色
+    bg_danger: str = "red"  # 背景色:危険色
+    text_info: str = "RosyBrown"  # 文字色:情報
 
 
 @dataclass(frozen=True)
@@ -47,11 +48,12 @@ class AppConfig:
 
         theme_colors = self.settings['theme_colors']
         self._theme_colors = ThemeColors(
-            primary=theme_colors.get("primary"),
-            secondary=theme_colors.get("secondary"),
-            neutral=theme_colors.get("neutral"),
-            info=theme_colors.get("info"),
-            text=theme_colors.get("text"),
+            bg_primary=theme_colors.get("bg_primary"),
+            bg_secondary=theme_colors.get("bg_secondary"),
+            bg_neutral=theme_colors.get("bg_neutral"),
+            bg_white=theme_colors.get("bg_white"),
+            bg_danger=theme_colors.get("bg_danger"),
+            text_info=theme_colors.get("text_info"),
         )
 
         font_sizes = self.settings['font_sizes']
