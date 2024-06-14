@@ -47,8 +47,7 @@ class Stopwatch:
         """
         計測中の経過時間を取得します。
 
-        Returns:
-            float: 計測中の経過時間(小数秒)
+        :return: 計測中の経過時間(小数秒)
         """
         if self._is_running:
             self._elapsed = time.perf_counter() - self._start_time
@@ -59,6 +58,7 @@ class Stopwatch:
     def is_running(self) -> bool:
         """
         計測が実行中であるかどうかを取得します
+        :return: 実行中の場合は、true、それ以外は、false
         """
         return self._is_running
 
@@ -75,8 +75,7 @@ class Stopwatch:
         """
         新しいストップウォッチを生成し、計測を開始します。
 
-        Returns:
-            Stopwatch: 新しいストップウォッチオブジェクト
+        :return: 新しいストップウォッチオブジェクト
         """
         stopwatch = Stopwatch()
         stopwatch.start()
@@ -86,8 +85,7 @@ class Stopwatch:
         """
         計測を終了し、経過時間を返します。
 
-        Returns:
-            float: 計測中の経過時間
+        :return: 計測中に経過した時間
         """
         if self._is_running:
             self._elapsed = time.perf_counter() - self._start_time

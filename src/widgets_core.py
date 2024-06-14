@@ -92,21 +92,17 @@ class PhotoImageButton(tk.Button):
     """
     画像ボタンのクラス
     """
-    def __init__(self, master=None, image_path: str = "", tooltip_text: Optional[str] = None, command=None, **kwargs):
+    def __init__(self, master=None, image_path: str = "", tooltip_text: Optional[str] = None, **kwargs):
         """
         コンストラクタ
         :param master: 親ウィジェット
         :param image_path: ボタンに表示する画像のファイルパス
         :param tooltip_text: ツールチップに表示するテキスト
-        :param command: ボタンが押されたときに実行するコマンド
         :param kwargs: その他のオプション
         """
         photo_image = tk.PhotoImage(file=image_path)
         photo_image = photo_image.subsample(3, 3)
-        if command is None:
-            super().__init__(master, image=photo_image, compound="top", **kwargs)
-        else:
-            super().__init__(master, image=photo_image, compound="top", command=command, **kwargs)
+        super().__init__(master, image=photo_image, compound="top", **kwargs)
 
         self.photo_image = photo_image  # ガベージコレクションを防ぐために画像を保持
         self.tooltip = Tooltip(self, tooltip_text) if tooltip_text else None
@@ -120,8 +116,7 @@ class LabelTextEntry(tk.Frame):
         """
         コンストラクタ
         :param master: 親ウィジェット
-        :param text: ラベルに表示するテキスト
-        :param front: フォント
+        :param kwargs: その他のオプション
         """
         super().__init__(master)
 
@@ -162,36 +157,15 @@ class LabelTextEntry(tk.Frame):
         self.text_entry.insert(0, text)
 
 
-class CustomScrollbar(tk.Scrollbar):
-    """
-    スクロールバーを選択時のマウスカーソルを設定するためのカスタムコントロール
-    """
-    def __init__(self, master=None, **kwargs):
-        super().__init__(master, **kwargs)
-        self.bind("<Enter>", self.on_enter)
-        self.bind("<Leave>", self.on_leave)
-        self.bind("<FocusIn>", self.on_focus_in)
-        self.bind("<FocusOut>", self.on_focus_out)
-
-    def on_enter(self, event):
-        if self.focus_get() == self:
-            self.config(cursor="hand2")
-
-    def on_leave(self, event):
-        self.config(cursor="arrow")
-
-    def on_focus_in(self, event):
-        self.config(cursor="hand2")
-
-    def on_focus_out(self, event):
-        self.config(cursor="arrow")
-
-
 class RightClickMenu(tk.Menu):
     """
     右クリックメニュー
     """
     def __init__(self, root):
+        """
+        コンストラクタ
+        :param root: 親ウィジェット
+        """
         super().__init__(root, tearoff=0)
         self.add_command(label="カット", command=self.handle_cut)
         self.add_command(label="コピー", command=self.handle_copy)
@@ -225,7 +199,3 @@ class RightClickMenu(tk.Menu):
         """
         if self.widget:
             self.widget.event_generate("<<Paste>>")
-
-
-class SubWindow(tk.Button):
-    pass

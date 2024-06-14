@@ -40,7 +40,7 @@ class ImageFileInfo:
     @property
     def mtime(self) -> str:
         """
-        最終更新日時をISO 8601形式で取得するプロパティ
+        最終更新日時をISO 8601形式で取得する
         :return: 最終更新日時の文字列
         """
         # ファイルのメタデータを取得
@@ -54,7 +54,7 @@ class ImageFileInfo:
     @property
     def file_size(self) -> int:
         """
-        ファイルサイズを取得するプロパティ
+        ファイルサイズを取得する
         :return: ファイルサイズ（バイト）
         """
         return os.path.getsize(self.file_path)
@@ -101,7 +101,7 @@ class AppDataModel:
 
     def get(self, key: str, default=None) -> Any:
         """
-        設定を取得するメソッド。
+        設定を取得する。
         :param key: 取得する設定のキー
         :param default: キーが存在しない場合に返されるデフォルト値
         :return: 設定の値
@@ -110,6 +110,10 @@ class AppDataModel:
 
     @property
     def settings(self) -> AppConfig:
+        """
+        設定情報を取得する。
+        :return: 設定情報
+        """
         return self._settings
 
     @property
@@ -124,8 +128,8 @@ class AppDataModel:
         """
         画像ファイルの検証
         ファイルの存在、許可された拡張子かをチェックします。
-        :param file_path: チェックするファイルのパス
-        :return: チェック結果 true は正常、falseは検証エラー
+        :param file_path: チェックするファイルパス
+        :return: チェック結果 正常:true、検証エラー:false
         """
         if not file_path.exists():
             return False
@@ -177,6 +181,7 @@ class AppDataModel:
     def __str__(self) -> str:
         """
         print用の文字列。デバック用に使用します。
+        :return: モデルの情報
         """
         return f"current:{self.current}, {self.image_list}"
 
@@ -231,8 +236,8 @@ class MosaicFilter:
     @property
     def Image(self) -> Image.Image:
         """
-        モザイク処理された画像を取得するプロパティ
-        :return: PIL Imageオブジェクト
+        モザイク処理後の画像データを取得する。
+        :return: 画像データ
         """
         return self._image
 
