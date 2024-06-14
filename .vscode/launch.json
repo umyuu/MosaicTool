@@ -35,6 +35,7 @@
       "args": [
         "app.py",
         "--icon=assets/icons/app_icon.ico",
+        "--onefile",
         "--windowed",
         "--name",
         "MosaicTool",
