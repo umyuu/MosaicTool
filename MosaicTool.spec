@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_data_files
 
-datas = [('./third_party/icons', './third_party/icons')]
+datas = [('./assets', './assets'), ('./third_party', './third_party')]
 datas += collect_data_files('tkinterdnd2')
 
 
@@ -39,4 +39,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['assets\\icons\\app_icon.ico'],
 )

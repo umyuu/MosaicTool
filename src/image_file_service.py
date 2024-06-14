@@ -10,7 +10,6 @@ from typing import Any
 from PIL import Image
 from PIL.PngImagePlugin import PngInfo
 from src.utils import Stopwatch
-#from .models import MosaicImageFile
 
 
 class ImageFileService:
@@ -25,11 +24,8 @@ class ImageFileService:
         """
         渡されたファイルがPNG形式かどうかを判定します。
 
-        Args:
-            path (Path): ファイルのパス
-
-        Returns:
-            bool: PNG形式かどうかの真偽値
+        :param path: ファイルのパス
+        :return: PNG形式かどうかの真偽値
         """
         # ファイルの存在を確認する
         if not path.is_file():
@@ -51,12 +47,8 @@ class ImageFileService:
     def is_jpg(path: Path) -> bool:
         """
         渡されたファイルがJPEG形式かどうかを判定します。
-
-        Args:
-            path (Path): ファイルのパス
-
-        Returns:
-            bool: JPEG形式かどうかの真偽値
+        :param path: ファイルのパス
+        :return: JPEG形式かどうかの真偽値
         """
         # ファイルの存在を確認する
         if not path.is_file():
@@ -78,6 +70,8 @@ class ImageFileService:
     def load(file_path: Path) -> Image.Image:
         """
         画像ファイルを読み込みます。
+        :param file_path: 画像ファイルのパス
+        :return: 画像データ
         """
         #print("load" + str(file_path))
         return Image.open(file_path)
@@ -85,6 +79,9 @@ class ImageFileService:
     @staticmethod
     async def load_async(file_path: Path) -> Image.Image:
         """
+        画像ファイルを非同期で読み込みます。
+        :param file_path: 画像ファイルのパス
+        :return: 画像データ
         """
         print("load_async" + str(file_path))
         return Image.open(file_path)
@@ -93,12 +90,8 @@ class ImageFileService:
     def get_image_size(file_path: Path) -> tuple[int, int]:
         """
         画像の大きさを取得します。
-
-        Args:
-            file_path (Path): 画像ファイルのパス
-
-        Returns:
-            tuple[int, int]: 画像の幅と高さのタプル
+        :param file_path: 画像ファイルのパス
+        :return: 画像の幅と高さ
         """
         with Image.open(file_path) as img:
             return img.size
@@ -107,47 +100,41 @@ class ImageFileService:
     def get_image_info(file_path: Path) -> dict[Any, Any]:
         """
         画像の情報を取得します。
-
-        Args:
-            file_path (Path): 画像ファイルのパス
-
-        Returns:
-            dict[Any, Any]: 画像の情報を格納した辞書
+        :param file_path: 画像ファイルのパス
+        :return: 画像の情報を格納した辞書
         """
         with Image.open(file_path) as img:
             return img.info
 
     @staticmethod
-    def save(_image: Image.Image, output_path: Path, filename: Path):
+    def save(out_image: Image.Image, output_path: Path, filename: Path):
         """
         画像保存処理
+        :param out_image: 出力画像
+        :param output_path: 出力先ファイルパス
+        :param filename: 元画像のファイルパス
         """
         # Todo: PNGINFOの情報はテストパターンを増やす。
         # ファイルの読み込み処理を改善する。
         # DataModel側に保持する。
         if ImageFileService.is_png(filename):
-            with Image.open(filename) as img:
-                ImageFileService.save_png_metadata(img, _image, output_path)
+            with Image.open(filename) as src_img:
+                ImageFileService.save_png_metadata(src_img, out_image, output_path)
             return
         if ImageFileService.is_jpg(filename):
-            with Image.open(filename) as img:
-                ImageFileService.save_jpeg_metadata(img, _image, output_path)
+            with Image.open(filename) as src_img:
+                ImageFileService.save_jpeg_metadata(src_img, out_image, output_path)
             return
 
-        _image.save(output_path)
+        out_image.save(output_path)
 
     @staticmethod
     def save_png_metadata(src_image: Image.Image, out_image: Image.Image, output_path: Path) -> None:
         """
         PNG形式の画像にメタデータを保存します。
-
-        Args:
-            src_image (Image.Image): 元画像
-            out_image (Image.Image): 出力画像
-            output_path (Path): 出力先ファイルパス
-
-        Returns:
-            None
+        :param src_image: 元画像
+        :param out_image: 出力画像
+        :param output_path: 出力先ファイルパス
         """
         sw = Stopwatch.start_new()
         png_info = src_image.info
@@ -173,19 +160,14 @@ class ImageFileService:
             out_image.save(output_path)
 
     @staticmethod
-    def save_jpeg_metadata(image: Image.Image, out_image: Image.Image, output_path: Path) -> None:
+    def save_jpeg_metadata(src_image: Image.Image, out_image: Image.Image, output_path: Path) -> None:
         """
         JPEG形式の画像にメタデータを保存します。
-
-        Args:
-            image (Image.Image): 元画像
-            out_image (Image.Image): 出力画像
-            output_path (Path): 出力先ファイルパス
-
-        Returns:
-            None
+        :param src_image: 元画像
+        :param out_image: 出力画像
+        :param output_path: 出力先ファイルパス
         """
-        exif_data = image.info.get("exif")
+        exif_data = src_image.info.get("exif")
         if exif_data:
             out_image.save(output_path, exif=exif_data)
         else:
@@ -194,14 +176,10 @@ class ImageFileService:
     @staticmethod
     def mosaic_filename(file_path: Path) -> Path:
         """
-        モザイク処理後の新しいファイル名を生成します。
+        モザイク適用済みのファイルパスを生成します。
         同名ファイルが存在する場合は、画像の大きさを比較します。
-
-        Args:
-            file_path (Path): 元画像ファイルのパス
-
-        Returns:
-            Path: 新しいファイル名のパス
+        :param file_path: 元画像のファイルのパス
+        :return: モザイク適用済みのファイルパス
         """
         size = (0, 0)
 

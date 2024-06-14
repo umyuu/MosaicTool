@@ -10,13 +10,13 @@ from functools import partial
 from pathlib import Path
 import sys
 import os
-import json
 import tkinter as tk
 
 from tkinterdnd2 import TkinterDnD
 
+from src.app_config import AppConfig
 from src.controllers import AppController
-from src.models import DataModel
+from src.models import AppDataModel
 from src.widgets import MainPage
 
 PROGRAM_NAME = 'MosaicTool'
@@ -37,11 +37,7 @@ else:
 
 # 設定ファイルより
 config_file = Path(application_path, f"{PROGRAM_NAME}.json")
-if config_file.exists():
-    with config_file.open(encoding='utf-8') as f:
-        config = json.load(f)
-else:
-    config = {}
+config = AppConfig(config_file)
 
 
 class MyApp(TkinterDnD.Tk):
@@ -51,21 +47,23 @@ class MyApp(TkinterDnD.Tk):
     """
     def __init__(self):
         super().__init__()
-        initial_window_size = config.get("initialWindowSize", {"width": 800, "height": 600})
+        self.set_window_title(Path(""))  # プログラム名とバージョン番号を表示
+        self.model = AppDataModel(config)
+        self.config = config
+        initial_window_size = self.config.get("initialWindowSize", {"width": 800, "height": 600})
         width = initial_window_size.get("width")
         height = initial_window_size.get("height")
         self.geometry(f'{width}x{height}')  # ウィンドウサイズ
-        self.minsize(width, height)
-        self.set_window_title(Path(""))  # プログラム名とバージョン番号を表示
 
-        self.model = DataModel()
         self.controller = AppController(self.model, None, self.set_window_title)
         self.MainPage = MainPage(self, self.controller, icons_path)
+
         self.MainPage.grid(column=0, row=0, sticky=tk.E + tk.W + tk.S + tk.N)
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
-        self.controller.view = self.MainPage  # コントローラーにビューを設定
+        self.controller.view = self.MainPage
+
         # 遅延してイベントループで処理をします。
         self.MainPage.after(1, partial(self.after_launch, file_paths))
 
@@ -85,7 +83,7 @@ class MyApp(TkinterDnD.Tk):
         """
         # コマンドライン引数で渡されたファイルパスを処理する
         self.controller.handle_select_files_complete(files)
-        self.MainPage.displayFileStatus()
+        self.controller.update_status_bar_file_info()
         self.controller.display_process_time(f"{sw.elapsed:.3f}s")
 
 

@@ -7,15 +7,14 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
-
 import os
 from pathlib import Path
-from typing import List
+from typing import Any, List
 
 from PIL import Image
 
 from . utils import round_up_decimal
-
+from . app_config import AppConfig
 
 # 画像形式
 ImageFormat = {
@@ -27,142 +26,21 @@ ImageFormat = {
 }
 
 
-@dataclass
-class StatusMessage:
+@dataclass(frozen=True)
+class ImageFileInfo:
     """
-    ステータスバーのステータスメッセージ
+    画像ファイル情報
     """
     width: int = 0  # 幅
     height: int = 0  # 高さ
-    current: int = 0  # 現在のindex
-    total: int = 0  # トータル
-    file_size: int = 0  # ファイルサイズ(バイト単位)
-    mtime: str = ""  # モザイクを掛ける対象ファイルの最終更新日時
-
-
-class DataModel:
-    """
-    処理対象のファイル
-    """
-    def __init__(self):
-        self.file_paths: List[Path] = []
-        self.current: int = 0
-
-    def add_file_path(self, file_path: Path) -> int:
-        """
-        処理対象のファイルを追加します。
-        :return: 追加件数
-        """
-        if self.check_image_file(file_path):
-            self.file_paths.append(file_path)
-            return 1
-        return 0
-
-    def count(self) -> int:
-        """
-        処理対象の総ファイルの件数
-        :return: 総件数
-        """
-        return len(self.file_paths)
-
-    def check_image_file(self, file_path: Path):
-        """
-        画像ファイルの検証
-        ファイルの存在、許可された拡張子かをチェックします。
-
-        Args:
-            file_path: チェックする画像ファイルのパス
-
-        Returns:
-            bool: チェック結果 true は正常、falseは検証エラー
-        """
-        if not file_path.exists():
-            return False
-        return DataModel.is_extension_allowed(file_path)
-
-    @staticmethod
-    def is_extension_allowed(file_path: Path):
-        """
-        ファイルの拡張子が許可されているかどうかをチェックする関数
-
-        Args:
-            file_path: チェックするファイルのパス
-
-        Returns:
-            bool: 拡張子が許可されている場合はTrue、そうでない場合はFalse
-        """
-        # 許可される拡張子のリスト
-        allowed_extensions = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".svg"]
-        return file_path.suffix.lower() in allowed_extensions  # 大文字小文字を無視してチェックする
-
-    def clear(self):
-        """
-        モデルをクリアします。
-        """
-        self.file_paths = []
-        self.current = 0
-
-    def set_current(self, current: int):
-        """
-        現在選択されている画像を設定します。
-        Args:
-            current: インデックス
-        """
-        if current < 0 or current >= len(self.file_paths):
-            raise ValueError(f"current index out of range: {current}")
-        self.current = current
-
-    def next_index(self):
-        """
-        current を次のインデックスに移動します。
-        """
-        if self.current < len(self.file_paths) - 1:
-            self.current += 1
-        #else:
-        #    raise IndexError("No more files in the list.")
-
-    def prev_index(self):
-        """
-        current を前のインデックスに移動します。
-        """
-        #self.current = (self.current - 1) % len(self.file_paths)
-        if self.current > 0:
-            self.current -= 1
-        #else:
-        #    raise IndexError("Already at the first file in the list.")
-
-    def get_file_paths(self) -> List[Path]:
-        """
-        処理対象のファイル一覧
-        :return: ファイル一覧
-        """
-        return self.file_paths
-
-    def get_current_file(self) -> Path:
-        """
-        現在処理中のファイルパス
-        :return: ファイルパス
-        """
-        return self.file_paths[self.current]
-
-    def __str__(self) -> str:
-        """
-        print用の文字列。デバック用に使用します。
-        """
-        return f"current:{self.current}, {self.file_paths}"
-
-
-@dataclass
-class MosaicImageFile:
-    """
-    モザイク画像ファイルの情報を管理するクラス
-    """
-    file_path: Path
+    file_path: Path = Path("")  # ファイルパス
+    #file_size: int = 0  # ファイルサイズ(バイト単位)
+    #mtime: str = ""  # モザイクを掛ける対象ファイルの最終更新日時
 
     @property
     def mtime(self) -> str:
         """
-        最終更新日時をISO 8601形式で取得するプロパティ
+        最終更新日時をISO 8601形式で取得する
         :return: 最終更新日時の文字列
         """
         # ファイルのメタデータを取得
@@ -174,12 +52,138 @@ class MosaicImageFile:
         return local_time.strftime('%Y-%m-%dT%H:%M:%S')
 
     @property
-    def st_size(self) -> int:
+    def file_size(self) -> int:
         """
-        ファイルサイズを取得するプロパティ
+        ファイルサイズを取得する
         :return: ファイルサイズ（バイト）
         """
         return os.path.getsize(self.file_path)
+
+
+@dataclass(frozen=True)
+class StatusBarInfo(ImageFileInfo):
+    """
+    ステータスバーのステータスメッセージ
+    """
+    current: int = 0  # 現在のindex
+    total: int = 0  # トータル
+
+
+class AppDataModel:
+    """
+    アプリのデータモデル
+    """
+    def __init__(self, settings: AppConfig):
+        """
+        初期化処理
+        :param settings: アプリの設定情報
+        """
+        self._settings = settings
+        self.image_list: List[Path] = []
+        self.current: int = 0
+        # 許可される拡張子のリスト
+        self.allowed_extensions = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".svg"]
+        self.file_property_visible: bool = False
+
+    def add_images(self, image_list: List[Path]) -> int:
+        """
+        画像ファイルを追加します。
+        :param image_list: 画像ファイルのリスト
+        :return: 追加した件数
+        """
+        count: int = 0
+        for image in image_list:
+            if not self.check_image_file(image):
+                continue
+            self.image_list.append(image)
+            count += 1
+        return count
+
+    def get(self, key: str, default=None) -> Any:
+        """
+        設定を取得する。
+        :param key: 取得する設定のキー
+        :param default: キーが存在しない場合に返されるデフォルト値
+        :return: 設定の値
+        """
+        return self.settings.get(key, default)
+
+    @property
+    def settings(self) -> AppConfig:
+        """
+        設定情報を取得する。
+        :return: 設定情報
+        """
+        return self._settings
+
+    @property
+    def count(self) -> int:
+        """
+        処理対象の総件数
+        :return: 総件数
+        """
+        return len(self.image_list)
+
+    def check_image_file(self, file_path: Path) -> bool:
+        """
+        画像ファイルの検証
+        ファイルの存在、許可された拡張子かをチェックします。
+        :param file_path: チェックするファイルパス
+        :return: チェック結果 正常:true、検証エラー:false
+        """
+        if not file_path.exists():
+            return False
+        return self.is_allowed_extension(file_path)
+
+    def is_allowed_extension(self, file_path: Path) -> bool:
+        """
+        ファイルの拡張子が許可されているかどうかをチェックする関数
+        :param file_path: チェックするファイルのパス
+        :return: 拡張子が許可されている場合はTrue、そうでない場合はFalse
+        """
+        # 大文字小文字を無視してチェックする
+        return file_path.suffix.lower() in self.allowed_extensions  
+
+    def clear(self):
+        """
+        モデルをクリアします。
+        """
+        self.image_list = []
+        self.current = 0
+
+    def next_image(self):
+        """
+        インデックスを次の画像に移動します。
+        """
+        if self.current < len(self.image_list) - 1:
+            self.current += 1
+        #else:
+        #    raise IndexError("No more files in the list.")
+
+    def previous_image(self):
+        """
+        インデックスを前の画像に移動します。
+        """
+        if self.current > 0:
+            self.current -= 1
+        #else:
+        #    raise IndexError("Already at the first file in the list.")
+
+    def get_current_image(self) -> Path:
+        """
+        現在処理中の画像
+        :return: ファイルパス
+        """
+        if self.image_list:
+            return self.image_list[self.current]
+        return Path("")
+
+    def __str__(self) -> str:
+        """
+        print用の文字列。デバック用に使用します。
+        :return: モデルの情報
+        """
+        return f"current:{self.current}, {self.image_list}"
 
 
 @dataclass
@@ -232,8 +236,8 @@ class MosaicFilter:
     @property
     def Image(self) -> Image.Image:
         """
-        モザイク処理された画像を取得するプロパティ
-        :return: PIL Imageオブジェクト
+        モザイク処理後の画像データを取得する。
+        :return: 画像データ
         """
         return self._image
 

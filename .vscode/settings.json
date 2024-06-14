@@ -1,12 +1,20 @@
 {
   "cSpell.words": [
     "borderwidth",
+    "columnspan",
     "confirmoverwrite",
     "exif",
     "ipadx",
+    "itxt",
+    "opsz",
+    "padx",
+    "pady",
     "pnginfo",
     "scrollregion",
+    "tearoff",
+    "textvariable",
     "tkinterdnd",
+    "wght",
     "xscrollcommand",
     "yscrollcommand"
   ],
