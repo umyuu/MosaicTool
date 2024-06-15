@@ -3,9 +3,10 @@ ImageFileServiceの単体テスト
 """
 import sys
 import os
-import unittest
-from PIL import Image
 from pathlib import Path
+import unittest
+
+from PIL import Image
 
 # プロジェクトのルートディレクトリをシステムパスに追加
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -17,12 +18,15 @@ class TestImageFileService(unittest.TestCase):
     """
     ImageFileServiceのテストクラス
     """
+    def setUp(self):
+        """テストのセットアップを行います。"""
+        self.current_dir = os.path.dirname(__file__)
+
     def test_save_png_metadata(self):
         """
         PNGINFOの出力確認
         """
-        current_dir = os.path.dirname(__file__)
-        image_path = os.path.join(current_dir, 'test_files', 'test_image_png_pnginfo_valid.png')
+        image_path = os.path.join(self.current_dir, 'test_files', 'test_image_png_pnginfo_valid.png')
         # テストに使用する画像と出力先パスを準備
         with Image.open(image_path) as src_image:
             out_image = Image.new("RGB", (100, 100), color="blue")

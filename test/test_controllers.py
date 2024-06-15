@@ -4,9 +4,9 @@ AppControllerの単体テスト
 from dataclasses import dataclass
 import sys
 import os
+from pathlib import Path
 import unittest
 from unittest.mock import Mock
-from pathlib import Path
 
 # プロジェクトのルートディレクトリをシステムパスに追加
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -19,6 +19,7 @@ from src.app_config import AppConfig
 
 class TestAppController(unittest.TestCase):
     def setUp(self):
+        """テストのセットアップを行います。"""
         self.controller = AppController(AppDataModel(Mock(AppConfig)), Mock(MainPage), Mock())
 
         # on_update_process_time メソッドをモックに追加
