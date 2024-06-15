@@ -1,8 +1,8 @@
 """
 appの単体テスト
 """
-import sys
 import os
+import sys
 import unittest
 
 # プロジェクトのルートディレクトリをシステムパスに追加

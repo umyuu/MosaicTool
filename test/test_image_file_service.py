@@ -1,9 +1,9 @@
 """
 ImageFileServiceの単体テスト
 """
-import sys
 import os
 from pathlib import Path
+import sys
 import unittest
 
 from PIL import Image

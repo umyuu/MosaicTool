@@ -2,9 +2,9 @@
 AppControllerの単体テスト
 """
 from dataclasses import dataclass
-import sys
 import os
 from pathlib import Path
+import sys
 import unittest
 from unittest.mock import Mock
 
