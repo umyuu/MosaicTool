@@ -210,6 +210,20 @@ class MosaicFilter:
         :param end_y: モザイクをかける領域の右下Y座標
         :return: モザイクを掛けてたかどうか
         """
+        from . effects.image_effects import MosaicEffect
+        mosaic = MosaicEffect(self.cell_size)
+
+        return mosaic.apply(self._image, start_x, start_y, end_x, end_y)
+
+    def apply2(self, start_x: int, start_y: int, end_x: int, end_y: int) -> bool:
+        """
+        指定された領域にモザイクを適用する
+        :param start_x: モザイクをかける領域の左上X座標
+        :param start_y: モザイクをかける領域の左上Y座標
+        :param end_x: モザイクをかける領域の右下X座標
+        :param end_y: モザイクをかける領域の右下Y座標
+        :return: モザイクを掛けてたかどうか
+        """
         # モザイクをかける領域のサイズを計算
         region_width = end_x - start_x
         region_height = end_y - start_y
