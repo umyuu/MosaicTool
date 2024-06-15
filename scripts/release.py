@@ -8,7 +8,6 @@ import glob
 import hashlib
 from pathlib import Path
 import time
-from typing import List
 import zipfile
 import sys
 import os
@@ -21,7 +20,9 @@ __version__ = app.__version__
 
 def hash_compute(file_path: Path) -> str:
     """
-    ハッシュ値を計算するファイル
+    ファイルのハッシュ値を計算します。
+    :param file_path: 計算対象のファイル
+    :return: ハッシュ値 (大文字)
     """
     # ハッシュ値の種類を選択（ここではSHA-256を使用）
     hash_algorithm = hashlib.sha256()
@@ -36,7 +37,14 @@ def hash_compute(file_path: Path) -> str:
 
 
 def create_readMe(file1_path: Path, file2_path: Path, hash_value: str, output_path: Path):
+    """
+    Zipファイルに添付するReadMe.txtを作成します。
 
+    :param file1_path: ReadMe.md
+    :param file2_path: handouts.txt
+    :param hash_value: ハッシュ値。
+    :param output_path: 出力先。
+    """
     # 現在の日付を取得
     current_date = datetime.now()
     # 8桁の日付文字列にフォーマット
@@ -53,18 +61,15 @@ def create_readMe(file1_path: Path, file2_path: Path, hash_value: str, output_pa
     output_path.write_text(readme_content, "utf-8")
 
 
-def get_compressible_files(root_dir: Path, exclude_files: List[Path]) -> List[Path]:
+def get_compressible_files(root_dir: Path, exclude_files: list[Path]) -> list[Path]:
     """
     圧縮対象のファイル一覧を取得します。
 
-    Args:
-        root_dir (Path): 圧縮したいディレクトリのパス。
-        exclude_file (str): 除外するファイルの名前。
-
-    Returns:
-        list: 圧縮対象のファイルパスのリスト。
+    :param root_dir: 圧縮したいディレクトリのパス。
+    :param exclude_file: 除外するファイルのリスト。
+    :return: 圧縮対象のファイルパスのリスト。
     """
-    compressible_files: List[Path] = []
+    compressible_files: list[Path] = []
 
     for file_path in glob.glob(str(root_dir) + "/*.*"):
         file_path = Path(file_path)  # 文字列からPathに変換
@@ -74,21 +79,18 @@ def get_compressible_files(root_dir: Path, exclude_files: List[Path]) -> List[Pa
     return compressible_files
 
 
-def create_zip(source_dir: List[Path], output_zip: Path) -> int:
+def create_zip(source_files: list[Path], output_zip: Path) -> int:
     """
-    ディレクトリ内のすべてのファイルをZIPに追加し、指定されたファイルを除外します。
+    引数で指定されたファイルをZIPファイルに格納します。
 
-    Args:
-        source_dir (Path): 圧縮したいディレクトリのパス。
-        output_zip (Path): 出力するZIPファイルのパス。
-
-    Returns:
-        int: ZIPに追加されたファイルの数。
+    :param source_files: ZIPファイルに含めるファイル。
+    :param output_zip: 出力するZIPファイルのパス。
+    :return: ZIPファイルに追加されたファイルの数。
     """
     count: int = 0
 
     with zipfile.ZipFile(output_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        for file_path in source_dir:
+        for file_path in source_files:
             print(file_path)
             zipf.write(file_path, arcname=file_path.name)
             count += 1
@@ -96,14 +98,17 @@ def create_zip(source_dir: List[Path], output_zip: Path) -> int:
     return count
 
 
-@dataclass
+@dataclass(frozen=True)
 class SetupConfigRation:
+    """
+    セットアップ設定
+    """
     source_dir: Path = Path("dist")
     output_zip: Path = source_dir / "MosaicTool.zip"
     app_file: Path = source_dir / "MosaicTool.exe"
     handouts_file: Path = source_dir / "handouts.txt"
-    exclude_files: List[Path] = field(default_factory=list)
-    additional_files: List[Path] = field(default_factory=list)
+    exclude_files: list[Path] = field(default_factory=list)
+    additional_files: list[Path] = field(default_factory=list)
 
 
 def main():
