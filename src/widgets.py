@@ -15,11 +15,12 @@ from tkinterdnd2 import DND_FILES, TkinterDnD
 
 from . import PROGRAM_NAME
 from . abstract_controllers import AbstractAppController
-from . models import MosaicFilter, StatusBarInfo, ImageFormat
+from . models import StatusBarInfo, ImageFormat
 from . utils import round_up_decimal, Stopwatch
 from . widgets_core import WidgetUtils, PhotoImageButton, Tooltip
 from . widget_file_property_window import FilePropertyWindow
 from . image_file_service import ImageFileService
+from . effects.image_effects import MosaicEffect
 
 
 class HeaderFrame(tk.Frame):
@@ -212,12 +213,11 @@ class MainFrame(tk.Frame):
         top = min(start_y, end_y)
         bottom = max(start_y, end_y)
 
-        mosaic = MosaicFilter(self.original_image)
-        is_apply = mosaic.apply(left, top, right, bottom)
+        mosaic = MosaicEffect(MosaicEffect.calc_cell_size(self.original_image))
+        is_apply = mosaic.apply(self.original_image, left, top, right, bottom)
         if not is_apply:
             return False
 
-        self.original_image = mosaic.Image
         self.photo = ImageTk.PhotoImage(self.original_image)  # 元の画像のコピーをキャンバスに表示
         # キャンバスの画像も更新
         self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)

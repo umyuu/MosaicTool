@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageChops
 # プロジェクトのルートディレクトリをシステムパスに追加
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.models import MosaicFilter
+from src.effects.image_effects import MosaicEffect
 
 
 class TestMosaicFilter(unittest.TestCase):
@@ -37,8 +37,8 @@ class TestMosaicFilter(unittest.TestCase):
         actual: List[int] = []
         for size in image_sizes:
             with Image.new("RGBA", size, color="blue") as image:
-                mosaic = MosaicFilter(image)
-                actual.append(mosaic.cell_size)
+                cell_size = MosaicEffect.calc_cell_size(image)
+                actual.append(cell_size)
         self.assertListEqual([4, 8, 13, 41], actual, )
 
     def create_gradient_image(self, width: int, height: int) -> Image.Image:
@@ -75,15 +75,14 @@ class TestMosaicFilter(unittest.TestCase):
                     #gradient_image.save(f'gradient_image{cell_size}.png')
 
                     # MosaicEffectを初期化
-                    mosaic_effect = MosaicFilter(gradient_image)
-                    mosaic_effect.cell_size = cell_size
+                    mosaic_effect = MosaicEffect(cell_size)
                     # モザイクエフェクトを適用
-                    mosaic_effect.apply(0, 0, width, height)
+                    mosaic_effect.apply(gradient_image, 0, 0, width, height)
 
-                    result: bool = self.compare_images(mosaic_effect.Image, actual_image)
+                    result: bool = self.compare_images(gradient_image, actual_image)
                     test_image_file = f'mosaic_image_{mosaic_effect.cell_size}.png'
                     if not result:  # モザイク画像を保存（テスト用）
-                        mosaic_effect.Image.save(test_image_file)
+                        gradient_image.save(test_image_file)
                     self.assertTrue(result, f"test:{test_image_file}, actual:{actual_image_path}")
 
     def compare_images(self, image1: Image.Image, image2: Image.Image, diff_image_path=None) -> bool:

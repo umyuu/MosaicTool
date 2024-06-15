@@ -4,21 +4,22 @@ image_effects モジュール
 画像にエフェクトを適用するためのクラスを提供します。
 現在はモザイクエフェクトをサポートしています。
 """
+from dataclasses import dataclass
+from decimal import Decimal
 from typing import Dict
 
 from PIL import Image
 
+from .. utils import round_up_decimal
 
+
+@dataclass(frozen=True)
 class MosaicEffect:
     """
     画像にモザイクエフェクトを適用する機能を提供します。
     """
-    def __init__(self, cell_size: int):
-        """
-        コンストラクタ
-        :param cell_size: モザイクのセルサイズを指定します
-        """
-        self.cell_size = cell_size
+    cell_size: int  # モザイクのセルサイズを指定します
+    _MIN_CELL_SIZE: int = 4  # 最小セルサイズ
 
     def apply(self, image: Image.Image, start_x: int, start_y: int, end_x: int, end_y: int) -> bool:
         """
@@ -52,6 +53,20 @@ class MosaicEffect:
         # モザイクをかけた領域を元の画像に戻す
         image.paste(region, (start_x, start_y, start_x + new_width, start_y + new_height))
         return True
+
+    @staticmethod
+    def calc_cell_size(image: Image.Image) -> int:
+        """
+        画像のサイズに基づいてモザイクのセルサイズを計算します。
+
+        :param image: セルサイズを計算する対象の画像
+        :return: 計算されたセルサイズ
+        """
+        # 長辺を100で割って小数点以下を切り上げます。
+        # セルサイズが最小4ピクセル未満の場合は、4ピクセルに設定します。
+        long_side = (Decimal(image.width).max(Decimal(image.height))) / Decimal(100)
+        cell_size = max(MosaicEffect._MIN_CELL_SIZE, round_up_decimal(long_side, 0))
+        return int(cell_size)
 
 
 class EffectPreset:

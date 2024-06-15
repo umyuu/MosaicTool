@@ -11,6 +11,7 @@
     "pady",
     "pnginfo",
     "scrollregion",
+    "srgb",
     "tearoff",
     "textvariable",
     "tkinterdnd",

@@ -4,16 +4,12 @@
     データモデル関連
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
-from decimal import Decimal
 import os
 from pathlib import Path
 from typing import Any, List
 
-from PIL import Image
-
-from . utils import round_up_decimal
 from . app_config import AppConfig
 
 # 画像形式
@@ -184,85 +180,3 @@ class AppDataModel:
         :return: モデルの情報
         """
         return f"current:{self.current}, {self.image_list}"
-
-
-@dataclass
-class MosaicFilter:
-    """
-    モザイク画像を作成するクラス
-    """
-    _image: Image.Image
-    cell_size: int = field(init=False)  # モザイクのセルサイズ
-    min_cell_size: int = 4  # 最小セルサイズ
-
-    def __post_init__(self):
-        """
-        モザイクのセルサイズを計算し設定します。
-        """
-        self.cell_size = self.calc_cell_size()
-
-    def apply(self, start_x: int, start_y: int, end_x: int, end_y: int) -> bool:
-        """
-        指定された領域にモザイクを適用する
-        :param start_x: モザイクをかける領域の左上X座標
-        :param start_y: モザイクをかける領域の左上Y座標
-        :param end_x: モザイクをかける領域の右下X座標
-        :param end_y: モザイクをかける領域の右下Y座標
-        :return: モザイクを掛けてたかどうか
-        """
-        from . effects.image_effects import MosaicEffect
-        mosaic = MosaicEffect(self.cell_size)
-
-        return mosaic.apply(self._image, start_x, start_y, end_x, end_y)
-
-    def apply2(self, start_x: int, start_y: int, end_x: int, end_y: int) -> bool:
-        """
-        指定された領域にモザイクを適用する
-        :param start_x: モザイクをかける領域の左上X座標
-        :param start_y: モザイクをかける領域の左上Y座標
-        :param end_x: モザイクをかける領域の右下X座標
-        :param end_y: モザイクをかける領域の右下Y座標
-        :return: モザイクを掛けてたかどうか
-        """
-        # モザイクをかける領域のサイズを計算
-        region_width = end_x - start_x
-        region_height = end_y - start_y
-
-        # 領域の幅と高さの値がどちらかが0の場合、モザイク処理をSkipします。
-        if (region_width == 0) or (region_height == 0):
-            return False
-
-        # モザイクをかける領域を切り出す
-        region = self._image.crop((start_x, start_y, end_x, end_y))
-
-        # セルサイズに基づいて縮小後のサイズを計算
-        new_width = (region_width // self.cell_size) * self.cell_size
-        new_height = (region_height // self.cell_size) * self.cell_size
-
-        # 領域をセルサイズに揃えてリサイズするための四角形のサイズを計算
-        region = region.resize((new_width // self.cell_size, new_height // self.cell_size), Image.Resampling.BOX)
-        region = region.resize((new_width, new_height), Image.Resampling.NEAREST)
-
-        # モザイクをかけた領域を元の画像に戻す
-        self._image.paste(region, (start_x, start_y, start_x + new_width, start_y + new_height))
-        return True
-
-    @property
-    def Image(self) -> Image.Image:
-        """
-        モザイク処理後の画像データを取得する。
-        :return: 画像データ
-        """
-        return self._image
-
-    def calc_cell_size(self) -> int:
-        """
-        モザイクのセルサイズを計算します。
-
-        :return: セルサイズ
-        """
-        # 長辺の取得し÷100で割り、小数点以下を切り上げする。
-        # セルサイズが4以下（を含む）場合は、最小4ピクセルに設定します。
-        long_side = (Decimal(self._image.width).max(Decimal(self._image.height))) / Decimal(100)
-        cell_size = max(self.min_cell_size, round_up_decimal(long_side, 0))  # 最小4ピクセル
-        return int(cell_size)
