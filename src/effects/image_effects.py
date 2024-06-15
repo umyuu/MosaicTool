@@ -21,14 +21,14 @@ class MosaicEffect:
     """
     cell_size: int  # モザイクのセルサイズを指定します
     MIN_CELL_SIZE: Final[int] = 4  # 最小セルサイズ
-    AUTO: Final[int] = 1  # 自動計算の定数
+    AUTO: Final[int] = -1  # 自動計算の定数
 
     @property
     def name(self) -> str:
         """
         エフェクト名
         """
-        if self.cell_size == 1:
+        if self.cell_size == MosaicEffect.AUTO:
             return "mosaic_auto"
 
         return f"mosaic_{self.cell_size}"
@@ -41,20 +41,40 @@ class MosaicEffect:
         :param start_y: モザイクをかける領域の左上Y座標
         :param end_x: モザイクをかける領域の右下X座標
         :param end_y: モザイクをかける領域の右下Y座標
-        :return: モザイクを掛けてたかどうか
+        :return: モザイクをかけたかどうか
         """
-        if self.cell_size < MosaicEffect.MIN_CELL_SIZE:
-            raise ValueError(f"MosaicEffect cell_size:{self.cell_size}")
-
         # モザイクをかける領域のサイズを計算
         region_width = end_x - start_x
         region_height = end_y - start_y
 
-        # 領域の幅と高さの値がどちらかが0の場合、モザイク処理をSkipします。
-        if (region_width == 0) or (region_height == 0):
+        # 領域の幅または高さが0以下の場合、モザイク処理をスキップする
+        if region_width <= 0 or region_height <= 0:
             return False
 
-        # モザイクをかける領域を切り出す
+        # セルサイズが最小セルサイズ未満の場合、エラーを発生させる
+        if self.cell_size < MosaicEffect.MIN_CELL_SIZE:
+            raise ValueError(f"MosaicEffect cell_size:{self.cell_size}")
+
+        # 指定された領域にモザイク効果を適用
+        region = self.apply_mosaic_to_region(image, start_x, start_y, end_x, end_y, region_width, region_height)
+
+        # モザイクをかけた領域を元の画像に戻す
+        image.paste(region, (start_x, start_y, start_x + region.width, start_y + region.height))
+        return True
+
+    def apply_mosaic_to_region(self, image: Image.Image, start_x: int, start_y: int, end_x: int, end_y: int, region_width: int, region_height: int) -> Image.Image:
+        """
+        指定された領域にモザイク効果を適用する
+        :param image: モザイクをかける画像
+        :param start_x: 領域の左上X座標
+        :param start_y: 領域の左上Y座標
+        :param end_x: 領域の右下X座標
+        :param end_y: 領域の右下Y座標
+        :param region_width: 領域の幅
+        :param region_height: 領域の高さ
+        :return: モザイク効果が適用された領域画像
+        """
+        # 画像から指定された領域を切り出す
         region = image.crop((start_x, start_y, end_x, end_y))
 
         # セルサイズに基づいて縮小後のサイズを計算
@@ -65,9 +85,7 @@ class MosaicEffect:
         region = region.resize((new_width // self.cell_size, new_height // self.cell_size), Image.Resampling.BOX)
         region = region.resize((new_width, new_height), Image.Resampling.NEAREST)
 
-        # モザイクをかけた領域を元の画像に戻す
-        image.paste(region, (start_x, start_y, start_x + new_width, start_y + new_height))
-        return True
+        return region
 
     @staticmethod
     def calc_cell_size(image: Image.Image) -> int:
@@ -79,8 +97,8 @@ class MosaicEffect:
         """
         # 長辺を100で割って小数点以下を切り上げます。
         # セルサイズが最小4ピクセル未満の場合は、4ピクセルに設定します。
-        long_side = (Decimal(image.width).max(Decimal(image.height))) / Decimal(100)
-        cell_size = max(MosaicEffect.MIN_CELL_SIZE, round_up_decimal(long_side, 0))
+        long_side: Decimal = Decimal(max(image.width, image.height))
+        cell_size = max(MosaicEffect.MIN_CELL_SIZE, round_up_decimal(long_side / Decimal(100), 0))
         return int(cell_size)
 
 
@@ -91,7 +109,7 @@ class EffectPreset:
     def __init__(self, presets: dict[str, Any] = {}):
         """
         コンストラクタ
-        エフェクトプリセットを管理するための辞書を初期化します
+        :param presets: プリセットの設定情報
         """
         self.presets: OrderedDict[str, MosaicEffect] = OrderedDict({})
 
@@ -108,9 +126,9 @@ class EffectPreset:
             return
 
         keys = list(self.presets.keys())
-        d = keys[len(keys) // 2 - 1]
+        val = keys[len(keys) // 2 - 1]
 
-        self._default_preset = d
+        self._default_preset = val
 
     @property
     def default_preset(self) -> str:

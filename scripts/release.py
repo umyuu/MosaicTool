@@ -14,8 +14,8 @@ import os
 # プロジェクトのルートディレクトリをシステムパスに追加
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import app
-__version__ = app.__version__
+from src.utils import get_package_version
+__version__ = get_package_version()
 
 
 def hash_compute(file_path: Path) -> str:
@@ -118,6 +118,7 @@ def main():
     config.exclude_files.extend([config.output_zip, config.source_dir / ".gitignore", config.handouts_file])
     config.additional_files.extend([
         Path("docs/initial_screen.png"),
+        Path("MosaicTool.json"),
     ])
 
     # List of additional files to include in the zip

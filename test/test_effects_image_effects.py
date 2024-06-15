@@ -21,9 +21,9 @@ class TestMosaicFilter(unittest.TestCase):
         """テストのセットアップを行います。"""
         self.current_dir = os.path.dirname(__file__)
 
-    def test_mosaic_size(self):
+    def test_mosaic_auto_cell_size(self):
         """
-        モザイクサイズの計算
+        モザイクサイズの自動計算
         """
         # 画像の幅, 高さ
         image_sizes = [

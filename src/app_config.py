@@ -47,7 +47,7 @@ DEFAULT_CONFIG = {
     "font_sizes": asdict(FontSize()),
     "effect_presets": {
         "mosaic": {
-            "cell_sizes": [10, 16, 20, 1],
+            "cell_sizes": [10, 16, 20, -1],
             "default": {
                 "cell_size": 16
             }

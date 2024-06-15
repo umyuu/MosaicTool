@@ -20,10 +20,9 @@ def round_up_decimal(value: Decimal, places: int) -> Decimal:
     :param places: 小数点以下の桁数
     :return: 切り上げられたDecimal値
     """
-    # '0.'の後に'0'を places 個並べて Decimal オブジェクトを作成
-    quantize_str = '0.' + '0' * places
-    # 指定した桁数に切り上げる
-    rounded_value = value.quantize(Decimal(quantize_str), rounding=ROUND_UP)
+    # 10の places 乗を Decimal として作成し、value を掛けることで切り上げる
+    factor = Decimal(10) ** -places
+    rounded_value = (value / factor).quantize(Decimal('1.'), rounding=ROUND_UP) * factor
     return rounded_value
 
 
