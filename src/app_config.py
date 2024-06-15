@@ -45,6 +45,14 @@ DEFAULT_CONFIG = {
     },
     "theme_colors": asdict(ThemeColors()),
     "font_sizes": asdict(FontSize()),
+    "effect_presets": {
+        "mosaic": {
+            "cell_sizes": [10, 16, 20, 1],
+            "default": {
+                "cell_size": 16
+            }
+        }
+    }
 }
 
 
@@ -60,7 +68,7 @@ class AppConfig:
         self.config_file = config_file
         self.settings = self.load_config()
 
-        theme_colors = self.settings['theme_colors']
+        theme_colors = self.settings["theme_colors"]
         self._theme_colors = ThemeColors(
             bg_primary=theme_colors.get("bg_primary"),
             bg_secondary=theme_colors.get("bg_secondary"),
@@ -69,7 +77,7 @@ class AppConfig:
             bg_danger=theme_colors.get("bg_danger"),
             text_info=theme_colors.get("text_info"),
         )
-        font_sizes = self.settings['font_sizes']
+        font_sizes = self.settings["font_sizes"]
         self._font_sizes = FontSize(
             h1=int(font_sizes.get("h1")),
             h2=int(font_sizes.get("h2")),
@@ -78,12 +86,8 @@ class AppConfig:
             h5=int(font_sizes.get("h5")),
             body=int(font_sizes.get("body")),
         )
-
-        self._effect_presets = EffectPreset()
-        self._effect_presets.add_preset("mosaic_10", MosaicEffect(10))
-        self._effect_presets.add_preset("mosaic_16", MosaicEffect(16))
-        self._effect_presets.add_preset("mosaic_20", MosaicEffect(20))
-        self._effect_presets.add_preset("mosaic_auto", MosaicEffect(1))
+        # プリセット
+        self._effect_presets = EffectPreset(self.settings["effect_presets"])
 
     def load_config(self) -> dict:
         """

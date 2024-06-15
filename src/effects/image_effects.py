@@ -7,7 +7,7 @@ image_effects モジュール
 from collections import OrderedDict
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Final
+from typing import Final, Optional, Any
 
 from PIL import Image
 
@@ -21,7 +21,17 @@ class MosaicEffect:
     """
     cell_size: int  # モザイクのセルサイズを指定します
     MIN_CELL_SIZE: Final[int] = 4  # 最小セルサイズ
-    AUTO: Final[int] = 1  # 自動計算で使用
+    AUTO: Final[int] = 1  # 自動計算の定数
+
+    @property
+    def name(self) -> str:
+        """
+        エフェクト名
+        """
+        if self.cell_size == 1:
+            return "mosaic_auto"
+
+        return f"mosaic_{self.cell_size}"
 
     def apply(self, image: Image.Image, start_x: int, start_y: int, end_x: int, end_y: int) -> bool:
         """
@@ -78,12 +88,37 @@ class EffectPreset:
     """
     エフェクトのプリセットを管理する機能を提供します。
     """
-    def __init__(self):
+    def __init__(self, presets: dict[str, Any] = {}):
         """
         コンストラクタ
         エフェクトプリセットを管理するための辞書を初期化します
         """
         self.presets: OrderedDict[str, MosaicEffect] = OrderedDict({})
+
+        mosaics = presets.get("mosaic", {})
+        for key in mosaics.get("cell_sizes", []):
+            mosaic = MosaicEffect(key)
+            self.add_preset(mosaic.name, mosaic)
+
+        # デフォルト値を選択します。
+        default_effect = MosaicEffect(mosaics.get("default", {}).get("cell_size", 0))   
+        retval = self.presets.get(default_effect.name, None)
+        if retval is not None:  # 設定値が存在する時
+            self._default_preset = default_effect.name
+            return
+
+        keys = list(self.presets.keys())
+        d = keys[len(keys) // 2 - 1]
+
+        self._default_preset = d
+
+    @property
+    def default_preset(self) -> str:
+        """
+        デフォルトのプリセット名を取得します。
+        :return: プリセット名
+        """
+        return self._default_preset
 
     def add_preset(self, name: str, effect: MosaicEffect):
         """

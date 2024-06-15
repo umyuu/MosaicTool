@@ -25,5 +25,13 @@
         "h4": 16,
         "h5": 14,
         "body": 16
+    },
+    "effect_presets": {
+        "mosaic": {
+            "cell_sizes": [10, 16, 20, 1],
+            "default": {
+                "cell_size": 16
+            }
+        }
     }
 }

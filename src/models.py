@@ -81,8 +81,8 @@ class AppDataModel:
         # 許可される拡張子のリスト
         self.allowed_extensions = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".svg"]
         self.file_property_visible: bool = False
-        self.effect_index = 0
-        self._current_preset_name = "mosaic_16"
+        # プリセット
+        self._current_preset_name = settings.effect_presets.default_preset
         self._current_effect = settings.effect_presets.get_preset(self._current_preset_name)
 
     def add_images(self, image_list: list[Path]) -> int:
