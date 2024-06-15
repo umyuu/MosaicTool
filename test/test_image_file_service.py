@@ -26,7 +26,7 @@ class TestImageFileService(unittest.TestCase):
         """
         PNGINFOの出力確認
         """
-        image_path = os.path.join(self.current_dir, 'test_files', 'test_image_png_pnginfo_valid.png')
+        image_path = os.path.join(self.current_dir, 'test_files', 'pnginfo_valid.png')
         # テストに使用する画像と出力先パスを準備
         with Image.open(image_path) as src_image:
             out_image = Image.new("RGB", (100, 100), color="blue")
