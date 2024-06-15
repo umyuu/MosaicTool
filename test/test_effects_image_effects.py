@@ -3,7 +3,6 @@ Modelの単体テスト
 """
 import os
 import sys
-from typing import List
 import unittest
 
 from PIL import Image, ImageDraw, ImageChops
@@ -34,7 +33,7 @@ class TestMosaicFilter(unittest.TestCase):
             (2894, 4093),  # A4 350dpi 210x297  2,893.70x4,092.5
         ]
 
-        actual: List[int] = []
+        actual: list[int] = []
         for size in image_sizes:
             with Image.new("RGBA", size, color="blue") as image:
                 cell_size = MosaicEffect.calc_cell_size(image)
@@ -61,7 +60,7 @@ class TestMosaicFilter(unittest.TestCase):
         """
         モザイクエフェクト。
         """
-        cell_sizes: List[int] = [4, 8, 10, 13, 16, 20, 41]
+        cell_sizes: list[int] = [4, 8, 10, 13, 16, 20, 41]
 
         for cell_size in cell_sizes:
             actual_image_path = os.path.join(self.current_dir, 'test_files', f'mosaic_cell_size_{cell_size}.png')
