@@ -1,12 +1,14 @@
 {
     "version": 1,
-    "initialWindowSize": {
-        "width": 800,
-        "height": 600
-    },
-    "filePropertyWindowSize": {
-        "width": 600,
-        "height": 500
+    "window_sizes": {
+        "main": [
+            800,
+            600
+        ],
+        "file_property": [
+            600,
+            500
+        ]
     },
     "theme_colors": {
         "bg_primary": "#44F7D3",

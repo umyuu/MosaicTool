@@ -50,9 +50,7 @@ class MyApp(TkinterDnD.Tk):
         self.set_window_title(Path(""))  # プログラム名とバージョン番号を表示
         self.model = AppDataModel(config)
         self.config = config
-        initial_window_size = self.config.get("initialWindowSize", {"width": 800, "height": 600})
-        width = initial_window_size.get("width")
-        height = initial_window_size.get("height")
+        width, height = config.get("window_sizes").get("main")
         self.geometry(f'{width}x{height}')  # ウィンドウサイズ
 
         self.controller = AppController(self.model, None, self.set_window_title)

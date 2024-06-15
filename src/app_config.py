@@ -5,7 +5,7 @@
 from dataclasses import dataclass, asdict
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping, Union
 
 from . effects.image_effects import EffectPreset, MosaicEffect
 
@@ -36,6 +36,18 @@ class FontSize:
     body: int = 16  # 本文
 
 
+# デフォルトの設定値
+DEFAULT_CONFIG = {
+    "version": 1,
+    "window_sizes": {  # width, height
+        "main": [800, 600],
+        "file_property": [600, 500],
+    },
+    "theme_colors": asdict(ThemeColors()),
+    "font_sizes": asdict(FontSize()),
+}
+
+
 class AppConfig:
     """
     アプリケーションの構成
@@ -57,7 +69,6 @@ class AppConfig:
             bg_danger=theme_colors.get("bg_danger"),
             text_info=theme_colors.get("text_info"),
         )
-
         font_sizes = self.settings['font_sizes']
         self._font_sizes = FontSize(
             h1=int(font_sizes.get("h1")),
@@ -84,27 +95,15 @@ class AppConfig:
                 return json.load(file)
         except FileNotFoundError:
             # ファイルが存在しない場合のデフォルト設定
-            config = {
-                "version": 1,
-                "initialWindowSize": {
-                    "width": 800,
-                    "height": 600
-                },
-                "filePropertyWindowSize": {
-                    "width": 600,
-                    "height": 500
-                },
-                "theme_colors": asdict(ThemeColors()),
-                "font_sizes": asdict(FontSize()),
-            }
-            return config
+            return DEFAULT_CONFIG
 
     def save_config(self):
         """
         設定をJSONファイルに保存する。
         """
+        merged_config = {**DEFAULT_CONFIG, **self.settings}
         with open(self.config_file, "w", encoding="utf-8") as file:
-            json.dump(self.settings, file, ensure_ascii=False, indent=4)
+            json.dump(merged_config, file, ensure_ascii=False, indent=4)
 
     def get(self, key: str, default=None) -> Any:
         """
