@@ -35,9 +35,9 @@ class TestAppController(unittest.TestCase):
         assets = [
             str(current_dir / "test_files/.gitignore"),
             str(current_dir / "test_files/jet_256x256.webp"),
-            str(current_dir / "test_files/test_image_png_pnginfo_valid.png"),
+            str(current_dir / "test_files/pnginfo_valid.png"),
             # 日本語ファイル名の場合
-            "{" + str(current_dir / "test_files/test_image_png_pnginfo_valid.png") + "}",
+            "{" + str(current_dir / "test_files/pnginfo_valid.png") + "}",
         ]
 
         @dataclass
