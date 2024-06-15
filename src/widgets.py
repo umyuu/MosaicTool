@@ -20,7 +20,7 @@ from . utils import round_up_decimal, Stopwatch
 from . widgets_core import WidgetUtils, PhotoImageButton, Tooltip
 from . widget_file_property_window import FilePropertyWindow
 from . image_file_service import ImageFileService
-from . effects.image_effects import MosaicEffect, EffectPreset
+from . effects.image_effects import MosaicEffect
 
 
 class HeaderFrame(tk.Frame):
@@ -33,7 +33,6 @@ class HeaderFrame(tk.Frame):
 
         theme_colors = controller.theme_colors
         font_sizes = controller.font_sizes
-        current_effect = controller.current_effect
 
         # Widgetを生成します。
         self.action_file_open = PhotoImageButton(self,
@@ -55,18 +54,23 @@ class HeaderFrame(tk.Frame):
                                                image_path=str((icons_path / "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                tooltip_text="Next file (->)",
                                                bg=theme_colors.bg_secondary,
-                                               command=self.controller.handle_forward_image)
+                                               command=self.controller.handle_next_image)
         self.action_file_info = PhotoImageButton(self,
                                                  image_path=str((icons_path / "info_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                  tooltip_text="Image Information (I)",
                                                  bg=theme_colors.bg_secondary,
                                                  command=self.controller.on_show_file_property)
 
+        self.mosaic_size = tk.Label(self, bg=theme_colors.bg_primary,
+                                    text="モザイクサイズ：",
+                                    font=("", font_sizes.h5))
+
         self.action_mosaic_size_change = tk.Button(self,
-                                                   text=f"モ{current_effect.cell_size}",
                                                    bg=theme_colors.bg_secondary,
                                                    font=("", font_sizes.h4),
+                                                   width=6,
                                                    command=self.controller.handle_next_effect)
+        self.update_view(None)
 
         self.widgetHeader = tk.Label(self, bg=theme_colors.bg_primary,
                                      text="画面にフォルダまたはファイルをドラッグ＆ドロップしてください。",
@@ -78,25 +82,29 @@ class HeaderFrame(tk.Frame):
         self.action_back.grid(row=0, column=2, padx=(4, 0))
         self.action_forward.grid(row=0, column=3, padx=(4, 0))
         self.action_file_info.grid(row=0, column=4, padx=(4, 0))
-        self.action_mosaic_size_change.grid(row=0, column=5, padx=8)
-        self.widgetHeader.grid(row=0, column=6, padx=(4, 0))
+        self.mosaic_size.grid(row=0, column=5, padx=(8, 0))
+        self.action_mosaic_size_change.grid(row=0, column=6, padx=(4, 8))
+        self.widgetHeader.grid(row=0, column=7, padx=(4, 0))
 
         # キーバインドの設定をします。
         WidgetUtils.bind_all(self, "Control", "O", partial(self.controller.on_file_open))
         WidgetUtils.bind_all(self, "Control-Shift", "S", partial(self.controller.on_save_as))
         WidgetUtils.bind_all(self, "", "Left", partial(self.controller.handle_back_image))
         WidgetUtils.bind_all(self, "Shift", "Left", partial(self.controller.handle_back_image))
-        WidgetUtils.bind_all(self, "", "Right", partial(self.controller.handle_forward_image))
-        WidgetUtils.bind_all(self, "Shift", "Right", partial(self.controller.handle_forward_image))
+        WidgetUtils.bind_all(self, "", "Right", partial(self.controller.handle_next_image))
+        WidgetUtils.bind_all(self, "Shift", "Right", partial(self.controller.handle_next_image))
         WidgetUtils.bind_all(self, "", "I", partial(self.controller.on_show_file_property))
 
-    def handle_next_effect(self, event):
+    def update_view(self, event):
         """
         モザイクサイズボタンを押した時
         ボタンの文字を更新します。
         """
         current_effect = self.controller.current_effect
-        self.action_mosaic_size_change.configure(text=f"モ{current_effect.cell_size}")
+        if current_effect.cell_size == MosaicEffect.AUTO:
+            self.action_mosaic_size_change.configure(text="AUTO")
+        else:
+            self.action_mosaic_size_change.configure(text=f"{current_effect.cell_size}")
 
 
 class MainFrame(tk.Frame):
@@ -138,10 +146,26 @@ class MainFrame(tk.Frame):
 
         # ドラッグ終了時のイベントをバインド
         self.canvas.bind("<ButtonRelease-1>", self.handle_end_drag)
+        # 右クリックのイベントをバインド
+        self.canvas.bind("<Button-3>", self.handle_right_click)
+
+        # Shift+右クリックのイベントをバインド
+        self.canvas.bind("<Shift-Button-3>", self.handle_shift_right_click)
+
+    def handle_right_click(self, event):
+        """右クリックの処理
+        :param event: イベント
+        """
+        self.controller.handle_next_effect()
+
+    def handle_shift_right_click(self, event):
+        """Shift+右クリックの処理
+        :param event: イベント
+        """
+        self.controller.handle_back_effect()
 
     def updateImage(self, filepath: Path):
-        """
-        表示画像を更新します。
+        """表示画像を更新します。
         :param filepath: 画像ファイルパス
         """
         if not filepath.exists():
@@ -231,7 +255,8 @@ class MainFrame(tk.Frame):
         bottom = max(start_y, end_y)
 
         mosaic = self.controller.current_effect
-        #mosaic = MosaicEffect(MosaicEffect.calc_cell_size(self.original_image))
+        if mosaic.cell_size == MosaicEffect.AUTO:  # セルサイズの自動計算
+            mosaic = MosaicEffect(MosaicEffect.calc_cell_size(self.original_image))
         is_apply = mosaic.apply(self.original_image, left, top, right, bottom)
         if not is_apply:
             return False
@@ -355,7 +380,7 @@ class MainPage(tk.Frame):
         # イベントを登録します。
         self.drop_target_register(DND_FILES)
         self.dnd_bind('<<Drop>>', self.controller.handle_drop)
-        self.handle_next_effect = self.HeaderFrame.handle_next_effect
+        self.update_header_view = self.HeaderFrame.update_view
         self.on_update_status_bar = self.FooterFrame.update_status_bar
         self.on_update_process_time = self.FooterFrame.update_process_time
 

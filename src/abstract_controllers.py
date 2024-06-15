@@ -48,11 +48,15 @@ class AbstractAppController(ABC):
         pass
 
     @abstractmethod
-    def handle_forward_image(self, event=None):
+    def handle_next_image(self, event=None):
         pass
 
     @abstractmethod
     def on_show_file_property(self, event=None):
+        pass
+
+    @abstractmethod
+    def handle_back_effect(self, event=None):
         pass
 
     @abstractmethod

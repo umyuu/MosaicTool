@@ -6,8 +6,6 @@ from pathlib import Path
 from typing import Iterable, Optional
 import re
 
-from PIL import Image
-
 from . app_config import AppConfig, FontSize, ThemeColors
 from . models import AppDataModel, StatusBarInfo
 from . image_file_service import ImageFileService
@@ -109,10 +107,10 @@ class AppController(AbstractAppController):
         :param event: イベント
         """
         sw = Stopwatch.start_new()
-        self.model.previous_image()
+        self.model.back_image()
         self.update_view(sw)
 
-    def handle_forward_image(self, event=None):
+    def handle_next_image(self, event=None):
         """
         次の画像に遷移するをクリック時
         :param event: イベント
@@ -146,13 +144,21 @@ class AppController(AbstractAppController):
         """
         return self.model.file_property_visible
 
+    def handle_back_effect(self, event=None):
+        """
+        前のエフェクトに切り替えます。
+        :param event: イベント
+        """
+        self.model.back_effect()
+        self.view.update_header_view(event)
+
     def handle_next_effect(self, event=None):
         """
         次のエフェクトに切り替えます。
         :param event: イベント
         """
         self.model.next_effect()
-        self.view.handle_next_effect(event)
+        self.view.update_header_view(event)
 
     def update_view(self, sw: Optional[Stopwatch] = None):
         """

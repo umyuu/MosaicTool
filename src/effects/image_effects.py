@@ -20,7 +20,8 @@ class MosaicEffect:
     画像にモザイクエフェクトを適用する機能を提供します。
     """
     cell_size: int  # モザイクのセルサイズを指定します
-    _MIN_CELL_SIZE: Final[int] = 4  # 最小セルサイズ
+    MIN_CELL_SIZE: Final[int] = 4  # 最小セルサイズ
+    AUTO: Final[int] = 1  # 自動計算で使用
 
     def apply(self, image: Image.Image, start_x: int, start_y: int, end_x: int, end_y: int) -> bool:
         """
@@ -32,7 +33,7 @@ class MosaicEffect:
         :param end_y: モザイクをかける領域の右下Y座標
         :return: モザイクを掛けてたかどうか
         """
-        if self.cell_size < MosaicEffect._MIN_CELL_SIZE:
+        if self.cell_size < MosaicEffect.MIN_CELL_SIZE:
             raise ValueError(f"MosaicEffect cell_size:{self.cell_size}")
 
         # モザイクをかける領域のサイズを計算
@@ -69,7 +70,7 @@ class MosaicEffect:
         # 長辺を100で割って小数点以下を切り上げます。
         # セルサイズが最小4ピクセル未満の場合は、4ピクセルに設定します。
         long_side = (Decimal(image.width).max(Decimal(image.height))) / Decimal(100)
-        cell_size = max(MosaicEffect._MIN_CELL_SIZE, round_up_decimal(long_side, 0))
+        cell_size = max(MosaicEffect.MIN_CELL_SIZE, round_up_decimal(long_side, 0))
         return int(cell_size)
 
 
@@ -99,6 +100,25 @@ class EffectPreset:
         :return: プリセットのエフェクトオブジェクト
         """
         return self.presets.get(name, MosaicEffect(0))
+
+    def back_preset(self, current_name: str) -> tuple[str, MosaicEffect]:
+        """
+        指定したキーの前のキーと値を取得する。
+        前のキーが存在しない場合、一番最後のキーと値を返す。
+        :param current_name: 現在の名前
+        :return: 前のキーとその値。前のキーが存在しない場合は一番最後のキーと値を返す。
+        """
+        keys = list(self.presets.keys())
+        try:
+            # 現在のキーのインデックスを取得
+            current_index = keys.index(current_name)
+            # 前のインデックスを計算
+            back_index = (current_index - 1) % len(keys)
+            back_key = keys[back_index]
+            return back_key, self.presets[back_key]
+        except ValueError:
+            # 現在のキーが存在しない場合
+            return "", MosaicEffect(0)
 
     def next_preset(self, current_name: str) -> tuple[str, MosaicEffect]:
         """

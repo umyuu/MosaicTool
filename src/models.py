@@ -151,6 +151,15 @@ class AppDataModel:
         self.image_list = []
         self.current = 0
 
+    def back_image(self):
+        """
+        インデックスを前の画像に移動します。
+        """
+        if self.current > 0:
+            self.current -= 1
+        #else:
+        #    raise IndexError("Already at the first file in the list.")
+
     def next_image(self):
         """
         インデックスを次の画像に移動します。
@@ -159,15 +168,6 @@ class AppDataModel:
             self.current += 1
         #else:
         #    raise IndexError("No more files in the list.")
-
-    def previous_image(self):
-        """
-        インデックスを前の画像に移動します。
-        """
-        if self.current > 0:
-            self.current -= 1
-        #else:
-        #    raise IndexError("Already at the first file in the list.")
 
     def get_current_image(self) -> Path:
         """
@@ -185,6 +185,17 @@ class AppDataModel:
         :return: 選択中のエフェクト
         """
         return self._current_effect
+
+    def back_effect(self):
+        """
+        前のエフェクトに切り替えます。
+        """
+        preset_name, effect = self.settings.effect_presets.back_preset(self._current_preset_name)
+        if len(preset_name) == 0:
+            raise ValueError("back_effect")
+
+        self._current_preset_name = preset_name
+        self._current_effect = effect
 
     def next_effect(self):
         """
