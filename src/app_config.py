@@ -80,11 +80,11 @@ class AppConfig:
                 "version": 1,
                 "initialWindowSize": {
                     "width": 800,
-                    "height": 600,
+                    "height": 600
                 },
                 "filePropertyWindowSize": {
                     "width": 600,
-                    "height": 500,
+                    "height": 500
                 },
                 "theme_colors": asdict(ThemeColors()),
                 "font_sizes": asdict(FontSize()),

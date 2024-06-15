@@ -1,3 +1,27 @@
 {
-    
+    "version": 1,
+    "initialWindowSize": {
+        "width": 800,
+        "height": 600
+    },
+    "filePropertyWindowSize": {
+        "width": 600,
+        "height": 500
+    },
+    "theme_colors": {
+        "bg_primary": "#44F7D3",
+        "bg_secondary": "#CCCCCC",
+        "bg_neutral": "SystemWindow",
+        "bg_white": "#FFFFFF",
+        "bg_danger": "red",
+        "text_info": "RosyBrown"
+    },
+    "font_sizes": {
+        "h1": 24,
+        "h2": 20,
+        "h3": 18,
+        "h4": 16,
+        "h5": 14,
+        "body": 16
+    }
 }
