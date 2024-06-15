@@ -10,6 +10,7 @@ from typing import Iterable, Optional
 from . app_config import AppConfig, FontSize, ThemeColors
 from . models import AppDataModel, StatusBarInfo
 from . utils import Stopwatch
+from . effects.image_effects import MosaicEffect
 
 
 class AbstractAppController(ABC):
@@ -35,11 +36,11 @@ class AbstractAppController(ABC):
         pass
 
     @abstractmethod
-    def handle_file_open(self, event=None):
+    def on_file_open(self, event=None):
         pass
 
     @abstractmethod
-    def handle_save_as(self, event=None):
+    def on_save_as(self, event=None):
         pass
 
     @abstractmethod
@@ -52,6 +53,10 @@ class AbstractAppController(ABC):
 
     @abstractmethod
     def on_show_file_property(self, event=None):
+        pass
+
+    @abstractmethod
+    def handle_next_effect(self, event=None):
         pass
 
     @abstractmethod
@@ -113,3 +118,11 @@ class AbstractAppController(ABC):
     @abstractmethod
     def is_file_property_visible(self) -> bool:
         pass
+
+    @property
+    def current_effect(self) -> MosaicEffect:
+        """
+        選択中のエフェクトを取得します。
+        :return: 選択中のエフェクト
+        """
+        raise NotImplementedError()

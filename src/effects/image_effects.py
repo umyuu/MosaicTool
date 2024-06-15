@@ -4,9 +4,10 @@ image_effects モジュール
 画像にエフェクトを適用するためのクラスを提供します。
 現在はモザイクエフェクトをサポートしています。
 """
+from collections import OrderedDict
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Dict
+from typing import Final
 
 from PIL import Image
 
@@ -19,7 +20,7 @@ class MosaicEffect:
     画像にモザイクエフェクトを適用する機能を提供します。
     """
     cell_size: int  # モザイクのセルサイズを指定します
-    _MIN_CELL_SIZE: int = 4  # 最小セルサイズ
+    _MIN_CELL_SIZE: Final[int] = 4  # 最小セルサイズ
 
     def apply(self, image: Image.Image, start_x: int, start_y: int, end_x: int, end_y: int) -> bool:
         """
@@ -31,6 +32,9 @@ class MosaicEffect:
         :param end_y: モザイクをかける領域の右下Y座標
         :return: モザイクを掛けてたかどうか
         """
+        if self.cell_size < MosaicEffect._MIN_CELL_SIZE:
+            raise ValueError(f"MosaicEffect cell_size:{self.cell_size}")
+
         # モザイクをかける領域のサイズを計算
         region_width = end_x - start_x
         region_height = end_y - start_y
@@ -78,7 +82,7 @@ class EffectPreset:
         コンストラクタ
         エフェクトプリセットを管理するための辞書を初期化します
         """
-        self.presets: Dict[str, MosaicEffect] = {}
+        self.presets: OrderedDict[str, MosaicEffect] = OrderedDict({})
 
     def add_preset(self, name: str, effect: MosaicEffect):
         """
@@ -88,10 +92,28 @@ class EffectPreset:
         """
         self.presets[name] = effect
 
-    def get_preset(self, name: str):
+    def get_preset(self, name: str) -> MosaicEffect:
         """
         プリセットを取得します
         :param name: プリセットの名前
-        :return: プリセットのエフェクトオブジェクト（存在しない場合はNone）
+        :return: プリセットのエフェクトオブジェクト
         """
-        return self.presets.get(name)
+        return self.presets.get(name, MosaicEffect(0))
+
+    def next_preset(self, current_name: str) -> tuple[str, MosaicEffect]:
+        """
+        指定したキーの次のキーと値を取得する。
+        次のキーが存在しない場合、一番先頭のキーと値を返す。
+        :param current_name: 現在の名前
+        :return: 次のキーとその値。次のキーが存在しない場合は一番先頭のキーと値を返す。
+        """
+        keys = list(self.presets.keys())
+        try:
+            # 現在のキーのインデックスを取得
+            current_index = keys.index(current_name)
+            # 次のインデックスを計算
+            next_index = (current_index + 1) % len(keys)
+            next_key = keys[next_index]
+            return next_key, self.presets[next_key]
+        except ValueError:
+            return "", MosaicEffect(0)

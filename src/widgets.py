@@ -20,7 +20,7 @@ from . utils import round_up_decimal, Stopwatch
 from . widgets_core import WidgetUtils, PhotoImageButton, Tooltip
 from . widget_file_property_window import FilePropertyWindow
 from . image_file_service import ImageFileService
-from . effects.image_effects import MosaicEffect
+from . effects.image_effects import MosaicEffect, EffectPreset
 
 
 class HeaderFrame(tk.Frame):
@@ -31,18 +31,21 @@ class HeaderFrame(tk.Frame):
         super().__init__(master, bg=bg)
         self.controller = controller
 
-        theme_colors = self.controller.theme_colors
+        theme_colors = controller.theme_colors
+        font_sizes = controller.font_sizes
+        current_effect = controller.current_effect
+
         # Widgetを生成します。
         self.action_file_open = PhotoImageButton(self,
                                                  image_path=str((icons_path / "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                  tooltip_text="Open (Ctrl+O)",
                                                  bg=theme_colors.bg_secondary,
-                                                 command=self.controller.handle_file_open)
+                                                 command=self.controller.on_file_open)
         self.action_save_as = PhotoImageButton(self,
                                                image_path=str((icons_path / "save_as_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                                tooltip_text="SaveAs (Ctrl+Shift+S)",
                                                bg=theme_colors.bg_secondary,
-                                               command=self.controller.handle_save_as)
+                                               command=self.controller.on_save_as)
         self.action_back = PhotoImageButton(self,
                                             image_path=str((icons_path / "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")),
                                             tooltip_text="Previous file (<-)",
@@ -59,10 +62,15 @@ class HeaderFrame(tk.Frame):
                                                  bg=theme_colors.bg_secondary,
                                                  command=self.controller.on_show_file_property)
 
-        font_size_h4: int = self.controller.font_sizes.h4
+        self.action_mosaic_size_change = tk.Button(self,
+                                                   text=f"モ{current_effect.cell_size}",
+                                                   bg=theme_colors.bg_secondary,
+                                                   font=("", font_sizes.h4),
+                                                   command=self.controller.handle_next_effect)
+
         self.widgetHeader = tk.Label(self, bg=theme_colors.bg_primary,
                                      text="画面にフォルダまたはファイルをドラッグ＆ドロップしてください。",
-                                     font=("", font_size_h4))
+                                     font=("", font_sizes.h4))
 
         # Widgetを配置します。
         self.action_file_open.grid(row=0, column=0, padx=(0, 0))
@@ -70,16 +78,25 @@ class HeaderFrame(tk.Frame):
         self.action_back.grid(row=0, column=2, padx=(4, 0))
         self.action_forward.grid(row=0, column=3, padx=(4, 0))
         self.action_file_info.grid(row=0, column=4, padx=(4, 0))
-        self.widgetHeader.grid(row=0, column=5, padx=(4, 0))
+        self.action_mosaic_size_change.grid(row=0, column=5, padx=8)
+        self.widgetHeader.grid(row=0, column=6, padx=(4, 0))
 
         # キーバインドの設定をします。
-        WidgetUtils.bind_all(self, "Control", "O", partial(self.controller.handle_file_open))
-        WidgetUtils.bind_all(self, "Control-Shift", "S", partial(self.controller.handle_save_as))
+        WidgetUtils.bind_all(self, "Control", "O", partial(self.controller.on_file_open))
+        WidgetUtils.bind_all(self, "Control-Shift", "S", partial(self.controller.on_save_as))
         WidgetUtils.bind_all(self, "", "Left", partial(self.controller.handle_back_image))
         WidgetUtils.bind_all(self, "Shift", "Left", partial(self.controller.handle_back_image))
         WidgetUtils.bind_all(self, "", "Right", partial(self.controller.handle_forward_image))
         WidgetUtils.bind_all(self, "Shift", "Right", partial(self.controller.handle_forward_image))
         WidgetUtils.bind_all(self, "", "I", partial(self.controller.on_show_file_property))
+
+    def handle_next_effect(self, event):
+        """
+        モザイクサイズボタンを押した時
+        ボタンの文字を更新します。
+        """
+        current_effect = self.controller.current_effect
+        self.action_mosaic_size_change.configure(text=f"モ{current_effect.cell_size}")
 
 
 class MainFrame(tk.Frame):
@@ -213,7 +230,8 @@ class MainFrame(tk.Frame):
         top = min(start_y, end_y)
         bottom = max(start_y, end_y)
 
-        mosaic = MosaicEffect(MosaicEffect.calc_cell_size(self.original_image))
+        mosaic = self.controller.current_effect
+        #mosaic = MosaicEffect(MosaicEffect.calc_cell_size(self.original_image))
         is_apply = mosaic.apply(self.original_image, left, top, right, bottom)
         if not is_apply:
             return False
@@ -337,6 +355,7 @@ class MainPage(tk.Frame):
         # イベントを登録します。
         self.drop_target_register(DND_FILES)
         self.dnd_bind('<<Drop>>', self.controller.handle_drop)
+        self.handle_next_effect = self.HeaderFrame.handle_next_effect
         self.on_update_status_bar = self.FooterFrame.update_status_bar
         self.on_update_process_time = self.FooterFrame.update_process_time
 
@@ -377,7 +396,7 @@ class MainPage(tk.Frame):
         self.controller.set_window_title(file_path)
         self.controller.update_status_bar_file_info()
 
-    def handle_file_open(self, event):
+    def on_file_open(self, event):
         """
         ファイル選択ボタン
         :param event: イベント
@@ -396,7 +415,7 @@ class MainPage(tk.Frame):
             return
         self.controller.handle_select_files_complete(files)
 
-    def handle_save_as(self, event):
+    def on_save_as(self, event):
         """
         ファイルを選択して保存ボタン
         :param event: イベント
@@ -424,7 +443,7 @@ class MainPage(tk.Frame):
             if not retval:
                 print(f"名前を付けて保存の処理を中断。:{save_file}")
                 return
-            self.handle_save_as(event)
+            self.on_save_as(event)
             return
         sw = Stopwatch.start_new()
         self.MainFrame.save(save_file, True)

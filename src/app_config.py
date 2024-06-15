@@ -7,6 +7,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from . effects.image_effects import EffectPreset, MosaicEffect
+
 
 @dataclass(frozen=True)
 class ThemeColors:
@@ -66,6 +68,12 @@ class AppConfig:
             body=int(font_sizes.get("body")),
         )
 
+        self._effect_presets = EffectPreset()
+        self._effect_presets.add_preset("mosaic_10", MosaicEffect(10))
+        self._effect_presets.add_preset("mosaic_16", MosaicEffect(16))
+        self._effect_presets.add_preset("mosaic_20", MosaicEffect(20))
+        self._effect_presets.add_preset("mosaic_auto", MosaicEffect(1))
+
     def load_config(self) -> dict:
         """
         JSONファイルから設定を読み込む。
@@ -122,6 +130,14 @@ class AppConfig:
         :return: フォントサイズ
         """
         return self._font_sizes
+
+    @property
+    def effect_presets(self) -> EffectPreset:
+        """
+        エフェクトプリセット
+        :return: エフェクトプリセット
+        """
+        return self._effect_presets
 
     def set(self, key: str, value):
         """

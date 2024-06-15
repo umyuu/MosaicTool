@@ -8,9 +8,10 @@ from dataclasses import dataclass
 from datetime import datetime
 import os
 from pathlib import Path
-from typing import Any, List
+from typing import Any
 
 from . app_config import AppConfig
+from . effects.image_effects import MosaicEffect
 
 # 画像形式
 ImageFormat = {
@@ -75,13 +76,16 @@ class AppDataModel:
         :param settings: アプリの設定情報
         """
         self._settings = settings
-        self.image_list: List[Path] = []
+        self.image_list: list[Path] = []
         self.current: int = 0
         # 許可される拡張子のリスト
         self.allowed_extensions = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".svg"]
         self.file_property_visible: bool = False
+        self.effect_index = 0
+        self._current_preset_name = "mosaic_16"
+        self._current_effect = settings.effect_presets.get_preset(self._current_preset_name)
 
-    def add_images(self, image_list: List[Path]) -> int:
+    def add_images(self, image_list: list[Path]) -> int:
         """
         画像ファイルを追加します。
         :param image_list: 画像ファイルのリスト
@@ -173,6 +177,25 @@ class AppDataModel:
         if self.image_list:
             return self.image_list[self.current]
         return Path("")
+
+    @property
+    def current_effect(self) -> MosaicEffect:
+        """
+        選択中のエフェクトを返します。
+        :return: 選択中のエフェクト
+        """
+        return self._current_effect
+
+    def next_effect(self):
+        """
+        次のエフェクトに切り替えます。
+        """
+        preset_name, effect = self.settings.effect_presets.next_preset(self._current_preset_name)
+        if len(preset_name) == 0:
+            raise ValueError("next_effect")
+
+        self._current_preset_name = preset_name
+        self._current_effect = effect
 
     def __str__(self) -> str:
         """
