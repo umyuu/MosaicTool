@@ -77,7 +77,6 @@ class TestMosaicFilter(unittest.TestCase):
                     # MosaicEffectを初期化
                     mosaic_effect = MosaicFilter(gradient_image)
                     mosaic_effect.cell_size = cell_size
-                    mosaic_effect.cell_size = 16
                     # モザイクエフェクトを適用
                     mosaic_effect.apply(0, 0, width, height)
 
