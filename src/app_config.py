@@ -5,9 +5,9 @@
 from dataclasses import dataclass, asdict
 import json
 from pathlib import Path
-from typing import Any, Mapping, Union
+from typing import Any
 
-from . effects.image_effects import EffectPreset, MosaicEffect
+from . effects.image_effects import EffectPreset
 
 
 @dataclass(frozen=True)

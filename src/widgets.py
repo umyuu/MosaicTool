@@ -70,6 +70,8 @@ class HeaderFrame(tk.Frame):
                                                    font=("", font_sizes.h4),
                                                    width=6,
                                                    command=self.controller.handle_next_effect)
+        self.action_mosaic_size_change.tooltip = Tooltip(self.action_mosaic_size_change,
+                                                         "次のセルサイズに変更(Right Click)。 前のセルサイズに変更(Shift+Right Click)")
         self.update_view(None)
 
         self.widgetHeader = tk.Label(self, bg=theme_colors.bg_primary,
@@ -83,7 +85,7 @@ class HeaderFrame(tk.Frame):
         self.action_forward.grid(row=0, column=3, padx=(4, 0))
         self.action_file_info.grid(row=0, column=4, padx=(4, 0))
         self.mosaic_size.grid(row=0, column=5, padx=(8, 0))
-        self.action_mosaic_size_change.grid(row=0, column=6, padx=(4, 8))
+        self.action_mosaic_size_change.grid(row=0, column=6, padx=(4, 4))
         self.widgetHeader.grid(row=0, column=7, padx=(4, 0))
 
         # キーバインドの設定をします。
@@ -97,8 +99,7 @@ class HeaderFrame(tk.Frame):
 
     def update_view(self, event):
         """
-        モザイクサイズボタンを押した時
-        ボタンの文字を更新します。
+        Viewを更新します。
         """
         current_effect = self.controller.current_effect
         if current_effect.cell_size == MosaicEffect.AUTO:
@@ -168,6 +169,8 @@ class MainFrame(tk.Frame):
         """表示画像を更新します。
         :param filepath: 画像ファイルパス
         """
+        if filepath is None:
+            return
         if not filepath.exists():
             return
         self.original_image = ImageFileService.load(filepath)  # 元の画像を開く
@@ -417,6 +420,7 @@ class MainPage(tk.Frame):
         画像ファイルを選択時
         :param event: 画像ファイルのパス
         """
+        self.HeaderFrame.update_view(None)
         self.MainFrame.updateImage(file_path)
         self.controller.set_window_title(file_path)
         self.controller.update_status_bar_file_info()

@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from . app_config import AppConfig
 from . effects.image_effects import MosaicEffect
@@ -30,9 +30,8 @@ class ImageFileInfo:
     """
     width: int = 0  # 幅
     height: int = 0  # 高さ
-    file_path: Path = Path("")  # ファイルパス
-    #file_size: int = 0  # ファイルサイズ(バイト単位)
-    #mtime: str = ""  # モザイクを掛ける対象ファイルの最終更新日時
+    file_path: Path = Path()  # ファイルパス
+    CURRENT_DIR: Path = Path()  # ファイルパス
 
     @property
     def mtime(self) -> str:
@@ -40,6 +39,8 @@ class ImageFileInfo:
         最終更新日時をISO 8601形式で取得する
         :return: 最終更新日時の文字列
         """
+        if ImageFileInfo.CURRENT_DIR == self.file_path:
+            return ""
         # ファイルのメタデータを取得
         file_stat = self.file_path.stat()
         # 最終更新日時を取得
@@ -54,6 +55,8 @@ class ImageFileInfo:
         ファイルサイズを取得する
         :return: ファイルサイズ（バイト）
         """
+        if ImageFileInfo.CURRENT_DIR == self.file_path:
+            return 0
         return os.path.getsize(self.file_path)
 
 
@@ -169,14 +172,14 @@ class AppDataModel:
         #else:
         #    raise IndexError("No more files in the list.")
 
-    def get_current_image(self) -> Path:
+    def get_current_image(self) -> Optional[Path]:
         """
         現在処理中の画像
         :return: ファイルパス
         """
         if self.image_list:
             return self.image_list[self.current]
-        return Path("")
+        return None
 
     @property
     def current_effect(self) -> MosaicEffect:

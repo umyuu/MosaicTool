@@ -45,7 +45,7 @@ class AppController(AbstractAppController):
             files.append(f)
         return self.model.add_images(files)
 
-    def get_current_image(self) -> Path:
+    def get_current_image(self) -> Optional[Path]:
         """
         現在選択されている画像のパス
         """
@@ -166,7 +166,8 @@ class AppController(AbstractAppController):
         画面に画像と処理時間を表示します。
         """
         current_image = self.model.get_current_image()
-        self.view.display_image(current_image)
+        if current_image is not None:
+            self.view.display_image(current_image)
 
         is_visible: bool = self.model.file_property_visible
         if is_visible:  # ファイルのプロパティウィンドウが表示中
@@ -216,7 +217,9 @@ class AppController(AbstractAppController):
         :return: Path
         """
         f = self.model.get_current_image()
-        return ImageFileService.mosaic_filename(f)
+        if f is not None:
+            return ImageFileService.mosaic_filename(f)
+        raise ValueError("get_mosaic_filename")
 
     def set_window_title(self, text: Path):
         """
@@ -241,6 +244,9 @@ class AppController(AbstractAppController):
             return StatusBarInfo()
 
         file_path = self.model.get_current_image()
+        if file_path is None:
+            return StatusBarInfo()
+
         width, height = ImageFileService.get_image_size(file_path)
 
         return StatusBarInfo(
