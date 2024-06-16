@@ -20,7 +20,7 @@ class FilePropertyWindow:
     def __init__(self, master, controller: AbstractAppController):
         """
         コンストラクタ
-
+        :param master: 親Widget
         :param controller: コントローラー
         """
         self.controller = controller

@@ -28,6 +28,13 @@ class HeaderFrame(tk.Frame):
     画面のヘッダー部
     """
     def __init__(self, master, controller: AbstractAppController, bg: str, icons_path: Path):
+        """
+        コンストラクタ
+        :param master: 親Widget
+        :param controller: コントローラー
+        :param bg: 背景色
+        :param icons_path: アイコンのフォルダ
+        """
         super().__init__(master, bg=bg)
         self.controller = controller
 
@@ -74,9 +81,7 @@ class HeaderFrame(tk.Frame):
                                                          "次のセルサイズに変更(Right Click)。 前のセルサイズに変更(Shift+Right Click)")
         self.update_view(None)
 
-        self.widgetHeader = tk.Label(self, bg=theme_colors.bg_primary,
-                                     text="画面にフォルダまたはファイルをドラッグ＆ドロップしてください。",
-                                     font=("", font_sizes.h4))
+        self.widgetHeader = tk.Label(self, bg=theme_colors.bg_primary)
 
         # Widgetを配置します。
         self.action_file_open.grid(row=0, column=0, padx=(0, 0))
@@ -100,6 +105,7 @@ class HeaderFrame(tk.Frame):
     def update_view(self, event):
         """
         Viewを更新します。
+        :param event: イベント
         """
         current_effect = self.controller.current_effect
         if current_effect.cell_size == MosaicEffect.AUTO:
@@ -114,9 +120,16 @@ class MainFrame(tk.Frame):
     ToDo:ImageEditorクラスを新設する予定です。
     """
     def __init__(self, master, controller: AbstractAppController, bg: str):
+        """
+        コンストラクタ
+        :param master: 親Widget
+        :param controller: コントローラー
+        :param bg: 背景色
+        """
         super().__init__(master, bg=bg)
 
         self.controller = controller
+        font_sizes = self.controller.font_sizes
         # 水平スクロールバーを追加
         self.hscrollbar = tk.Scrollbar(self, orient=tk.HORIZONTAL)
         self.hscrollbar.pack(side=tk.BOTTOM, fill=tk.X)
@@ -129,6 +142,14 @@ class MainFrame(tk.Frame):
         self.canvas = tk.Canvas(self, yscrollcommand=self.vscrollbar.set, xscrollcommand=self.hscrollbar.set)
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
+        # アプリ起動時に、初期メッセージを表示します。
+        # 文字位置は、リサイズイベントにて調整します。
+        self.startup_message_id = None
+        self.startup_message_id = self.canvas.create_text(
+            (0, 0),
+            text="画面にフォルダまたはファイルをドラッグ＆ドロップしてください。",
+            font=("", font_sizes.h4))
+
         # スクロールバーのコマンドを設定
         self.vscrollbar.config(command=self.canvas.yview)
         self.hscrollbar.config(command=self.canvas.xview)
@@ -137,8 +158,9 @@ class MainFrame(tk.Frame):
         # モザイク領域の選択開始位置
         self.start_x = 0
         self.start_y = 0
-        self.rect_tag = None  # 矩形のタグ
-        self.size_label = None  # サイズ表示用ラベル
+        self.rect_id = None  # モザイクを指定した範囲の矩形
+        self.size_label_id = None  # サイズ表示用ラベル
+
         # ドラッグ開始時のイベントをバインド
         self.canvas.bind("<Button-1>", self.handle_start_drag)
 
@@ -153,6 +175,38 @@ class MainFrame(tk.Frame):
         # Shift+右クリックのイベントをバインド
         self.canvas.bind("<Shift-Button-3>", self.handle_shift_right_click)
 
+        # ウィンドウサイズ変更時にキャンバスをリサイズする
+        # リサイズイベントのunbind用にresize_handler_idにイベント関数を退避します。
+        self.resize_handler_id = self.canvas.bind("<Configure>", self.on_resize)
+
+    def on_resize(self, event):
+        """
+        リサイズイベント
+        :param event: イベント
+        """
+        if self.startup_message_id is None:
+            return
+        # キャンバスの新しい幅と高さを取得
+        canvas_width = event.width
+        canvas_height = event.height
+
+        # テキストの位置をキャンバスの中央に更新
+        self.canvas.coords(self.startup_message_id, canvas_width / 2, canvas_height / 2)
+
+    def suppress_startup_text(self):
+        """
+        スタートアップメッセージを表示を抑止します。
+        """
+        if self.resize_handler_id is None:
+            return  # リサイズイベントが解除済み
+        # 登録したリサイズイベントの解除
+        self.canvas.unbind("<Configure>", self.resize_handler_id)
+        self.resize_handler_id = None
+
+        if self.startup_message_id:
+            self.canvas.delete(self.startup_message_id)
+            self.startup_message_id = None
+
     def handle_right_click(self, event):
         """右クリックの処理
         :param event: イベント
@@ -165,15 +219,24 @@ class MainFrame(tk.Frame):
         """
         self.controller.handle_back_effect()
 
-    def updateImage(self, filepath: Path):
-        """表示画像を更新します。
-        :param filepath: 画像ファイルパス
+    def update_view(self, file_path: Path):
         """
-        if filepath is None:
+        画面を更新します。
+        :param file_path: 画像ファイルパス
+        """
+        if file_path is None:
             return
-        if not filepath.exists():
+        self.suppress_startup_text()
+        self.update_image(file_path)
+
+    def update_image(self, file_path: Path):
+        """
+        表示画像を更新します。
+        :param file_path: 画像ファイルパス
+        """
+        if not file_path.exists():
             return
-        self.original_image = ImageFileService.load(filepath)  # 元の画像を開く
+        self.original_image = ImageFileService.load(file_path)  # 元の画像を開く
         self.photo = ImageTk.PhotoImage(self.original_image)  # 元の画像のコピーをキャンバスに表示
         # 画像を更新
         self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
@@ -183,6 +246,7 @@ class MainFrame(tk.Frame):
     def handle_start_drag(self, event):
         """
         ドラッグ開始
+        :param event: イベント
         """
         # ドラッグ開始位置を記録（キャンバス上の座標に変換）
         self.start_x = int(self.canvas.canvasx(event.x))
@@ -191,20 +255,21 @@ class MainFrame(tk.Frame):
     def handle_dragging(self, event):
         """
         ドラッグ中
+        :param event: イベント
         """
         end_x = int(self.canvas.canvasx(event.x))
         end_y = int(self.canvas.canvasy(event.y))
 
         # 矩形が既に存在する場合は削除します。
-        if self.rect_tag:
-            self.canvas.delete(self.rect_tag)
-        if self.size_label:
-            self.canvas.delete(self.size_label)
+        if self.rect_id:
+            self.canvas.delete(self.rect_id)
+        if self.size_label_id:
+            self.canvas.delete(self.size_label_id)
 
         # 矩形を描画し、タグを付けます。
-        self.rect_tag = self.canvas.create_rectangle(
+        self.rect_id = self.canvas.create_rectangle(
             self.start_x, self.start_y, end_x, end_y,
-            outline=self.controller.get_config().theme_colors.bg_danger)
+            outline=self.controller.theme_colors.bg_danger)
 
         # サイズを計算して表示します。
         width = abs(end_x - self.start_x)
@@ -213,15 +278,16 @@ class MainFrame(tk.Frame):
         # サイズラベルの位置をマウスカーソルの近くに設定します。
         label_x = end_x + 10
         label_y = end_y + 10
-        # font sizeを固定から修正します。
-        self.size_label = self.canvas.create_text(
+
+        self.size_label_id = self.canvas.create_text(
             (label_x, label_y),
-            font=("", self.controller.get_config().font_sizes.h5), text=f"{width} x {height}",
+            font=("", self.controller.font_sizes.h5), text=f"{width} x {height}",
             anchor="nw")
 
     def handle_end_drag(self, event):
         """
         ドラッグ終了時
+        :param event: イベント
         """
         try:
             sw = Stopwatch.start_new()
@@ -238,18 +304,22 @@ class MainFrame(tk.Frame):
             raise e
         finally:
             # 矩形とサイズ表示用ラベルを削除
-            if self.rect_tag:
-                self.canvas.delete(self.rect_tag)
-            if self.size_label:
-                self.canvas.delete(self.size_label)
+            if self.rect_id:
+                self.canvas.delete(self.rect_id)
+            if self.size_label_id:
+                self.canvas.delete(self.size_label_id)
 
     def apply_mosaic(self, start_x: int, start_y: int, end_x: int, end_y: int) -> bool:
         """
         モザイクを適用します。
+        :param start_x: モザイクをかける領域の左上X座標
+        :param start_y: モザイクをかける領域の左上Y座標
+        :param end_x: モザイクをかける領域の右下X座標
+        :param end_y: モザイクをかける領域の右下Y座標
         :return: モザイクを掛けてたかどうか
         """
         if self.photo is None:
-            return False
+            return False  # 画像ファイルを未選択状態にモザイク領域を指定した時
 
         # 座標を正しい順序に並べ替える
         left = min(start_x, end_x)
@@ -258,6 +328,7 @@ class MainFrame(tk.Frame):
         bottom = max(start_y, end_y)
 
         mosaic = self.controller.current_effect
+        # Todo:mosaic#apply側で判定します。
         if mosaic.cell_size == MosaicEffect.AUTO:  # セルサイズの自動計算
             mosaic = MosaicEffect(MosaicEffect.calc_cell_size(self.original_image))
         is_apply = mosaic.apply(self.original_image, left, top, right, bottom)
@@ -299,6 +370,10 @@ class FooterFrame(tk.Frame):
     画面のフッター部
     """
     def __init__(self, master, bg: str):
+        """
+        コンストラクタ
+
+        """
         super().__init__(master, bg=bg)
 
         # Widgetの生成
@@ -368,6 +443,12 @@ class MainPage(tk.Frame):
     メインページ
     """
     def __init__(self, master: TkinterDnD.Tk, controller: AbstractAppController, icons_path: Path):
+        """
+        コンストラクタ
+        :param master: 親Widget
+        :param controller: コントローラー
+        :param icons_path: アイコンフォルダ
+        """
         super().__init__(master, bg=controller.get_config().theme_colors.bg_neutral)
         self.controller = controller
 
@@ -417,11 +498,11 @@ class MainPage(tk.Frame):
 
     def display_image(self, file_path: Path):
         """
-        画像ファイルを選択時
+        画面に画像イメージを表示します。
         :param event: 画像ファイルのパス
         """
         self.HeaderFrame.update_view(None)
-        self.MainFrame.updateImage(file_path)
+        self.MainFrame.update_view(file_path)
         self.controller.set_window_title(file_path)
         self.controller.update_status_bar_file_info()
 
