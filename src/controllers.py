@@ -3,7 +3,7 @@
     AppController
 """
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import Callable, Iterable, Optional
 import re
 
 from . app_config import AppConfig, FontSize, ThemeColors
@@ -19,7 +19,7 @@ class AppController(AbstractAppController):
     """
     アプリのコントローラー
     """
-    def __init__(self, model: AppDataModel, view: MainPage, window_title_callback):
+    def __init__(self, model: AppDataModel, view: MainPage, window_title_callback: Callable):
         """
         コンストラクタ
         """

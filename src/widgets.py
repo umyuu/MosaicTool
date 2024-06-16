@@ -449,15 +449,14 @@ class MainPage(tk.Frame):
         :param controller: コントローラー
         :param icons_path: アイコンフォルダ
         """
-        super().__init__(master, bg=controller.get_config().theme_colors.bg_neutral)
+        super().__init__(master, bg=controller.theme_colors.bg_neutral)
         self.controller = controller
-
-        config = self.controller.get_config()
+        theme_colors = controller.theme_colors
         self.file_property_window: Optional[FilePropertyWindow] = None
         # Widgetの生成
-        self.HeaderFrame = HeaderFrame(self, controller, config.theme_colors.bg_primary, icons_path)
-        self.MainFrame = MainFrame(self, controller, bg=config.theme_colors.bg_neutral)
-        self.FooterFrame = FooterFrame(self, bg=config.theme_colors.text_info)
+        self.HeaderFrame = HeaderFrame(self, controller, theme_colors.bg_primary, icons_path)
+        self.MainFrame = MainFrame(self, controller, bg=theme_colors.bg_neutral)
+        self.FooterFrame = FooterFrame(self, bg=theme_colors.text_info)
 
         self.setup_bindings()
 
