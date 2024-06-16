@@ -23,9 +23,22 @@ PROGRAM_NAME = 'MosaicTool'
 __version__ = get_package_version()
 
 
-application_path = os.path.dirname(os.path.abspath(__file__))
+def get_application_path() -> Path:
+    """アプリへのパスを取得する関数
+    """
+    if hasattr(sys, '_MEIPASS'):
+        # PyInstallerから起動時は、カレントディレクトリのパスを取得します。
+        base_path = Path.cwd()
+    else:
+        # 開発中のスクリプトのディレクトリ
+        base_path = Path(__file__).resolve().parent
+
+    return base_path
+
+
+application_path = get_application_path()
 # アイコンのパスを作成
-icons_path = Path(application_path, "third_party/icons")
+icons_path = Path(os.path.dirname(os.path.abspath(__file__)), "third_party/icons")
 
 # コマンドライン引数の解析
 file_paths: list[str] = []
