@@ -3,7 +3,7 @@
     AppController
 """
 from pathlib import Path
-from typing import Iterable, List, Optional
+from typing import Callable, Iterable, Optional
 import re
 
 from . app_config import AppConfig, FontSize, ThemeColors
@@ -12,13 +12,14 @@ from . image_file_service import ImageFileService
 from . utils import Stopwatch
 from . abstract_controllers import AbstractAppController
 from . widgets import MainPage
+from . effects.image_effects import MosaicEffect
 
 
 class AppController(AbstractAppController):
     """
     アプリのコントローラー
     """
-    def __init__(self, model: AppDataModel, view: MainPage, window_title_callback):
+    def __init__(self, model: AppDataModel, view: MainPage, window_title_callback: Callable):
         """
         コンストラクタ
         """
@@ -39,12 +40,12 @@ class AppController(AbstractAppController):
         if not file_path.is_dir():  # ファイルの場合
             return self.model.add_images([file_path])
 
-        files: List[Path] = []
+        files: list[Path] = []
         for f in file_path.glob("*.*"):  # ディレクトリの場合
             files.append(f)
         return self.model.add_images(files)
 
-    def get_current_image(self) -> Path:
+    def get_current_image(self) -> Optional[Path]:
         """
         現在選択されている画像のパス
         """
@@ -82,19 +83,23 @@ class AppController(AbstractAppController):
         self.view.set_status_message(f"received in drop files:{count}")
         self.display_process_time(f"{sw.elapsed:.3f}s")
 
-    def handle_file_open(self, event=None):
+    @property
+    def current_effect(self) -> MosaicEffect:
+        return self.model.current_effect
+
+    def on_file_open(self, event=None):
         """
         ファイル選択ボタンクリック時
         :param event: イベント
         """
-        self.view.handle_file_open(None)
+        self.view.on_file_open(None)
 
-    def handle_save_as(self, event=None):
+    def on_save_as(self, event=None):
         """
         ファイルを選択して保存ボタンをクリック時
         :param event: イベント
         """
-        self.view.handle_save_as(None)
+        self.view.on_save_as(None)
 
     def handle_back_image(self, event=None):
         """
@@ -102,10 +107,10 @@ class AppController(AbstractAppController):
         :param event: イベント
         """
         sw = Stopwatch.start_new()
-        self.model.previous_image()
+        self.model.back_image()
         self.update_view(sw)
 
-    def handle_forward_image(self, event=None):
+    def handle_next_image(self, event=None):
         """
         次の画像に遷移するをクリック時
         :param event: イベント
@@ -139,13 +144,30 @@ class AppController(AbstractAppController):
         """
         return self.model.file_property_visible
 
+    def handle_back_effect(self, event=None):
+        """
+        前のエフェクトに切り替えます。
+        :param event: イベント
+        """
+        self.model.back_effect()
+        self.view.update_header_view(event)
+
+    def handle_next_effect(self, event=None):
+        """
+        次のエフェクトに切り替えます。
+        :param event: イベント
+        """
+        self.model.next_effect()
+        self.view.update_header_view(event)
+
     def update_view(self, sw: Optional[Stopwatch] = None):
         """
         Viewを更新します。
         画面に画像と処理時間を表示します。
         """
         current_image = self.model.get_current_image()
-        self.view.display_image(current_image)
+        if current_image is not None:
+            self.view.display_image(current_image)
 
         is_visible: bool = self.model.file_property_visible
         if is_visible:  # ファイルのプロパティウィンドウが表示中
@@ -195,7 +217,9 @@ class AppController(AbstractAppController):
         :return: Path
         """
         f = self.model.get_current_image()
-        return ImageFileService.mosaic_filename(f)
+        if f is not None:
+            return ImageFileService.mosaic_filename(f)
+        raise ValueError("get_mosaic_filename")
 
     def set_window_title(self, text: Path):
         """
@@ -220,6 +244,9 @@ class AppController(AbstractAppController):
             return StatusBarInfo()
 
         file_path = self.model.get_current_image()
+        if file_path is None:
+            return StatusBarInfo()
+
         width, height = ImageFileService.get_image_size(file_path)
 
         return StatusBarInfo(

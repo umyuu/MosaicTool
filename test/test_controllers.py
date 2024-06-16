@@ -2,11 +2,11 @@
 AppControllerの単体テスト
 """
 from dataclasses import dataclass
-import sys
 import os
+from pathlib import Path
+import sys
 import unittest
 from unittest.mock import Mock
-from pathlib import Path
 
 # プロジェクトのルートディレクトリをシステムパスに追加
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -19,6 +19,7 @@ from src.app_config import AppConfig
 
 class TestAppController(unittest.TestCase):
     def setUp(self):
+        """テストのセットアップを行います。"""
         self.controller = AppController(AppDataModel(Mock(AppConfig)), Mock(MainPage), Mock())
 
         # on_update_process_time メソッドをモックに追加
@@ -34,9 +35,9 @@ class TestAppController(unittest.TestCase):
         assets = [
             str(current_dir / "test_files/.gitignore"),
             str(current_dir / "test_files/jet_256x256.webp"),
-            str(current_dir / "test_files/test_image_png_pnginfo_valid.png"),
+            str(current_dir / "test_files/pnginfo_valid.png"),
             # 日本語ファイル名の場合
-            "{" + str(current_dir / "test_files/test_image_png_pnginfo_valid.png") + "}",
+            "{" + str(current_dir / "test_files/pnginfo_valid.png") + "}",
         ]
 
         @dataclass

@@ -4,17 +4,14 @@
     データモデル関連
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
-from decimal import Decimal
 import os
 from pathlib import Path
-from typing import Any, List
+from typing import Any, Optional
 
-from PIL import Image
-
-from . utils import round_up_decimal
 from . app_config import AppConfig
+from . effects.image_effects import MosaicEffect
 
 # 画像形式
 ImageFormat = {
@@ -33,9 +30,8 @@ class ImageFileInfo:
     """
     width: int = 0  # 幅
     height: int = 0  # 高さ
-    file_path: Path = Path("")  # ファイルパス
-    #file_size: int = 0  # ファイルサイズ(バイト単位)
-    #mtime: str = ""  # モザイクを掛ける対象ファイルの最終更新日時
+    file_path: Path = Path()  # ファイルパス
+    CURRENT_DIR: Path = Path()  # ファイルパス
 
     @property
     def mtime(self) -> str:
@@ -43,6 +39,8 @@ class ImageFileInfo:
         最終更新日時をISO 8601形式で取得する
         :return: 最終更新日時の文字列
         """
+        if ImageFileInfo.CURRENT_DIR == self.file_path:
+            return ""
         # ファイルのメタデータを取得
         file_stat = self.file_path.stat()
         # 最終更新日時を取得
@@ -57,6 +55,8 @@ class ImageFileInfo:
         ファイルサイズを取得する
         :return: ファイルサイズ（バイト）
         """
+        if ImageFileInfo.CURRENT_DIR == self.file_path:
+            return 0
         return os.path.getsize(self.file_path)
 
 
@@ -79,13 +79,16 @@ class AppDataModel:
         :param settings: アプリの設定情報
         """
         self._settings = settings
-        self.image_list: List[Path] = []
+        self.image_list: list[Path] = []
         self.current: int = 0
         # 許可される拡張子のリスト
         self.allowed_extensions = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".svg"]
         self.file_property_visible: bool = False
+        # プリセット
+        self._current_preset_name = settings.effect_presets.default_preset
+        self._current_effect = settings.effect_presets.get_preset(self._current_preset_name)
 
-    def add_images(self, image_list: List[Path]) -> int:
+    def add_images(self, image_list: list[Path]) -> int:
         """
         画像ファイルを追加します。
         :param image_list: 画像ファイルのリスト
@@ -151,6 +154,15 @@ class AppDataModel:
         self.image_list = []
         self.current = 0
 
+    def back_image(self):
+        """
+        インデックスを前の画像に移動します。
+        """
+        if self.current > 0:
+            self.current -= 1
+        #else:
+        #    raise IndexError("Already at the first file in the list.")
+
     def next_image(self):
         """
         インデックスを次の画像に移動します。
@@ -160,23 +172,44 @@ class AppDataModel:
         #else:
         #    raise IndexError("No more files in the list.")
 
-    def previous_image(self):
-        """
-        インデックスを前の画像に移動します。
-        """
-        if self.current > 0:
-            self.current -= 1
-        #else:
-        #    raise IndexError("Already at the first file in the list.")
-
-    def get_current_image(self) -> Path:
+    def get_current_image(self) -> Optional[Path]:
         """
         現在処理中の画像
         :return: ファイルパス
         """
         if self.image_list:
             return self.image_list[self.current]
-        return Path("")
+        return None
+
+    @property
+    def current_effect(self) -> MosaicEffect:
+        """
+        選択中のエフェクトを返します。
+        :return: 選択中のエフェクト
+        """
+        return self._current_effect
+
+    def back_effect(self):
+        """
+        前のエフェクトに切り替えます。
+        """
+        preset_name, effect = self.settings.effect_presets.back_preset(self._current_preset_name)
+        if len(preset_name) == 0:
+            raise ValueError("back_effect")
+
+        self._current_preset_name = preset_name
+        self._current_effect = effect
+
+    def next_effect(self):
+        """
+        次のエフェクトに切り替えます。
+        """
+        preset_name, effect = self.settings.effect_presets.next_preset(self._current_preset_name)
+        if len(preset_name) == 0:
+            raise ValueError("next_effect")
+
+        self._current_preset_name = preset_name
+        self._current_effect = effect
 
     def __str__(self) -> str:
         """
@@ -184,71 +217,3 @@ class AppDataModel:
         :return: モデルの情報
         """
         return f"current:{self.current}, {self.image_list}"
-
-
-@dataclass
-class MosaicFilter:
-    """
-    モザイク画像を作成するクラス
-    """
-    _image: Image.Image
-    cell_size: int = field(init=False)  # モザイクのセルサイズ
-    min_cell_size: int = 4  # 最小セルサイズ
-
-    def __post_init__(self):
-        """
-        モザイクのセルサイズを計算し設定します。
-        """
-        self.cell_size = self.calc_cell_size()
-
-    def apply(self, start_x: int, start_y: int, end_x: int, end_y: int) -> bool:
-        """
-        指定された領域にモザイクを適用する
-        :param start_x: モザイクをかける領域の左上X座標
-        :param start_y: モザイクをかける領域の左上Y座標
-        :param end_x: モザイクをかける領域の右下X座標
-        :param end_y: モザイクをかける領域の右下Y座標
-        :return: モザイクを掛けてたかどうか
-        """
-        # モザイクをかける領域のサイズを計算
-        region_width = end_x - start_x
-        region_height = end_y - start_y
-
-        # 領域の幅と高さの値がどちらかが0の場合、モザイク処理をSkipします。
-        if (region_width == 0) or (region_height == 0):
-            return False
-
-        # モザイクをかける領域を切り出す
-        region = self._image.crop((start_x, start_y, end_x, end_y))
-
-        # セルサイズに基づいて縮小後のサイズを計算
-        new_width = (region_width // self.cell_size) * self.cell_size
-        new_height = (region_height // self.cell_size) * self.cell_size
-
-        # 領域をセルサイズに揃えてリサイズするための四角形のサイズを計算
-        region = region.resize((new_width // self.cell_size, new_height // self.cell_size), Image.Resampling.BOX)
-        region = region.resize((new_width, new_height), Image.Resampling.NEAREST)
-
-        # モザイクをかけた領域を元の画像に戻す
-        self._image.paste(region, (start_x, start_y, start_x + new_width, start_y + new_height))
-        return True
-
-    @property
-    def Image(self) -> Image.Image:
-        """
-        モザイク処理後の画像データを取得する。
-        :return: 画像データ
-        """
-        return self._image
-
-    def calc_cell_size(self) -> int:
-        """
-        モザイクのセルサイズを計算します。
-
-        :return: セルサイズ
-        """
-        # 長辺の取得し÷100で割り、小数点以下を切り上げする。
-        # セルサイズが4以下（を含む）場合は、最小4ピクセルに設定します。
-        long_side = (Decimal(self._image.width).max(Decimal(self._image.height))) / Decimal(100)
-        cell_size = max(self.min_cell_size, round_up_decimal(long_side, 0))  # 最小4ピクセル
-        return int(cell_size)

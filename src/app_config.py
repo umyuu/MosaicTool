@@ -7,6 +7,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from . effects.image_effects import EffectPreset
+
 
 @dataclass(frozen=True)
 class ThemeColors:
@@ -34,6 +36,26 @@ class FontSize:
     body: int = 16  # 本文
 
 
+# デフォルトの設定値
+DEFAULT_CONFIG = {
+    "version": 1,
+    "window_sizes": {  # width, height
+        "main": [800, 600],
+        "file_property": [600, 500],
+    },
+    "theme_colors": asdict(ThemeColors()),
+    "font_sizes": asdict(FontSize()),
+    "effect_presets": {
+        "mosaic": {
+            "cell_sizes": [10, 16, 20, -1],
+            "default": {
+                "cell_size": 16
+            }
+        }
+    }
+}
+
+
 class AppConfig:
     """
     アプリケーションの構成
@@ -46,7 +68,7 @@ class AppConfig:
         self.config_file = config_file
         self.settings = self.load_config()
 
-        theme_colors = self.settings['theme_colors']
+        theme_colors = self.settings["theme_colors"]
         self._theme_colors = ThemeColors(
             bg_primary=theme_colors.get("bg_primary"),
             bg_secondary=theme_colors.get("bg_secondary"),
@@ -55,8 +77,7 @@ class AppConfig:
             bg_danger=theme_colors.get("bg_danger"),
             text_info=theme_colors.get("text_info"),
         )
-
-        font_sizes = self.settings['font_sizes']
+        font_sizes = self.settings["font_sizes"]
         self._font_sizes = FontSize(
             h1=int(font_sizes.get("h1")),
             h2=int(font_sizes.get("h2")),
@@ -65,6 +86,8 @@ class AppConfig:
             h5=int(font_sizes.get("h5")),
             body=int(font_sizes.get("body")),
         )
+        # プリセット
+        self._effect_presets = EffectPreset(self.settings["effect_presets"])
 
     def load_config(self) -> dict:
         """
@@ -76,27 +99,15 @@ class AppConfig:
                 return json.load(file)
         except FileNotFoundError:
             # ファイルが存在しない場合のデフォルト設定
-            config = {
-                "version": 1,
-                "initialWindowSize": {
-                    "width": 800,
-                    "height": 600,
-                },
-                "filePropertyWindowSize": {
-                    "width": 600,
-                    "height": 500,
-                },
-                "theme_colors": asdict(ThemeColors()),
-                "font_sizes": asdict(FontSize()),
-            }
-            return config
+            return DEFAULT_CONFIG
 
     def save_config(self):
         """
         設定をJSONファイルに保存する。
         """
+        merged_config = {**DEFAULT_CONFIG, **self.settings}
         with open(self.config_file, "w", encoding="utf-8") as file:
-            json.dump(self.settings, file, ensure_ascii=False, indent=4)
+            json.dump(merged_config, file, ensure_ascii=False, indent=4)
 
     def get(self, key: str, default=None) -> Any:
         """
@@ -122,6 +133,14 @@ class AppConfig:
         :return: フォントサイズ
         """
         return self._font_sizes
+
+    @property
+    def effect_presets(self) -> EffectPreset:
+        """
+        エフェクトプリセット
+        :return: エフェクトプリセット
+        """
+        return self._effect_presets
 
     def set(self, key: str, value):
         """

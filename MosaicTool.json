@@ -1,3 +1,37 @@
 {
-    
+    "version": 1,
+    "window_sizes": {
+        "main": [
+            800,
+            600
+        ],
+        "file_property": [
+            600,
+            500
+        ]
+    },
+    "theme_colors": {
+        "bg_primary": "#44F7D3",
+        "bg_secondary": "#CCCCCC",
+        "bg_neutral": "SystemWindow",
+        "bg_white": "#FFFFFF",
+        "bg_danger": "red",
+        "text_info": "RosyBrown"
+    },
+    "font_sizes": {
+        "h1": 24,
+        "h2": 20,
+        "h3": 18,
+        "h4": 16,
+        "h5": 14,
+        "body": 16
+    },
+    "effect_presets": {
+        "mosaic": {
+            "cell_sizes": [10, 16, 20, -1],
+            "default": {
+                "cell_size": 16
+            }
+        }
+    }
 }

@@ -1,5 +1,6 @@
 {
   "cSpell.words": [
+    "arcname",
     "borderwidth",
     "columnspan",
     "confirmoverwrite",
@@ -10,7 +11,9 @@
     "padx",
     "pady",
     "pnginfo",
+    "pyinstaller",
     "scrollregion",
+    "srgb",
     "tearoff",
     "textvariable",
     "tkinterdnd",

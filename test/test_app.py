@@ -1,8 +1,8 @@
 """
 appの単体テスト
 """
-import sys
 import os
+import sys
 import unittest
 
 # プロジェクトのルートディレクトリをシステムパスに追加
@@ -14,13 +14,16 @@ from app import MyApp
 
 class TestAppLaunchTime(unittest.TestCase):
     """アプリの起動時間をテストするクラス"""
+    def setUp(self):
+        """テストのセットアップを行います。"""
+        self.current_dir = os.path.dirname(__file__)
+
     @unittest.skipIf(os.name != 'nt', "Skipping The OS is not Windows")
     def test_app_starts_within_3_seconds(self):
         """
         アプリの起動時間が3秒未満
         """
-        current_dir = os.path.dirname(__file__)
-        image_path = os.path.join(current_dir, 'test_files', 'jet_256x256.webp')
+        image_path = os.path.join(self.current_dir, 'test_files', 'jet_256x256.webp')
 
         sw = Stopwatch.start_new()
 

@@ -20,7 +20,7 @@ class FilePropertyWindow:
     def __init__(self, master, controller: AbstractAppController):
         """
         コンストラクタ
-
+        :param master: 親Widget
         :param controller: コントローラー
         """
         self.controller = controller
@@ -29,9 +29,7 @@ class FilePropertyWindow:
         font_sizes = config.font_sizes
         theme_colors = config.theme_colors
 
-        window_size = config.get("filePropertyWindowSize", {"width": 500, "height": 500})
-        width = window_size.get("width")
-        height = window_size.get("height")
+        width, height = config.get("window_sizes").get("file_property")
         self.win = tk.Toplevel(master, bg=theme_colors.bg_neutral)
         self.win.title(f"{PROGRAM_NAME} - File Property")
         self.win.geometry(f"{width}x{height}")

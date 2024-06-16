@@ -2,6 +2,9 @@
 # ignore shortcut link
 build.lnk
 run.lnk
+# ignore unit test create image
+mosaic_image_*.png
+
 # ignore CProfile Result
 *.prof
 ###
