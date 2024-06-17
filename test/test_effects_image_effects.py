@@ -1,5 +1,5 @@
 """
-Modelの単体テスト
+Image_Effectsの単体テスト
 """
 import os
 import sys

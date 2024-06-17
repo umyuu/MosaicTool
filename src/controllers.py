@@ -99,6 +99,8 @@ class AppController(AbstractAppController):
         ファイルを選択して保存ボタンをクリック時
         :param event: イベント
         """
+        if self.model.count == 0:
+            return
         self.view.on_save_as(None)
 
     def handle_back_image(self, event=None):
