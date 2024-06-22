@@ -116,7 +116,6 @@ class HeaderFrame(tk.Frame):
 class MainFrame(tk.Frame):
     """
     画面のメイン部
-    ToDo:ImageEditorクラスを新設する予定です。
     """
     def __init__(self, master, controller: AbstractAppController, bg: str):
         """
@@ -129,9 +128,11 @@ class MainFrame(tk.Frame):
 
         self.controller = controller
 
+        # 画面のキャンバス部分
         self.image_canvas = ImageCanvas(self, controller, bg)
         self.image_canvas.pack(fill=tk.BOTH, expand=True)
 
+        # イベントを登録します。
         self.update_view = self.image_canvas.update_view
         self.save = self.image_canvas.save
 

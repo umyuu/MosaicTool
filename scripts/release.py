@@ -16,6 +16,7 @@ import zipfile
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src import PROGRAM_NAME, get_package_version
+from src.utils import Stopwatch
 
 __version__ = get_package_version()
 
@@ -63,29 +64,11 @@ def create_readMe(file1_path: Path, file2_path: Path, hash_value: str, output_pa
     output_path.write_text(readme_content, "utf-8")
 
 
-def get_compressible_files(root_dir: Path, exclude_files: list[Path]) -> list[Path]:
+def create_zip(folder_path: Path, output_zip: Path, additional_files_with_names: dict[Path, str]) -> int:
     """
-    圧縮対象のファイル一覧を取得します。
+    引数で指定されたフォルダとファイルをZIPファイルに格納します。
 
-    :param root_dir: 圧縮したいディレクトリのパス。
-    :param exclude_file: 除外するファイルのリスト。
-    :return: 圧縮対象のファイルパスのリスト。
-    """
-    compressible_files: list[Path] = []
-
-    for file_path in glob.glob(str(root_dir) + "/*.*"):
-        file_path = Path(file_path)  # 文字列からPathに変換
-        if not any(file_path.samefile(exclude_file) for exclude_file in exclude_files if exclude_file.exists()):
-            compressible_files.append(file_path)
-
-    return compressible_files
-
-
-def create_zip(source_files: list[Path], output_zip: Path, additional_files_with_names: dict[Path, str]) -> int:
-    """
-    引数で指定されたファイルをZIPファイルに格納します。
-
-    :param source_files: ZIPファイルに含めるファイル。
+    :param folder_path: ZIPファイルに含めるフォルダ。
     :param output_zip: 出力するZIPファイルのパス。
     :param additional_files_with_names: 追加ファイルとその保存名の辞書。
     :return: ZIPファイルに追加されたファイルの数。
@@ -93,15 +76,19 @@ def create_zip(source_files: list[Path], output_zip: Path, additional_files_with
     count: int = 0
 
     with zipfile.ZipFile(output_zip, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-        for file_path in source_files:
-            print(file_path)
-            zip_file.write(file_path, arcname=file_path.name)
-            count += 1
+        for root, dirs, files in os.walk(folder_path):
+            for file in files:
+                file_path = Path(root) / file
+                arcname = file_path.relative_to(folder_path)
+                zip_file.write(file_path, arcname)
+                print(arcname)
+                count += 1
 
         for file_path, save_name in additional_files_with_names.items():
             print(file_path)
             zip_file.write(file_path, arcname=save_name)
             count += 1
+
     return count
 
 
@@ -112,37 +99,37 @@ class SetupConfigRation:
     """
     source_dir: Path = Path("dist")
     output_zip: Path = source_dir / f"{PROGRAM_NAME}.zip"
-    app_file: Path = source_dir / f"{PROGRAM_NAME}.exe"
+    app_file: Path = source_dir / f"{PROGRAM_NAME}/{PROGRAM_NAME}.exe"
     handouts_file: Path = source_dir / "handouts.txt"
     exclude_files: list[Path] = field(default_factory=list)
 
 
 def main():
-    start: float = time.perf_counter()
+    sw = Stopwatch.start_new()
     # Configuration
     config = SetupConfigRation()
     # 除外するファイル
     config.exclude_files.extend([config.output_zip, config.source_dir / ".gitignore", config.handouts_file])
     # zipファイルに追加するファイル
 
+    readme = config.source_dir / "ReadMe.txt"
     additional_files_with_names = {
+        readme: readme.name,
         Path("docs/initial_screen.png"): "initial_screen.png",
         Path(f"{PROGRAM_NAME}.json"): f"sample/{PROGRAM_NAME}.json",
     }
 
     hash_value = hash_compute(config.app_file)
-    print(f"Compute hash, ({time.perf_counter() - start:.3f}s)")
+    print(f"Compute hash, ({sw.elapsed:.3f}s)")
 
-    create_readMe(Path("ReadMe.md"), config.handouts_file, hash_value, config.source_dir / "ReadMe.txt")
-    print(f"Created ReadMe.txt, ({time.perf_counter() - start:.3f}s)")
+    create_readMe(Path("ReadMe.md"), config.handouts_file, hash_value, readme)
+    print(f"Created ReadMe.txt, ({sw.elapsed:.3f}s)")
 
-    compressible_files = get_compressible_files(config.source_dir, config.exclude_files)
-    print(f"Get_compressible_files, ({time.perf_counter() - start:.3f}s)")
-    count: int = create_zip(compressible_files, config.output_zip, additional_files_with_names)
+    count: int = create_zip(config.source_dir / str(f"{PROGRAM_NAME}"), config.output_zip, additional_files_with_names)
 
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"Release zip file created at: {config.output_zip} on {current_time}")
-    print(f"  Store total:{count}, ({time.perf_counter() - start:.3f}s)")
+    print(f"  Store total:{count}, ({sw.elapsed:.3f}s)")
 
 
 if __name__ == '__main__':
