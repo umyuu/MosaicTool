@@ -115,13 +115,21 @@ class AbstractAppController(ABC):
     def get_config(self) -> AppConfig:
         pass
 
-    @abstractmethod
-    def set_file_property_visible(self, visible: bool):
-        pass
+    @property
+    def file_property_visible(self):
+        """
+        画像ファイルのプロパティウィンドウの表示・非表示状態
+        :return: true:表示, false: 非表示
+        """
+        raise NotImplementedError()
 
-    @abstractmethod
-    def is_file_property_visible(self) -> bool:
-        pass
+    @file_property_visible.setter
+    def file_property_visible(self, visible: bool):
+        """
+        ファイルプロパティウィンドウの表示・非表示状態を設定します。
+        :param visible: true:表示, false: 非表示
+        """
+        raise NotImplementedError()
 
     @property
     def current_effect(self) -> MosaicEffect:

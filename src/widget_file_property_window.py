@@ -173,14 +173,14 @@ class FilePropertyWindow:
         ファイル情報を開く
         """
         self.win.deiconify()
-        self.controller.set_file_property_visible(True)
+        self.controller.file_property_visible = True
 
     def on_window_close(self):
         """
         ファイル情報ウィンドウを閉じる
         """
         self.win.withdraw()
-        self.controller.set_file_property_visible(False)
+        self.controller.file_property_visible = False
 
     def set_file_status(self, status: StatusBarInfo):
         """
