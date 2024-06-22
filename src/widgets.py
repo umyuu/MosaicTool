@@ -296,10 +296,11 @@ class MainPage(tk.Frame):
             return
         self.controller.handle_select_files_complete(files)
 
-    def on_save_as(self, event):
+    def on_save_as(self, event, initial_file: Path):
         """
         ファイルを選択して保存ボタン
         :param event: イベント
+        :param initial_file: ダイアログのファイル名(初期値)
         """
         IMAGE_FILE_TYPES = [
             ('Image Files', ImageFormat['PNG'] + ImageFormat['JPEG'] + ImageFormat['WEBP'] + ImageFormat['BMP']),
@@ -310,7 +311,10 @@ class MainPage(tk.Frame):
             ('*', '*.*')
         ]
 
-        files = filedialog.asksaveasfilename(parent=self, confirmoverwrite=True, filetypes=IMAGE_FILE_TYPES)
+        files = filedialog.asksaveasfilename(parent=self,
+                                             initialfile=initial_file.name,
+                                             confirmoverwrite=True,
+                                             filetypes=IMAGE_FILE_TYPES)
         if len(files) == 0:
             return
 
@@ -321,7 +325,7 @@ class MainPage(tk.Frame):
             if not retval:
                 print(f"名前を付けて保存の処理を中断。:{save_file}")
                 return
-            self.on_save_as(event)
+            self.on_save_as(event, initial_file)
             return
         sw = Stopwatch.start_new()
         self.MainFrame.save(save_file, True)

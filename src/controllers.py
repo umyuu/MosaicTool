@@ -101,9 +101,11 @@ class AppController(AbstractAppController):
         ファイルを選択して保存ボタンをクリック時
         :param event: イベント
         """
-        if self.model.count == 0:
+        current = self.model.get_current_image()
+        if current is None:
             return
-        self.view.on_save_as(None)
+        mosaic_filename = ImageFileService.mosaic_filename(current, self.model.save_directory)
+        self.view.on_save_as(None, mosaic_filename)
 
     def handle_back_image(self, event=None):
         """
