@@ -76,7 +76,7 @@ class HeaderFrame(tk.Frame):
                                                    font=("", font_sizes.h4),
                                                    width=6,
                                                    command=self.controller.handle_next_effect)
-        self.action_mosaic_size_change.tooltip = Tooltip(self.action_mosaic_size_change,
+        self.action_mosaic_size_change_tooltip = Tooltip(self.action_mosaic_size_change,
                                                          "次のセルサイズに変更(Right Click)。 前のセルサイズに変更(Shift+Right Click)")
         self.update_view(None)
 
@@ -150,20 +150,20 @@ class FooterFrame(tk.Frame):
 
         # Widgetの生成
         self.image_size = tk.Label(self, text=" ", bd=1, relief=tk.SUNKEN, anchor=tk.W)  # 画像サイズ表示用のラベルを追加
-        self.image_size.tooltip = Tooltip(self.image_size, "Width x Height")
+        self.image_size_tooltip = Tooltip(self.image_size, "Width x Height")
 
         self.count = tk.Label(self, text="  1 /  1 ", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.count.tooltip = Tooltip(self.count, "Current / Total")
+        self.count_tooltip = Tooltip(self.count, "Current / Total")
 
         self.fileSizeBar = tk.Label(self, text=" ", bd=1, relief=tk.SUNKEN, anchor=tk.W)  # ファイルサイズ表示用のラベルを追加
-        self.fileSizeBar.tooltip = Tooltip(self.fileSizeBar, "File Size")
+        self.fileSizeBar_tooltip = Tooltip(self.fileSizeBar, "File Size")
 
         self.modified = tk.Label(self, text=" ", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.modified.tooltip = Tooltip(self.modified, "モザイク加工対象ファイルの最終更新日時")
+        self.modified_tooltip = Tooltip(self.modified, "モザイク加工対象ファイルの最終更新日時")
 
         self.paddingLabel = tk.Label(self, text="フッターはここ", anchor=tk.E)  # 余白調整用のラベルを追加
         self.process_time = tk.Label(self, text=" ", anchor=tk.E)
-        self.process_time.tooltip = Tooltip(self.process_time, "処理時間(sec)")
+        self.process_time_tooltip = Tooltip(self.process_time, "処理時間(sec)")
 
         # Widgetの配置
         self.image_size.grid(row=0, column=0, sticky=tk.W + tk.E)
