@@ -242,15 +242,16 @@ class ImageCanvas(tk.Frame):
         # キャンバスのスクロール領域を設定
         #self.canvas.config(scrollregion=(0, 0, self.original_image.width, self.original_image.height))
 
-        # モザイク適用後のファイルを自動保存します。
-        self.save(self.controller.get_mosaic_filename())
+        # 変更状態に設定します。
+        self.controller.update_data_state("Modified")
+
         return True
 
     def save(self, output_path: Path, override: bool = False):
         """
         モザイク画像を保存します。
         :param output_path: 保存するファイルの名前
-        :param override: 自動保存時に上書きするかの確認
+        :param override: ファイル名を付けて保存時は、true、自動保存時は、false
         """
         current_file = self.controller.get_current_image()
 
@@ -261,6 +262,9 @@ class ImageCanvas(tk.Frame):
                     PROGRAM_NAME,
                     f"{output_path}は既に存在します。\n上書きしますか？")
                 if not retval:
+                    self.controller.update_data_state("Unchanged")
                     return
 
         ImageFileService.save(self.original_image, output_path, current_file)
+        # 保存後は未編集状態に設定します。
+        self.controller.update_data_state("Unchanged")

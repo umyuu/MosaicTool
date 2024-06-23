@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime
 import os
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Literal, Callable
 
 from . app_config import AppConfig
 from . effects.image_effects import MosaicEffect
@@ -69,6 +69,10 @@ class StatusBarInfo(ImageFileInfo):
     total: int = 0  # トータル
 
 
+# 画像データの状態
+DATA_STATE = Literal["Modified", "Unchanged"]
+
+
 class AppDataModel:
     """
     アプリのデータモデル
@@ -84,11 +88,14 @@ class AppDataModel:
         # 許可される拡張子のリスト
         self.allowed_extensions = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".svg"]
         self.file_property_visible: bool = False
+        # ディレクトリをドロップ時
+        self._is_save_directory: bool = False
+        self._data_state: DATA_STATE = "Unchanged"
+        # モザイク加工後の画像を保存するイベントハンドラー
+        self.data_saved_handler: Callable
         # プリセット
         self._current_preset_name = settings.effect_presets.default_preset
         self._current_effect = settings.effect_presets.get_preset(self._current_preset_name)
-        # ディレクトリをドロップ時
-        self._is_save_directory: bool = False
 
     def add_images(self, image_list: list[Path]) -> int:
         """
@@ -106,19 +113,43 @@ class AppDataModel:
 
     def get(self, key: str, default=None) -> Any:
         """
-        設定を取得する。
-        :param key: 取得する設定のキー
+        設定値を取得する。
+        :param key: 取得する設定ファイルのキー
         :param default: キーが存在しない場合に返されるデフォルト値
-        :return: 設定の値
+        :return: 設定値
         """
         return self.settings.get(key, default)
 
     @property
-    def save_directory(self):
+    def data_state(self) -> DATA_STATE:
+        """
+        画像データの状態を取得します。
+        :return: データの状態
+        """
+        return self._data_state
+
+    @data_state.setter
+    def data_state(self, value: DATA_STATE):
+        """
+        画像データの状態を設定します。
+        :param value: 設定する状態
+        """
+        self._data_state = value
+
+    @property
+    def save_directory(self) -> bool:
+        """
+        モザイクファイルの保存先
+        :return: ディレクトリに保存時は、true。同一フォルダに保存時は、false
+        """
         return self._is_save_directory
 
     @save_directory.setter
     def save_directory(self, value: bool):
+        """
+        モザイクファイルの保存先
+        :param value: ディレクトリに保存時は、true。同一フォルダに保存時は、false
+        """
         self._is_save_directory = value
 
     @property
@@ -151,24 +182,36 @@ class AppDataModel:
     def is_allowed_extension(self, file_path: Path) -> bool:
         """
         ファイルの拡張子が許可されているかどうかをチェックする関数
+        大文字小文字を無視してチェックします。
         :param file_path: チェックするファイルのパス
         :return: 拡張子が許可されている場合はTrue、そうでない場合はFalse
         """
-        # 大文字小文字を無視してチェックする
         return file_path.suffix.lower() in self.allowed_extensions  
 
     def clear(self):
         """
         モデルをクリアします。
+        モザイク加工中の画像があれば保存イベントを呼び出します。
         """
+        self.commit()
         self.image_list = []
         self.current = 0
         self._is_save_directory = False
+
+    def commit(self):
+        """
+        編集内容を確定し、ファイルを保存します。
+        """
+        if self.data_saved_handler:  # データ保存イベントが登録時
+            if self.data_state == "Unchanged":
+                return
+            self.data_saved_handler(None)
 
     def back_image(self):
         """
         インデックスを前の画像に移動します。
         """
+        self.commit()
         if self.current > 0:
             self.current -= 1
         #else:
@@ -178,6 +221,7 @@ class AppDataModel:
         """
         インデックスを次の画像に移動します。
         """
+        self.commit()
         if self.current < len(self.image_list) - 1:
             self.current += 1
         #else:

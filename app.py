@@ -74,9 +74,19 @@ class MyApp(TkinterDnD.Tk):
         self.rowconfigure(0, weight=1)
 
         self.controller.view = self.MainPage
-
+        self.protocol('WM_DELETE_WINDOW', self.on_window_close)
         # 遅延してイベントループで処理をします。
         self.MainPage.after(1, partial(self.after_launch, file_paths))
+
+    def on_window_close(self):
+        """
+        アプリのウィンドウを閉じる時に発生します。
+        """
+        try:
+            if self.controller:
+                self.controller.handle_auto_save(None)
+        finally:
+            self.destroy()  # ウィンドウを閉じる
 
     def set_window_title(self, filepath: Path):
         """

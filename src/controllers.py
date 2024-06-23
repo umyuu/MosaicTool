@@ -7,7 +7,7 @@ from typing import Callable, Iterable, Optional
 import re
 
 from . app_config import AppConfig, FontSize, ThemeColors
-from . models import AppDataModel, StatusBarInfo
+from . models import AppDataModel, StatusBarInfo, DATA_STATE
 from . image_file_service import ImageFileService
 from . utils import Stopwatch
 from . abstract_controllers import AbstractAppController
@@ -29,6 +29,8 @@ class AppController(AbstractAppController):
         # ドラッグ＆ドロップで渡されたパスを分割する正規表現
         self.drop_file_split = re.compile(r'([A-Za-z]:[/|\\\\].*?(?=[A-Za-z]:[/|\\\\]|$))', re.RegexFlag.UNICODE)
         self.image_controller = ImageController(self)
+        # 自動保存イベントを登録します。
+        self.model.data_saved_handler = self.handle_auto_save
 
     def add_file_path(self, file_path: Path) -> int:
         """
@@ -95,6 +97,17 @@ class AppController(AbstractAppController):
         :param event: イベント
         """
         self.view.on_file_open(None)
+
+    def handle_auto_save(self, event=None):
+        """
+        画像ファイルの自動保存
+        :param event: イベント
+        """
+        current = self.model.get_current_image()
+        if current is None:
+            return
+        mosaic_filename = ImageFileService.mosaic_filename(current, self.model.save_directory)
+        self.view.on_save(mosaic_filename, False)
 
     def on_save_as(self, event=None):
         """
@@ -172,6 +185,7 @@ class AppController(AbstractAppController):
         """
         Viewを更新します。
         画面に画像と処理時間を表示します。
+        :param sw: ストップウォッチ
         """
         current_image = self.model.get_current_image()
         if current_image is not None:
@@ -184,6 +198,13 @@ class AppController(AbstractAppController):
         # 処理時間を表示します。
         if sw:
             self.display_process_time(f"{sw.elapsed:.3f}s")
+
+    def update_data_state(self, state: DATA_STATE):
+        """
+        画像のデータの状態を変更します。
+        :param state: データの状態
+        """
+        self.model.data_state = state
 
     def update_status_bar_file_info(self):
         """

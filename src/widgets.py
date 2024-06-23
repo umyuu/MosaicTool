@@ -8,7 +8,7 @@ from tkinter import filedialog, messagebox
 from functools import partial
 from decimal import Decimal
 from pathlib import Path
-from typing import Optional, Callable
+from typing import Optional
 
 from tkinterdnd2 import DND_FILES, TkinterDnD
 
@@ -236,6 +236,7 @@ class MainPage(tk.Frame):
         self.drop_target_register(DND_FILES)
         self.dnd_bind('<<Drop>>', self.controller.handle_drop)
         self.update_header_view = self.HeaderFrame.update_view
+        self.on_save = self.MainFrame.save
         self.on_update_status_bar = self.FooterFrame.update_status_bar
         self.on_update_process_time = self.FooterFrame.update_process_time
 
@@ -328,7 +329,7 @@ class MainPage(tk.Frame):
             self.on_save_as(event, initial_file)
             return
         sw = Stopwatch.start_new()
-        self.MainFrame.save(save_file, True)
+        self.on_save(save_file, True)
 
         self.set_status_message(f"Save。{save_file.name}", f"{sw.elapsed:.3f}")
         messagebox.showinfo(PROGRAM_NAME, f"ファイルを保存しました。\n\n{save_file}")
