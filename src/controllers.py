@@ -43,6 +43,8 @@ class AppController(AbstractAppController):
         files: list[Path] = []
         for f in file_path.glob("*.*"):  # ディレクトリの場合
             files.append(f)
+        if len(files) != 0:
+            self.model.save_directory = True
         return self.model.add_images(files)
 
     def get_current_image(self) -> Optional[Path]:
@@ -99,7 +101,11 @@ class AppController(AbstractAppController):
         ファイルを選択して保存ボタンをクリック時
         :param event: イベント
         """
-        self.view.on_save_as(None)
+        current = self.model.get_current_image()
+        if current is None:
+            return
+        mosaic_filename = ImageFileService.mosaic_filename(current, self.model.save_directory)
+        self.view.on_save_as(None, mosaic_filename)
 
     def handle_back_image(self, event=None):
         """
@@ -130,19 +136,21 @@ class AppController(AbstractAppController):
         image_info = ImageFileService.get_image_info(status.file_path)
         self.view.on_show_file_property(status, str(image_info))
 
-    def set_file_property_visible(self, visible: bool):
-        """
-        ファイルプロパティウィンドウの表示・非表示状態を設定します。
-        :param visible: true:表示, false: 非表示
-        """
-        self.model.file_property_visible = visible
-
-    def is_file_property_visible(self):
+    @property
+    def file_property_visible(self):
         """
         画像ファイルのプロパティウィンドウの表示・非表示状態
         :return: true:表示, false: 非表示
         """
         return self.model.file_property_visible
+
+    @file_property_visible.setter
+    def file_property_visible(self, visible: bool):
+        """
+        ファイルプロパティウィンドウの表示・非表示状態を設定します。
+        :param visible: true:表示, false: 非表示
+        """
+        self.model.file_property_visible = visible
 
     def handle_back_effect(self, event=None):
         """
@@ -218,7 +226,7 @@ class AppController(AbstractAppController):
         """
         f = self.model.get_current_image()
         if f is not None:
-            return ImageFileService.mosaic_filename(f)
+            return ImageFileService.mosaic_filename(f, self.model.save_directory)
         raise ValueError("get_mosaic_filename")
 
     def set_window_title(self, text: Path):

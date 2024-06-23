@@ -87,6 +87,8 @@ class AppDataModel:
         # プリセット
         self._current_preset_name = settings.effect_presets.default_preset
         self._current_effect = settings.effect_presets.get_preset(self._current_preset_name)
+        # ディレクトリをドロップ時
+        self._is_save_directory: bool = False
 
     def add_images(self, image_list: list[Path]) -> int:
         """
@@ -110,6 +112,14 @@ class AppDataModel:
         :return: 設定の値
         """
         return self.settings.get(key, default)
+
+    @property
+    def save_directory(self):
+        return self._is_save_directory
+
+    @save_directory.setter
+    def save_directory(self, value: bool):
+        self._is_save_directory = value
 
     @property
     def settings(self) -> AppConfig:
@@ -153,6 +163,7 @@ class AppDataModel:
         """
         self.image_list = []
         self.current = 0
+        self._is_save_directory = False
 
     def back_image(self):
         """

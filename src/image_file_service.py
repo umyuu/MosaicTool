@@ -117,6 +117,9 @@ class ImageFileService:
         # Todo: PNGINFOの情報はテストパターンを増やす。
         # ファイルの読み込み処理を改善する。
         # DataModel側に保持する。
+        if not output_path.parent.exists():
+            output_path.parent.mkdir(parents=True)
+
         if ImageFileService.is_png(filename):
             with Image.open(filename) as src_img:
                 ImageFileService.save_png_metadata(src_img, out_image, output_path)
@@ -174,11 +177,12 @@ class ImageFileService:
             out_image.save(output_path)
 
     @staticmethod
-    def mosaic_filename(file_path: Path) -> Path:
+    def mosaic_filename(file_path: Path, is_dir: bool = False) -> Path:
         """
         モザイク適用済みのファイルパスを生成します。
         同名ファイルが存在する場合は、画像の大きさを比較します。
         :param file_path: 元画像のファイルのパス
+        :param is_dir: ディレクトリの場合はTrue
         :return: モザイク適用済みのファイルパス
         """
         size = (0, 0)
@@ -188,21 +192,40 @@ class ImageFileService:
         except Exception as e:
             print(e)
 
+        new_file = file_path
+        if is_dir:  # 新しいディレクトリパスを作成
+            # パスの親ディレクトリとファイル名を取得
+            parent_dir = file_path.parent
+            file_name = file_path.name
+
+            # ディレクトリ名の末尾に_mosaicを付ける
+            new_parent_dir = parent_dir.with_name(parent_dir.name + '_mosaic')
+            new_file = new_parent_dir / file_name
+        return ImageFileService.generate_new_filename(new_file, size)
+
+    @staticmethod
+    def generate_new_filename(base_path: Path, size: tuple[int, int]) -> Path:
+        """
+        新しいファイル名を生成します。同名ファイルが存在する場合は、画像の大きさを比較します。
+        :param base_path: 元となるファイルパス
+        :param size: 元画像のサイズ
+        :return: 新しいファイルパス
+        """
         # 元のファイル名から新しいファイル名を作成
         for i in range(0, 1000):  # rangeは1から1000まで動作します
-            newFileName = file_path.with_stem(file_path.stem + f"_mosaic_{i}")
-            if not newFileName.exists():
-                return newFileName  # ファイルが存在しなければ新しいファイル名を返す
+            new_filename = base_path.with_stem(base_path.stem + f"_mosaic_{i}")
+            if not new_filename.exists():
+                return new_filename  # ファイルが存在しなければ新しいファイル名を返します。
             try:
-                new_size = ImageFileService.get_image_size(newFileName)
+                new_size = ImageFileService.get_image_size(new_filename)
                 if size == new_size:
-                    return newFileName  # 画像の大きさが同じなら新しいファイル名を返す
+                    return new_filename  # 画像の大きさが同じなら新しいファイル名を返します。
                 if size == (0, 0):
-                    return newFileName  # 元ファイルが削除されている場合は新しいファイル名を返す
+                    return new_filename  # 元ファイルが削除されている場合、新しいファイル名を返します。
             except Exception as e:
                 print(e)
                 time.sleep(3)
 
         if i == 1000:
             raise ValueError("Failed to generate a new file name after 1000 attempts.")
-        return newFileName
+        return new_filename

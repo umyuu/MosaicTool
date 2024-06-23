@@ -35,12 +35,10 @@
       "args": [
         "app.py",
         "--icon=assets/icons/app_icon.ico",
-        "--onefile",
         "--windowed",
         "--name",
         "MosaicTool",
         "--noconfirm",
-        "--noconsole",
         "--clean",
         "--collect-data",
         "tkinterdnd2",
