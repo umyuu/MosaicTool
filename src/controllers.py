@@ -106,6 +106,8 @@ class AppController(AbstractAppController):
         current = self.model.get_current_image()
         if current is None:
             return
+        if self.model.data_state == "Unchanged":
+            return  # アプリの閉じるボタンより
         mosaic_filename = ImageFileService.mosaic_filename(current, self.model.save_directory)
         self.view.on_save(mosaic_filename, False)
 
