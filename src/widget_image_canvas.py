@@ -85,8 +85,6 @@ class ImageCanvas(tk.Frame):
         マウスホイールイベント
         縦スクロールを行います。
         """
-        if not isinstance(event.widget, tk.Canvas):
-            return  # ファイルプロパティウィンドウのスクロールイベントは除外します。
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
     def on_shift_mousewheel(self, event):
@@ -94,8 +92,6 @@ class ImageCanvas(tk.Frame):
         Shiftマウスホイールイベント
         横スクロールを行います。
         """
-        if not isinstance(event.widget, tk.Canvas):
-            return  # ファイルプロパティウィンドウのスクロールイベントは除外します。
         self.canvas.xview_scroll(int(-1 * (event.delta / 120)), "units")
 
     def on_resize(self, event):
@@ -128,8 +124,8 @@ class ImageCanvas(tk.Frame):
             self.startup_message_id = None
 
         # 画像を表示時は、マウスホイールスクロール操作を行えるようにします。
-        self.canvas.bind_all("<MouseWheel>", self.on_mousewheel)
-        self.canvas.bind_all("<Shift-MouseWheel>", self.on_shift_mousewheel)
+        self.canvas.bind("<MouseWheel>", self.on_mousewheel)
+        self.canvas.bind("<Shift-MouseWheel>", self.on_shift_mousewheel)
 
     def handle_right_click(self, event):
         """
