@@ -26,56 +26,60 @@ class HeaderFrame(tk.Frame):
     """
     画面のヘッダー部
     """
-    def __init__(self, master, controller: AbstractAppController, bg: str, icons_path: Path):
+    def __init__(self, master, controller: AbstractAppController):
         """
         コンストラクタ
         :param master: 親Widget
         :param controller: コントローラー
-        :param bg: 背景色
-        :param icons_path: アイコンのフォルダ
         """
-        super().__init__(master, bg=bg)
+        super().__init__(master, bg=controller.theme_colors.bg_primary)
         self.controller = controller
 
         theme_colors = controller.theme_colors
         font_sizes = controller.font_sizes
-
+        icons_path = controller.icons_path
         # Widgetを生成します。
-        self.action_file_open = PhotoImageButton(self,
-                                                 image_path=str((icons_path / "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
-                                                 tooltip_text="Open (Ctrl+O)",
-                                                 bg=theme_colors.bg_secondary,
-                                                 command=self.controller.on_file_open)
-        self.action_save_as = PhotoImageButton(self,
-                                               image_path=str((icons_path / "save_as_24dp_FILL0_wght400_GRAD0_opsz24.png")),
-                                               tooltip_text="SaveAs (Ctrl+Shift+S)",
-                                               bg=theme_colors.bg_secondary,
-                                               command=self.controller.on_save_as)
-        self.action_back = PhotoImageButton(self,
-                                            image_path=str((icons_path / "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")),
-                                            tooltip_text="Previous file (<-)",
-                                            bg=theme_colors.bg_secondary,
-                                            command=self.controller.handle_back_image)
-        self.action_forward = PhotoImageButton(self,
-                                               image_path=str((icons_path / "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")),
-                                               tooltip_text="Next file (->)",
-                                               bg=theme_colors.bg_secondary,
-                                               command=self.controller.handle_next_image)
-        self.action_file_info = PhotoImageButton(self,
-                                                 image_path=str((icons_path / "info_24dp_FILL0_wght400_GRAD0_opsz24.png")),
-                                                 tooltip_text="Image Information (I)",
-                                                 bg=theme_colors.bg_secondary,
-                                                 command=self.controller.on_show_file_property)
+        self.action_file_open = PhotoImageButton(
+            self,
+            image_path=str((icons_path / "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+            tooltip_text="Open (Ctrl+O)",
+            bg=theme_colors.bg_secondary,
+            command=self.controller.on_file_open)
+        self.action_save_as = PhotoImageButton(
+            self,
+            image_path=str((icons_path / "save_as_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+            tooltip_text="SaveAs (Ctrl+Shift+S)",
+            bg=theme_colors.bg_secondary,
+            command=self.controller.on_save_as)
+        self.action_back = PhotoImageButton(
+            self,
+            image_path=str((icons_path / "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+            tooltip_text="Previous file (<-)",
+            bg=theme_colors.bg_secondary,
+            command=self.controller.handle_back_image)
+        self.action_forward = PhotoImageButton(
+            self,
+            image_path=str((icons_path / "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+            tooltip_text="Next file (->)",
+            bg=theme_colors.bg_secondary,
+            command=self.controller.handle_next_image)
+        self.action_file_info = PhotoImageButton(
+            self,
+            image_path=str((icons_path / "info_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+            tooltip_text="Image Information (I)",
+            bg=theme_colors.bg_secondary,
+            command=self.controller.on_show_file_property)
 
         self.mosaic_size = tk.Label(self, bg=theme_colors.bg_primary,
                                     text="モザイクサイズ：",
                                     font=("", font_sizes.h5))
 
-        self.action_mosaic_size_change = tk.Button(self,
-                                                   bg=theme_colors.bg_secondary,
-                                                   font=("", font_sizes.h4),
-                                                   width=6,
-                                                   command=self.controller.handle_next_effect)
+        self.action_mosaic_size_change = tk.Button(
+            self,
+            bg=theme_colors.bg_secondary,
+            font=("", font_sizes.h4),
+            width=6,
+            command=self.controller.handle_next_effect)
         self.action_mosaic_size_change_tooltip = Tooltip(self.action_mosaic_size_change,
                                                          "次のセルサイズに変更(Right Click)。 前のセルサイズに変更(Shift+Right Click)")
         self.update_view(None)
@@ -117,19 +121,18 @@ class MainFrame(tk.Frame):
     """
     画面のメイン部
     """
-    def __init__(self, master, controller: AbstractAppController, bg: str):
+    def __init__(self, master, controller: AbstractAppController):
         """
         コンストラクタ
         :param master: 親Widget
         :param controller: コントローラー
-        :param bg: 背景色
         """
-        super().__init__(master, bg=bg)
+        super().__init__(master, bg=controller.theme_colors.bg_neutral)
 
         self.controller = controller
 
         # 画面のキャンバス部分
-        self.image_canvas = ImageCanvas(self, controller, bg)
+        self.image_canvas = ImageCanvas(self, controller)
         self.image_canvas.pack(fill=tk.BOTH, expand=True)
 
         # イベントを登録します。
@@ -141,12 +144,13 @@ class FooterFrame(tk.Frame):
     """
     画面のフッター部
     """
-    def __init__(self, master, bg: str):
+    def __init__(self, master, controller: AbstractAppController):
         """
         コンストラクタ
-
+        :param master: 親Widget
+        :param controller: コントローラー
         """
-        super().__init__(master, bg=bg)
+        super().__init__(master, bg=controller.theme_colors.text_info)
 
         # Widgetの生成
         self.image_size = tk.Label(self, text=" ", bd=1, relief=tk.SUNKEN, anchor=tk.W)  # 画像サイズ表示用のラベルを追加
@@ -214,21 +218,20 @@ class MainPage(tk.Frame):
     """
     メインページ
     """
-    def __init__(self, master: TkinterDnD.Tk, controller: AbstractAppController, icons_path: Path):
+    def __init__(self, master: TkinterDnD.Tk, controller: AbstractAppController):
         """
         コンストラクタ
         :param master: 親Widget
         :param controller: コントローラー
-        :param icons_path: アイコンフォルダ
         """
         super().__init__(master, bg=controller.theme_colors.bg_neutral)
         self.controller = controller
-        theme_colors = controller.theme_colors
+
         self.file_property_window: Optional[FilePropertyWindow] = None
         # Widgetの生成
-        self.HeaderFrame = HeaderFrame(self, controller, theme_colors.bg_primary, icons_path)
-        self.MainFrame = MainFrame(self, controller, bg=theme_colors.bg_neutral)
-        self.FooterFrame = FooterFrame(self, bg=theme_colors.text_info)
+        self.HeaderFrame = HeaderFrame(self, controller)
+        self.MainFrame = MainFrame(self, controller)
+        self.FooterFrame = FooterFrame(self, controller)
 
         self.setup_bindings()
 
@@ -309,10 +312,17 @@ class MainPage(tk.Frame):
             ('jpg (*.jpg, *.jpeg)', ImageFormat['JPEG']),
             ('webp (*.webp)', ImageFormat['WEBP']),
             ('bmp (*.bmp)', ImageFormat['BMP']),
-            ('*', '*.*')
+            ('All Files', '*.*')
         ]
 
+        # フォルダをドロップ時は、モザイクフォルダが存在しません。
+        # フォルダを開く前にモザイクフォルダを作成します。
+        parent_dir = initial_file.parent
+        if not parent_dir.exists():
+            parent_dir.mkdir(parents=True)
+
         files = filedialog.asksaveasfilename(parent=self,
+                                             initialdir=parent_dir,
                                              initialfile=initial_file.name,
                                              confirmoverwrite=True,
                                              filetypes=IMAGE_FILE_TYPES)

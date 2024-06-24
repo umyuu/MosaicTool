@@ -80,6 +80,14 @@ class AbstractAppController(ABC):
         pass
 
     @property
+    def icons_path(self) -> Path:
+        """
+        アイコンフォルダのパスを取得します。
+        :return: アイコンフォルダのパス
+        """
+        raise NotImplementedError()
+
+    @property
     def font_sizes(self) -> FontSize:
         """
         フォントサイズを取得します。

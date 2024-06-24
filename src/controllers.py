@@ -31,6 +31,8 @@ class AppController(AbstractAppController):
         self.image_controller = ImageController(self)
         # 自動保存イベントを登録します。
         self.model.data_saved_handler = self.handle_auto_save
+        # アイコンフォルダ
+        self._icons_path: Path
 
     def add_file_path(self, file_path: Path) -> int:
         """
@@ -166,6 +168,22 @@ class AppController(AbstractAppController):
         :param visible: true:表示, false: 非表示
         """
         self.model.file_property_visible = visible
+
+    @property
+    def icons_path(self) -> Path:
+        """
+        アイコン画像のフォルダパス
+        :return: フォルタパス
+        """
+        return self._icons_path
+
+    @icons_path.setter
+    def icons_path(self, path: Path):
+        """
+        アイコンフォルダのパスを設定します。
+        :param path: アイコンフォルダのパス
+        """
+        self._icons_path = path
 
     def handle_back_effect(self, event=None):
         """

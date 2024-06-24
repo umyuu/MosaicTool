@@ -6,6 +6,7 @@
     "confirmoverwrite",
     "exif",
     "frombytes",
+    "initialdir",
     "initialfile",
     "ipadx",
     "itxt",

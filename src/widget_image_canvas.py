@@ -23,14 +23,14 @@ class ImageCanvas(tk.Frame):
     """
     画面のキャンバス領域
     """
-    def __init__(self, master, controller: AbstractAppController, bg: str):
+    def __init__(self, master, controller: AbstractAppController):
         """
         コンストラクタ
         :param master: 親Widget
         :param controller: コントローラー
         :param bg: 背景色
         """
-        super().__init__(master, bg=bg)
+        super().__init__(master, bg=controller.theme_colors.bg_neutral)
 
         self.controller = controller
         font_sizes = self.controller.font_sizes

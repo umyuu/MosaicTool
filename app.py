@@ -67,7 +67,8 @@ class MyApp(TkinterDnD.Tk):
         self.geometry(f'{width}x{height}')  # ウィンドウサイズ
 
         self.controller = AppController(self.model, None, self.set_window_title)
-        self.MainPage = MainPage(self, self.controller, icons_path)
+        self.controller.icons_path = icons_path
+        self.MainPage = MainPage(self, self.controller)
 
         self.MainPage.grid(column=0, row=0, sticky=tk.E + tk.W + tk.S + tk.N)
         self.columnconfigure(0, weight=1)
