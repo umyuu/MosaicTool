@@ -3,8 +3,10 @@
     ImageCanvas
     画像を表示および編集するためのキャンバス
 """
+import asyncio
 import tkinter as tk
 from tkinter import messagebox
+from threading import Thread
 from typing import Optional
 from pathlib import Path
 
@@ -159,7 +161,7 @@ class ImageCanvas(tk.Frame):
         self.original_image = ImageFileService.load(file_path)  # 元の画像を開く
         self.photo_image = ImageTk.PhotoImage(self.original_image)  # 元の画像のコピーをキャンバスに表示
         # 画像を更新
-        self.canvas.create_image(0, 0, image=self.photo_image, anchor=tk.NW)
+        self.canvas_image = self.canvas.create_image(0, 0, image=self.photo_image, anchor=tk.NW)
         # キャンバスのスクロール領域を設定
         self.canvas.config(scrollregion=(0, 0, self.original_image.width, self.original_image.height))
 
@@ -257,8 +259,7 @@ class ImageCanvas(tk.Frame):
 
         self.photo_image = ImageTk.PhotoImage(self.original_image)  # 元の画像のコピーをキャンバスに表示
         # キャンバスの画像も更新※画像サイズを変更しないため、スクロール領域は更新しません。
-        self.canvas.create_image(0, 0, image=self.photo_image, anchor=tk.NW)
-
+        self.canvas.itemconfig(self.canvas_image, image=self.photo_image)
         # 変更状態に設定します。
         self.controller.update_data_state("Modified")
 
@@ -282,6 +283,13 @@ class ImageCanvas(tk.Frame):
                     # ToDo: 自動保存時に同一ファイル名のエラー時の処理フローを改善する。
                     self.controller.update_data_state("Unchanged")
                     return
-        ImageFileService.save(self.original_image, output_path, current_file)
-        # 画像保存後は未編集状態に戻します。
+        # 未編集状態に戻します。
         self.controller.update_data_state("Unchanged")
+
+        # 画像データをbytesに変換後、スレッドを起動します。
+        mode = self.original_image.mode
+        size = self.original_image.size
+        data = self.original_image.tobytes()
+        thread = Thread(target=lambda: asyncio.run(
+            ImageFileService.save_async(mode, size, data, output_path, current_file)))
+        thread.start()

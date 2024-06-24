@@ -5,6 +5,7 @@
     "columnspan",
     "confirmoverwrite",
     "exif",
+    "frombytes",
     "initialfile",
     "ipadx",
     "itxt",
@@ -19,6 +20,7 @@
     "tearoff",
     "textvariable",
     "tkinterdnd",
+    "tobytes",
     "wght",
     "xscrollcommand",
     "yscrollcommand"

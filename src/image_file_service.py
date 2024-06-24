@@ -3,6 +3,7 @@
 ImageFileService
 このモジュールは、画像ファイルの読み込み、保存、処理など、画像ファイルに関連する操作を扱う ImageFileService クラスを提供します。
 """
+from functools import lru_cache
 from pathlib import Path
 import time
 from typing import Any
@@ -115,7 +116,7 @@ class ImageFileService:
         :param filename: 元画像のファイルパス
         """
         # Todo: PNGINFOの情報はテストパターンを増やす。
-        # ファイルの読み込み処理を改善する。
+        # 元ファイルを読み込み部分を廃止する。
         # DataModel側に保持する。
         if not output_path.parent.exists():
             output_path.parent.mkdir(parents=True)
@@ -128,8 +129,21 @@ class ImageFileService:
             with Image.open(filename) as src_img:
                 ImageFileService.save_jpeg_metadata(src_img, out_image, output_path)
             return
-
         out_image.save(output_path)
+
+    @staticmethod
+    async def save_async(mode, size: tuple[int, int], data: bytes, output_path: Path, filename: Path):
+        """
+        画像保存処理(非同期)
+        Image.Imageはpickle化を行えないため、bytes型で渡します。
+        :param mode: カラーモード
+        :param size: 出力画像サイズ
+        :param data: 出力画像
+        :param output_path: 出力先ファイルパス
+        :param filename: 元画像のファイルパス
+        """
+        out_image = Image.frombytes(mode, size, data)
+        ImageFileService.save(out_image, output_path, filename)
 
     @staticmethod
     def save_png_metadata(src_image: Image.Image, out_image: Image.Image, output_path: Path) -> None:
@@ -139,7 +153,6 @@ class ImageFileService:
         :param out_image: 出力画像
         :param output_path: 出力先ファイルパス
         """
-        sw = Stopwatch.start_new()
         png_info = src_image.info
         if png_info:
             new_png_info = PngInfo()
@@ -156,9 +169,7 @@ class ImageFileService:
 
                 new_png_info.add_itxt(key, value)
 
-            print(f"png save start.{sw.elapsed:.1f}", end=None)
             out_image.save(output_path, pnginfo=new_png_info)
-            print(f" saved successfully.{sw.elapsed:.1f}")
         else:
             out_image.save(output_path)
 
