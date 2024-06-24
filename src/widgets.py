@@ -292,10 +292,15 @@ class MainPage(tk.Frame):
             ('jpg (*.jpg, *.jpeg)', ImageFormat['JPEG']),
             ('webp (*.webp)', ImageFormat['WEBP']),
             ('bmp (*.bmp)', ImageFormat['BMP']),
-            ('*', '*.*')
+            ('All Files', '*.*')
         ]
 
-        files = filedialog.askopenfilenames(parent=self, filetypes=IMAGE_FILE_TYPES)
+        current = self.controller.get_current_image()
+        initialdir = None
+        if current is not None:
+            initialdir = current.parent
+
+        files = filedialog.askopenfilenames(parent=self, initialdir=initialdir, filetypes=IMAGE_FILE_TYPES)
         if len(files) == 0:
             return
         self.controller.handle_select_files_complete(files)
@@ -341,7 +346,7 @@ class MainPage(tk.Frame):
         sw = Stopwatch.start_new()
         self.on_save(save_file, True)
 
-        self.set_status_message(f"Save。{save_file.name}", f"{sw.elapsed:.3f}")
+        self.set_status_message(f"Save. {save_file.name}", f"{sw.elapsed:.3f}")
         messagebox.showinfo(PROGRAM_NAME, f"ファイルを保存しました。\n\n{save_file}")
 
     def set_status_message(self, text: str, time: str = ""):
