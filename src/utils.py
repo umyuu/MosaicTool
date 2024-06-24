@@ -9,7 +9,7 @@ def get_package_version() -> str:
     """
     バージョン情報を取得します。
     """
-    return '0.0.6'
+    return '0.0.7'
 
 
 def round_up_decimal(value: Decimal, places: int) -> Decimal:

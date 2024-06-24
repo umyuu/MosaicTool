@@ -4,13 +4,14 @@
     ファイル情報の画面
 """
 import tkinter as tk
+from tkinter import filedialog, messagebox
 from pathlib import Path
 
 from . import PROGRAM_NAME
 from . abstract_controllers import AbstractAppController
 from . app_config import FontSize, ThemeColors
 from . models import StatusBarInfo
-from . widgets_core import LabelTextEntry, RightClickMenu
+from . widgets_core import LabelTextEntry, RightClickMenu, PhotoImageButton
 
 
 class FilePropertyWindow:
@@ -53,6 +54,8 @@ class FilePropertyWindow:
         :param font_sizes: フォントサイズ情報
         :param theme_colors: テーマ色
         """
+        icons_path = self.controller.icons_path
+
         self.info_frame = tk.LabelFrame(self.main_frame,
                                         bg=theme_colors.bg_neutral, text="File Property", font=("", font_sizes.h5))
 
@@ -76,14 +79,25 @@ class FilePropertyWindow:
         self.mosaic_file_name.set_label_background_color(theme_colors.bg_neutral)
         self.mosaic_file_name.set_text_background_color(theme_colors.bg_white)
 
-        self.action_folder_mask = tk.Button(self.info_frame,
-                                            text="Folder Mask", bd=1, bg=theme_colors.bg_secondary,
-                                            relief=tk.RAISED, anchor=tk.W,
-                                            command=self.handle_folder_mask, font=("", font_sizes.body), pady=4)
+        self.action_folder_mask = tk.Button(
+            self.info_frame,
+            text="Folder Mask", bd=1, bg=theme_colors.bg_secondary,
+            relief=tk.RAISED, anchor=tk.W,
+            command=self.handle_folder_mask, font=("", font_sizes.body), pady=4)
 
-        self.action_copy = tk.Button(self.info_frame, text="Copy Extra Text", bd=1, bg=theme_colors.bg_secondary,
-                                     relief=tk.RAISED, anchor=tk.W, 
-                                     command=self.handle_copy_text, font=("", font_sizes.body), pady=4)
+        self.action_copy = PhotoImageButton(
+            self.info_frame,
+            image_path=str((icons_path / "content_copy_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+            tooltip_text="Copy Extra Text",
+            bg=theme_colors.bg_secondary,
+            command=self.handle_copy_text)
+
+        self.action_save_as = PhotoImageButton(
+            self.info_frame,
+            image_path=str((icons_path / "save_as_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+            tooltip_text="Save as Extra Text",
+            bg=theme_colors.bg_secondary,
+            command=self.on_save_as)
 
         self.setup_extra(font_sizes, theme_colors)
 
@@ -131,14 +145,16 @@ class FilePropertyWindow:
         self.info_frame.rowconfigure(5, weight=1)
         self.info_frame.columnconfigure(0, weight=1)
         self.info_frame.columnconfigure(1, weight=1)
+        self.info_frame.columnconfigure(2, weight=1)
 
-        self.file_name.grid(row=0, column=0, columnspan=2, sticky="ew", padx=4, pady=(4, 0))
-        self.folder.grid(row=1, column=0, columnspan=2, sticky="ew", padx=4, pady=(4, 0))
-        self.full_path.grid(row=2, column=0, columnspan=2, sticky="ew", padx=4, pady=(4, 0))
-        self.mosaic_file_name.grid(row=3, column=0, columnspan=2, sticky="ew", padx=4, pady=(4, 0))
+        self.file_name.grid(row=0, column=0, columnspan=3, sticky="ew", padx=4, pady=(4, 0))
+        self.folder.grid(row=1, column=0, columnspan=3, sticky="ew", padx=4, pady=(4, 0))
+        self.full_path.grid(row=2, column=0, columnspan=3, sticky="ew", padx=4, pady=(4, 0))
+        self.mosaic_file_name.grid(row=3, column=0, columnspan=3, sticky="ew", padx=4, pady=(4, 0))
         self.action_folder_mask.grid(row=4, column=0, sticky="ew", padx=4, pady=(4, 0))
         self.action_copy.grid(row=4, column=1, sticky="ew", padx=4, pady=(4, 0))
-        self.extra_frame.grid(row=5, column=0, columnspan=2, sticky="nsew", padx=4, pady=(4, 0))
+        self.action_save_as.grid(row=4, column=2, sticky="ew", padx=4, pady=(4, 0))
+        self.extra_frame.grid(row=5, column=0, columnspan=3, sticky="nsew", padx=4, pady=(4, 0))
 
     def setup_right_click_menu_bind(self):
         """
@@ -167,6 +183,47 @@ class FilePropertyWindow:
         text = self.extra_text.get("1.0", "end-1c")  # 1行目から最後の文字を取得
         self.win.clipboard_clear()  # クリップボードをクリア
         self.win.clipboard_append(text)  # テキストをクリップボードに追加
+
+    def on_save_as(self):
+        """
+        拡張情報を名前を付けて保存します。
+        """
+        ACCEPT_FILE_TYPES = [
+            ('Text Files', ("*.txt", "*.json")),
+            ('txt (*.txt)', "*.txt"),
+            ('json (*.json)', "*.json"),
+            ('All Files', '*.*')
+        ]
+        # 拡張子の初期値は、txt形式
+        extra_filename = self.controller.get_current_image().with_suffix(".txt")
+        files = filedialog.asksaveasfilename(parent=self.win,
+                                             initialdir=extra_filename.parent,
+                                             initialfile=extra_filename.name,
+                                             confirmoverwrite=True,
+                                             filetypes=ACCEPT_FILE_TYPES)
+        if len(files) == 0:
+            return
+
+        output_file = Path(files)
+        if len(output_file.suffix) == 0:
+            retval = messagebox.askokcancel(PROGRAM_NAME,
+                                            f"ファイル名に拡張子が付与されていません\n{output_file}\n\nOK:ファイル名の選択に戻る\nCancel:名前を付けて保存の処理を中断する。")
+            if not retval:
+                print(f"名前を付けて保存の処理を中断。:{output_file}")
+                return
+            self.on_save_as()
+            return
+
+        self.save(output_file)
+        messagebox.showinfo(PROGRAM_NAME, f"ファイルを保存しました。\n\n{output_file}")
+
+    def save(self, output_file: Path):
+        """
+        保存処理
+        :param output_file: 出力先のパス
+        """
+        text = self.extra_text.get("1.0", "end-1c")  # 1行目から最後の文字を取得
+        output_file.write_text(text, "utf-8")
 
     def on_window_open(self):
         """

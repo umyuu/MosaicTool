@@ -44,13 +44,15 @@ class Tooltip:
     """
     ウィジェットにツールチップを表示する
     """
-    def __init__(self, widget, text: str):
+    def __init__(self, widget: tk.Widget, text: str):
         """
         コンストラクタ
-        :param widget (tk.Widget): ツールチップを表示する対象のウィジェット
+        :param widget: ツールチップを表示する対象のウィジェット
         :param text: ツールチップに表示するテキスト
         """
-        self.widget = widget
+        if widget is None:
+            raise ValueError("widget cannot be None")
+        self.widget: tk.Widget = widget
         self.text = text
         self.tooltip = None
         self.widget.bind("<Enter>", self.handle_enter)
@@ -78,9 +80,12 @@ class Tooltip:
         ツールチップを表示する
         :param event: イベント
         """
-        x, y, _, _ = self.widget.bbox("insert")
-        x += self.widget.winfo_rootx() + 32
-        y = self.widget.winfo_rooty() + self.widget.winfo_height() + 8
+        # ウィジェットの位置を取得
+        x = self.widget.winfo_rootx()
+        y = self.widget.winfo_rooty()
+
+        x += 32
+        y += self.widget.winfo_height() + 8
         self.tooltip = tk.Toplevel(self.widget)
         self.tooltip.wm_overrideredirect(True)
         self.tooltip.wm_geometry("+%d+%d" % (x, y))

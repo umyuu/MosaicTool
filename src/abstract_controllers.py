@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Iterable, Optional
 
 from . app_config import AppConfig, FontSize, ThemeColors
-from . models import AppDataModel, StatusBarInfo
+from . models import AppDataModel, StatusBarInfo, DATA_STATE
 from . utils import Stopwatch
 from . effects.image_effects import MosaicEffect
 
@@ -80,6 +80,14 @@ class AbstractAppController(ABC):
         pass
 
     @property
+    def icons_path(self) -> Path:
+        """
+        アイコンフォルダのパスを取得します。
+        :return: アイコンフォルダのパス
+        """
+        raise NotImplementedError()
+
+    @property
     def font_sizes(self) -> FontSize:
         """
         フォントサイズを取得します。
@@ -138,3 +146,7 @@ class AbstractAppController(ABC):
         :return: 選択中のエフェクト
         """
         raise NotImplementedError()
+
+    @abstractmethod
+    def update_data_state(self, state: DATA_STATE):
+        pass

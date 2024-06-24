@@ -67,16 +67,27 @@ class MyApp(TkinterDnD.Tk):
         self.geometry(f'{width}x{height}')  # ウィンドウサイズ
 
         self.controller = AppController(self.model, None, self.set_window_title)
-        self.MainPage = MainPage(self, self.controller, icons_path)
+        self.controller.icons_path = icons_path
+        self.MainPage = MainPage(self, self.controller)
 
         self.MainPage.grid(column=0, row=0, sticky=tk.E + tk.W + tk.S + tk.N)
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
         self.controller.view = self.MainPage
-
+        self.protocol('WM_DELETE_WINDOW', self.on_window_close)
         # 遅延してイベントループで処理をします。
         self.MainPage.after(1, partial(self.after_launch, file_paths))
+
+    def on_window_close(self):
+        """
+        アプリのウィンドウを閉じる時に発生します。
+        """
+        try:
+            if self.controller:
+                self.controller.handle_auto_save(None)
+        finally:
+            self.destroy()  # ウィンドウを閉じる
 
     def set_window_title(self, filepath: Path):
         """
