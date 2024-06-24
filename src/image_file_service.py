@@ -3,14 +3,12 @@
 ImageFileService
 このモジュールは、画像ファイルの読み込み、保存、処理など、画像ファイルに関連する操作を扱う ImageFileService クラスを提供します。
 """
-from functools import lru_cache
 from pathlib import Path
 import time
 from typing import Any
 
 from PIL import Image
 from PIL.PngImagePlugin import PngInfo
-from src.utils import Stopwatch
 
 
 class ImageFileService:

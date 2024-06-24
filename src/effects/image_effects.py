@@ -7,7 +7,7 @@ image_effects モジュール
 from collections import OrderedDict
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Final, Optional, Any
+from typing import Final, Any
 
 from PIL import Image
 
@@ -62,7 +62,14 @@ class MosaicEffect:
         image.paste(region, (start_x, start_y, start_x + region.width, start_y + region.height))
         return True
 
-    def apply_mosaic_to_region(self, image: Image.Image, start_x: int, start_y: int, end_x: int, end_y: int, region_width: int, region_height: int) -> Image.Image:
+    def apply_mosaic_to_region(self,
+                               image: Image.Image,
+                               start_x: int,
+                               start_y: int,
+                               end_x: int,
+                               end_y: int, 
+                               region_width: int, 
+                               region_height: int) -> Image.Image:
         """
         指定された領域にモザイク効果を適用する
         :param image: モザイクをかける画像
