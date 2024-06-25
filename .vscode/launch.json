@@ -45,7 +45,10 @@
         "--add-data",
         "./assets;./assets",
         "--add-data",
-        "./third_party;./third_party"
+        "./third_party;./third_party",
+        "--exclude-module=pip-licenses",
+        "--exclude-module=numpy",
+        "--exclude-module=snakeviz"
       ]
     },
     {

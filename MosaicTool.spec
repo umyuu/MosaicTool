@@ -14,7 +14,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=['pip-licenses', 'numpy', 'snakeviz'],
     noarchive=False,
     optimize=0,
 )
