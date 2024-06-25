@@ -4,11 +4,11 @@ ImageFileService
 このモジュールは、画像ファイルの読み込み、保存、処理など、画像ファイルに関連する操作を扱う ImageFileService クラスを提供します。
 """
 from pathlib import Path
-import time
 from typing import Any
 
 from PIL import Image
 from PIL.PngImagePlugin import PngInfo
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type, RetryError
 
 
 class ImageFileService:
@@ -219,22 +219,39 @@ class ImageFileService:
         :param base_path: 元となるファイルパス
         :param size: 元画像のサイズ
         :return: 新しいファイルパス
+        :raise RetryError 最大リトライ回数(60)を超えた時に発生します。
         """
-        # 元のファイル名から新しいファイル名を作成
-        for i in range(0, 1000):  # rangeは1から1000まで動作します
-            new_filename = base_path.with_stem(base_path.stem + f"_mosaic_{i}")
-            if not new_filename.exists():
-                return new_filename  # ファイルが存在しなければ新しいファイル名を返します。
-            try:
-                new_size = ImageFileService.get_image_size(new_filename)
-                if size == new_size:
-                    return new_filename  # 画像の大きさが同じなら新しいファイル名を返します。
-                if size == (0, 0):
-                    return new_filename  # 元ファイルが削除されている場合、新しいファイル名を返します。
-            except Exception as e:
-                print(e)
-                time.sleep(3)
+        def check_file_exists(filename: Path):
+            """
+            ファイルの存在チェックを行います。
+            ファイルが存在時は、画像の大きさを比較します。
+            大きさが同じならモザイク加工後のファイルと判定します。
+            :param filename: チェックするファイルのパス
+            :return: ファイルが存在しないか、同じサイズの画像の場合はファイル名を返します。
+            :raise FileExistsError: ファイルが存在し、画像サイズが異なる場合に発生します。
+            """
+            if not filename.exists():
+                return filename
+            new_size = ImageFileService.get_image_size(filename)
+            if size == new_size:
+                return filename  # 画像の大きさが同じなら新しいファイル名を返します。
+            raise FileExistsError(f"File {filename} already exists")
 
-        if i == 1000:
-            raise ValueError("Failed to generate a new file name after 1000 attempts.")
-        return new_filename
+        attempt = 0
+
+        @retry(stop=stop_after_attempt(60), retry=retry_if_exception_type(FileExistsError))
+        def attempt_with_retry():
+            """
+            ファイル名の生成とチェックをリトライする関数。
+            :return: 存在しないか、同じサイズの画像ファイル名を返します。
+            :raise FileExistsError: ファイルが存在し、画像サイズが異なる場合に発生します。
+            """
+            nonlocal attempt
+            filename = base_path.with_stem(base_path.stem + f"_mosaic_{attempt}")
+            attempt += 1
+            return check_file_exists(filename)
+
+        while True:
+            # ファイル名の生成とチェックを試みる
+            unique_filename = attempt_with_retry()
+            return unique_filename

@@ -26,7 +26,7 @@ class TestImageFileService(unittest.TestCase):
         """
         PNGINFOの出力確認
         """
-        image_path = os.path.join(self.current_dir, 'test_files', 'pnginfo_valid.png')
+        image_path = Path(self.current_dir, 'test_files', 'pnginfo_valid.png')
         # テストに使用する画像と出力先パスを準備
         with Image.open(image_path) as src_image:
             out_image = Image.new("RGB", (100, 100), color="blue")
@@ -50,6 +50,22 @@ class TestImageFileService(unittest.TestCase):
 
             # テスト完了後に出力先ファイルを削除
             output_path.unlink()
+
+    def test_generate_new_filename(self):
+        """
+        モザイクファイル名生成処理
+        """
+        image_path = Path(self.current_dir, 'test_files', 'pnginfo_valid.png')
+        # テスト用ファイルを作成します。
+        test_file = image_path.with_name("pnginfo_valid_test.png")
+        test_file.write_bytes(image_path.read_bytes())
+
+        size = ImageFileService.get_image_size(test_file)
+        new_file = ImageFileService.generate_new_filename(test_file, size)
+
+        # テスト用ファイルと生成されたファイルが一致しない事
+        self.assertNotEqual(test_file, new_file)
+        test_file.unlink()
 
 
 if __name__ == "__main__":
