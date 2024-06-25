@@ -3,10 +3,8 @@
     ImageCanvas
     画像を表示および編集するためのキャンバス
 """
-import asyncio
 import tkinter as tk
 from tkinter import messagebox
-from threading import Thread
 from typing import Optional
 from pathlib import Path
 
@@ -283,13 +281,5 @@ class ImageCanvas(tk.Frame):
                     # ToDo: 自動保存時に同一ファイル名のエラー時の処理フローを改善する。
                     self.controller.update_data_state("Unchanged")
                     return
-        # 未編集状態に戻します。
-        self.controller.update_data_state("Unchanged")
-
-        # 画像データをbytesに変換後、スレッドを起動します。
-        mode = self.original_image.mode
-        size = self.original_image.size
-        data = self.original_image.tobytes()
-        thread = Thread(target=lambda: asyncio.run(
-            ImageFileService.save_async(mode, size, data, output_path, current_file)))
-        thread.start()
+        # 画像の保存処理
+        self.controller.save_image(self.original_image, output_path)

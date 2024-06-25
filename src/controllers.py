@@ -2,9 +2,13 @@
 """
     AppController
 """
+import asyncio
 from pathlib import Path
+from threading import Thread
 from typing import Callable, Iterable, Optional
 import re
+
+from PIL import Image
 
 from . app_config import AppConfig, FontSize, ThemeColors
 from . models import AppDataModel, StatusBarInfo, DATA_STATE
@@ -152,6 +156,25 @@ class AppController(AbstractAppController):
         status = self.get_status()
         image_info = ImageFileService.get_image_info(status.file_path)
         self.view.on_show_file_property(status, str(image_info))
+
+    def save_image(self, image: Image.Image, output_path: Path):
+        """
+        画像を保存します。
+        """
+        current_file = self.get_current_image()
+        if current_file is None:
+            return
+
+        # 画像データをbytesに変換後、スレッドを起動します。
+        mode = image.mode
+        size = image.size
+        data = image.tobytes()  # スレッドセーフにするためにコピーします。
+        # 未編集状態に戻します。
+        self.update_data_state("Unchanged")
+
+        thread = Thread(target=lambda: asyncio.run(
+            ImageFileService.save_async(mode, size, data, output_path, current_file)))
+        thread.start()
 
     @property
     def file_property_visible(self):

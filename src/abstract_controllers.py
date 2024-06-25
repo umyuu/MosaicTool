@@ -7,6 +7,8 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Iterable, Optional
 
+from PIL import Image
+
 from . app_config import AppConfig, FontSize, ThemeColors
 from . models import AppDataModel, StatusBarInfo, DATA_STATE
 from . utils import Stopwatch
@@ -149,4 +151,8 @@ class AbstractAppController(ABC):
 
     @abstractmethod
     def update_data_state(self, state: DATA_STATE):
+        pass
+
+    @abstractmethod
+    def save_image(self, out_image: Image.Image, output_path: Path):
         pass
