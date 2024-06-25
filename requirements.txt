@@ -1,16 +1,25 @@
+# Software license list
+pip-licenses==4.4.0
+
+# asyncio file support
+aiofiles==24.1.0
+
 # Image processing library
 pillow==10.3.0
 
+# Retry library
+tenacity==8.4.2
+
 # GUI library
 # tkinterdnd2 is used for adding drag and drop functionality in Tkinter applications
-tkinterdnd2==0.3.0
+tkinterdnd2-universal==1.7.3
 
-#Used in the creation of executable files
+# Numerical computation library used for unit testing
+numpy==2.0.0
+
+# Used in the creation of executable files
 pyinstaller==6.7.0
 
 # Profiling tools
 # snakeviz is used for visualizing cProfile results
 snakeviz==2.2.0
-
-# Numerical computation library used for unit testing
-numpy
