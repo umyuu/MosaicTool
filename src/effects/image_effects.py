@@ -47,8 +47,8 @@ class MosaicEffect:
         region_width = end_x - start_x
         region_height = end_y - start_y
 
-        # 領域の幅または高さが0以下の場合、モザイク処理をスキップする
-        if region_width <= 0 or region_height <= 0:
+        # 領域の幅または高さがセルサイズ未満の場合、モザイク処理をスキップする
+        if region_width < self.cell_size or region_height < self.cell_size:
             return False
 
         # セルサイズが最小セルサイズ未満の場合、エラーを発生させる
