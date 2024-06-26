@@ -156,3 +156,7 @@ class AbstractAppController(ABC):
     @abstractmethod
     def save_image(self, out_image: Image.Image, output_path: Path):
         pass
+
+    @abstractmethod
+    def shutdown_executor(self):
+        pass

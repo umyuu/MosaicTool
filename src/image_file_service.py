@@ -5,10 +5,9 @@ ImageFileService
 """
 from pathlib import Path
 from typing import Any
-
 from PIL import Image
 from PIL.PngImagePlugin import PngInfo
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type, RetryError
+from tenacity import retry, stop_after_attempt, retry_if_exception_type
 
 
 class ImageFileService:
@@ -106,13 +105,17 @@ class ImageFileService:
             return img.info
 
     @staticmethod
-    def save(out_image: Image.Image, output_path: Path, filename: Path):
+    def save(mode, size: tuple[int, int], data: bytes, output_path: Path, filename: Path):
         """
         画像保存処理
-        :param out_image: 出力画像
+        Image.Imageはpickle化を行えないため、bytes型で渡します。
+        :param mode: カラーモード
+        :param size: 出力画像サイズ
+        :param data: 出力画像
         :param output_path: 出力先ファイルパス
         :param filename: 元画像のファイルパス
         """
+        out_image = Image.frombytes(mode, size, data)
         # Todo: PNGINFOの情報はテストパターンを増やす。
         # 元ファイルを読み込み部分を廃止する。
         # DataModel側に保持する。
@@ -128,20 +131,6 @@ class ImageFileService:
                 ImageFileService.save_jpeg_metadata(src_img, out_image, output_path)
             return
         out_image.save(output_path)
-
-    @staticmethod
-    async def save_async(mode, size: tuple[int, int], data: bytes, output_path: Path, filename: Path):
-        """
-        画像保存処理(非同期)
-        Image.Imageはpickle化を行えないため、bytes型で渡します。
-        :param mode: カラーモード
-        :param size: 出力画像サイズ
-        :param data: 出力画像
-        :param output_path: 出力先ファイルパス
-        :param filename: 元画像のファイルパス
-        """
-        out_image = Image.frombytes(mode, size, data)
-        ImageFileService.save(out_image, output_path, filename)
 
     @staticmethod
     def save_png_metadata(src_image: Image.Image, out_image: Image.Image, output_path: Path) -> None:

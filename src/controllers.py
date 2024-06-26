@@ -4,7 +4,7 @@
 """
 import asyncio
 from pathlib import Path
-from threading import Thread
+from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Iterable, Optional
 import re
 
@@ -37,6 +37,7 @@ class AppController(AbstractAppController):
         self.model.data_saved_handler = self.handle_auto_save
         # アイコンフォルダ
         self._icons_path: Path
+        self.executor = ThreadPoolExecutor(max_workers=3)
 
     def add_file_path(self, file_path: Path) -> int:
         """
@@ -165,16 +166,16 @@ class AppController(AbstractAppController):
         if current_file is None:
             return
 
-        # 画像データをbytesに変換後、スレッドを起動します。
+        # スレッドセーフにするために画像データをbytesにコピーします。
         mode = image.mode
         size = image.size
-        data = image.tobytes()  # スレッドセーフにするためにコピーします。
-        # 未編集状態に戻します。
+        data = image.tobytes()
+        # 画像の編集状態を未編集状態に変更します。
         self.update_data_state("Unchanged")
 
-        thread = Thread(target=lambda: asyncio.run(
-            ImageFileService.save_async(mode, size, data, output_path, current_file)))
-        thread.start()
+        loop = asyncio.get_running_loop()
+        # スレッドプールでブロッキングタスクを実行します。
+        loop.run_in_executor(self.executor, ImageFileService.save, mode, size, data, output_path, current_file)
 
     @property
     def file_property_visible(self):
@@ -334,6 +335,12 @@ class AppController(AbstractAppController):
 
     def get_config(self) -> AppConfig:
         return self.model.settings
+
+    def shutdown_executor(self):
+        """
+        Executorのシャットダウンを行います。
+        """
+        self.executor.shutdown()
 
 
 class ImageController:

@@ -86,6 +86,7 @@ class MyApp(TkinterDnD.Tk):
         try:
             if self.controller:
                 self.controller.handle_auto_save(None)
+                self.controller.shutdown_executor()
         finally:
             self.destroy()  # ウィンドウを閉じる
 
