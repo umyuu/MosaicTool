@@ -1,9 +1,46 @@
-NOTICES
+# NOTICES
 
 This repository uses the materials listed or described below.
 
+## Use materials
 ---------------------------------------------------------
-
 material-design-icons - Apache License Version 2.0
 https://github.com/google/material-design-icons
+---------------------------------------------------------
+
+## Use librarys
+---------------------------------------------------------
+
+aiofiles - Apache License Version 2.0
+https://github.com/Tinche/aiofiles
+---------------------------------------------------------
+
+pillow - Historical Permission Notice and Disclaimer (HPND)
+https://github.com/google/material-design-icons
+---------------------------------------------------------
+
+tenacity - Apache License Version 2.0
+https://github.com/jd/tenacity
+---------------------------------------------------------
+
+tkinterdnd2-universal - MIT License
+https://pypi.org/project/tkinterdnd2-universal/
+---------------------------------------------------------
+
+## Use test
+---------------------------------------------------------
+
+numpy - BSD License
+https://github.com/numpy/numpy
+---------------------------------------------------------
+
+snakeviz - BSD License
+https://github.com/jiffyclub/snakeviz
+---------------------------------------------------------
+
+## Use exe file create
+---------------------------------------------------------
+
+pyinstaller - GNU General Public License v2 (GPLv2)
+https://github.com/pyinstaller/pyinstaller
 ---------------------------------------------------------
