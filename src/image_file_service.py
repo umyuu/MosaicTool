@@ -18,53 +18,6 @@ class ImageFileService:
         None
     """
     @staticmethod
-    def is_png(path: Path) -> bool:
-        """
-        渡されたファイルがPNG形式かどうかを判定します。
-
-        :param path: ファイルのパス
-        :return: PNG形式かどうかの真偽値
-        """
-        # ファイルの存在を確認する
-        if not path.is_file():
-            return False
-
-        # ファイルをバイナリモードで開く
-        with open(path, 'rb') as f:
-            # 先頭8バイトを読み取る
-            header = f.read(8)
-
-        # ファイルが8バイト未満の場合はPNGファイルではないと見なす
-        if len(header) < 8:
-            return False
-
-        # PNGのシグネチャが存在するかどうかを確認する
-        return header[:8] == b'\x89PNG\r\n\x1a\n'
-
-    @staticmethod
-    def is_jpg(path: Path) -> bool:
-        """
-        渡されたファイルがJPEG形式かどうかを判定します。
-        :param path: ファイルのパス
-        :return: JPEG形式かどうかの真偽値
-        """
-        # ファイルの存在を確認する
-        if not path.is_file():
-            return False
-
-        # ファイルをバイナリモードで開く
-        with open(path, 'rb') as f:
-            # 先頭2バイトを読み取る
-            header = f.read(2)
-
-        # ファイルが2バイト未満の場合はJPGファイルではないと見なす
-        if len(header) < 2:
-            return False
-
-        # 先頭バイトがJPGファイルのマジックナンバーであるかどうかを確認する
-        return header == b'\xFF\xD8'
-
-    @staticmethod
     def load(file_path: Path) -> Image.Image:
         """
         画像ファイルを読み込みます。
@@ -122,14 +75,15 @@ class ImageFileService:
         if not output_path.parent.exists():
             output_path.parent.mkdir(parents=True)
 
-        if ImageFileService.is_png(filename):
+        if filename.exists():
             with Image.open(filename) as src_img:
-                ImageFileService.save_png_metadata(src_img, out_image, output_path)
-            return
-        if ImageFileService.is_jpg(filename):
-            with Image.open(filename) as src_img:
-                ImageFileService.save_jpeg_metadata(src_img, out_image, output_path)
-            return
+                if src_img.format == "PNG":
+                    ImageFileService.save_png_metadata(src_img, out_image, output_path)
+                    return
+                if src_img.format == "JPEG":
+                    ImageFileService.save_jpeg_metadata(src_img, out_image, output_path)
+                    return
+
         out_image.save(output_path)
 
     @staticmethod
