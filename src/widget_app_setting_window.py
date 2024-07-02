@@ -1,22 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-    FilePropertyWindow
-    ファイル情報の画面
+    AppSettingsWindow
+    設定画面
 """
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from pathlib import Path
 
 from . import PROGRAM_NAME
-from . abstract_controllers import AbstractAppController
-from . app_config import FontSize, ThemeColors
-from . models import StatusBarInfo
-from . widgets_core import LabelTextEntry, RightClickMenu, PhotoImageButton
+from .abstract_controllers import AbstractAppController
+from .app_config import FontSize, ThemeColors
+from .widgets_core import RightClickMenu, PhotoImageButton
 
 
-class FilePropertyWindow:
+class AppSettingsWindow:
     """
-    ファイルプロパティウィンドウ
+    設定ウィンドウ
     """
     def __init__(self, master, controller: AbstractAppController):
         """
@@ -32,7 +31,7 @@ class FilePropertyWindow:
 
         width, height = config.get("window_sizes").get("file_property")
         self.win = tk.Toplevel(master, bg=theme_colors.bg_neutral)
-        self.win.title(f"{PROGRAM_NAME} - File Property")
+        self.win.title(f"{PROGRAM_NAME} - App Settings")
         self.win.geometry(f"{width}x{height}")
         self.win.protocol('WM_DELETE_WINDOW', self.on_window_close)
 
@@ -59,33 +58,7 @@ class FilePropertyWindow:
         self.info_frame = tk.LabelFrame(self.main_frame,
                                         bg=theme_colors.bg_neutral, text="File Property", font=("", font_sizes.h5))
 
-        self.file_name_var = tk.StringVar()
-        self.file_name_var.set("")
-        self.file_name = tk.Entry(self.info_frame,
-                                  font=("", font_sizes.body),
-                                  bg=theme_colors.bg_white,
-                                  textvariable=self.file_name_var)
-
-        self.folder = LabelTextEntry(self.info_frame, text="Folder:", font=("", font_sizes.body), textvariable=None)
-        self.folder.set_label_background_color(theme_colors.bg_neutral)
-        self.folder.set_text_background_color(theme_colors.bg_white)
-
-        self.full_path = LabelTextEntry(self.info_frame, text="Full Path:", font=("", font_sizes.body), textvariable=None)
-        self.full_path.set_label_background_color(theme_colors.bg_neutral)
-        self.full_path.set_text_background_color(theme_colors.bg_white)
-
-        self.mosaic_file_name = LabelTextEntry(self.info_frame,
-                                               text="Mosaic File:", font=("", font_sizes.body), textvariable=None)
-        self.mosaic_file_name.set_label_background_color(theme_colors.bg_neutral)
-        self.mosaic_file_name.set_text_background_color(theme_colors.bg_white)
-
-        self.action_folder_mask = tk.Button(
-            self.info_frame,
-            text="Folder Mask", bd=1, bg=theme_colors.bg_secondary,
-            relief=tk.RAISED, anchor=tk.W,
-            command=self.handle_folder_mask, font=("", font_sizes.body), pady=4)
-
-        self.action_copy = PhotoImageButton(
+        self.action_app = PhotoImageButton(
             self.info_frame,
             photo_image=asset.get_tk_image("content_copy"),
             tooltip_text="Copy Extra Text",
@@ -126,9 +99,16 @@ class FilePropertyWindow:
         :param theme_colors: テーマ色
         """
         self.footer_frame = tk.Frame(self.main_frame, bg=theme_colors.bg_neutral)
-        self.action_ok = tk.Button(self.footer_frame, text="OK", relief=tk.RAISED, bg=theme_colors.bg_primary,
+        self.action_ok = tk.Button(self.footer_frame,
+                                   text="OK", relief=tk.RAISED, bg=theme_colors.bg_primary,
                                    command=self.on_window_close, font=("", font_sizes.h3))
-        self.action_ok.pack(fill=tk.X)
+        self.action_cancel = tk.Button(self.footer_frame,
+                                       text="CANCEL", relief=tk.RAISED, bg=theme_colors.bg_primary,
+                                       command=self.on_window_close, font=("", font_sizes.h3))
+        self.action_ok.grid(row=0, column=0, sticky="nsew")
+        self.action_cancel.grid(row=0, column=1, sticky="nsew")
+        #self.action_ok.pack(fill=tk.Y)
+        #self.action_cancel.pack(fill=tk.Y)
 
     def setup_grid(self):
         """Widgetを配置します。"""
@@ -147,12 +127,6 @@ class FilePropertyWindow:
         self.info_frame.columnconfigure(1, weight=1)
         self.info_frame.columnconfigure(2, weight=1)
 
-        self.file_name.grid(row=0, column=0, columnspan=3, sticky="ew", padx=4, pady=(4, 0))
-        self.folder.grid(row=1, column=0, columnspan=3, sticky="ew", padx=4, pady=(4, 0))
-        self.full_path.grid(row=2, column=0, columnspan=3, sticky="ew", padx=4, pady=(4, 0))
-        self.mosaic_file_name.grid(row=3, column=0, columnspan=3, sticky="ew", padx=4, pady=(4, 0))
-        self.action_folder_mask.grid(row=4, column=0, sticky="ew", padx=4, pady=(4, 0))
-        self.action_copy.grid(row=4, column=1, sticky="ew", padx=4, pady=(4, 0))
         self.action_save_as.grid(row=4, column=2, sticky="ew", padx=4, pady=(4, 0))
         self.extra_frame.grid(row=5, column=0, columnspan=3, sticky="nsew", padx=4, pady=(4, 0))
 
@@ -160,20 +134,8 @@ class FilePropertyWindow:
         """
         右クリックメニューにテキスト項目をbindします。
         """
-        for entry in (self.file_name,
-                      self.folder.text_entry,
-                      self.full_path.text_entry,
-                      self.mosaic_file_name.text_entry,
-                      self.extra_text):
+        for entry in [self.extra_text]:
             entry.bind("<Button-3>", self.right_click_menu.on_show_menu)
-
-    def handle_folder_mask(self):
-        """
-        フォルダーマスクボタン
-        """
-        self.folder.set_text("")
-        self.full_path.set_text("")
-        self.mosaic_file_name.set_text("")
 
     def handle_copy_text(self):
         """
@@ -230,26 +192,14 @@ class FilePropertyWindow:
         ファイル情報を開く
         """
         self.win.deiconify()
-        self.controller.file_property_visible = True
+        self.controller.app_settings_window_visible = True
 
     def on_window_close(self):
         """
         ファイル情報ウィンドウを閉じる
         """
         self.win.withdraw()
-        self.controller.file_property_visible = False
-
-    def set_file_status(self, status: StatusBarInfo):
-        """
-        ファイル情報を表示します。
-        :param status: ファイル情報
-        """
-        file_path: Path = status.file_path
-
-        self.file_name_var.set(file_path.name)
-        self.folder.set_text(str(file_path.parent))
-        self.full_path.set_text(str(file_path))
-        self.mosaic_file_name.set_text(str(self.controller.get_mosaic_filename().name))
+        self.controller.app_settings_window_visible = False
 
     def set_extra_text(self, text: str):
         """

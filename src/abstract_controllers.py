@@ -10,9 +10,10 @@ from typing import Iterable, Optional
 from PIL import Image
 
 from . app_config import AppConfig, FontSize, ThemeColors
+from . asset import Asset
+from . effects.image_effects import MosaicEffect
 from . models import AppDataModel, StatusBarInfo, DATA_STATE
 from . utils import Stopwatch
-from . effects.image_effects import MosaicEffect
 
 
 class AbstractAppController(ABC):
@@ -43,6 +44,10 @@ class AbstractAppController(ABC):
 
     @abstractmethod
     def on_save_as(self, event=None):
+        pass
+
+    @abstractmethod
+    def on_show_settings(self, event=None):
         pass
 
     @abstractmethod
@@ -82,10 +87,10 @@ class AbstractAppController(ABC):
         pass
 
     @property
-    def icons_path(self) -> Path:
+    def asset(self) -> Asset:
         """
-        アイコンフォルダのパスを取得します。
-        :return: アイコンフォルダのパス
+        アセットを取得します。
+        :return: アセット
         """
         raise NotImplementedError()
 
@@ -128,7 +133,7 @@ class AbstractAppController(ABC):
     @property
     def file_property_visible(self):
         """
-        画像ファイルのプロパティウィンドウの表示・非表示状態
+        ファイル情報画面の表示・非表示状態
         :return: true:表示, false: 非表示
         """
         raise NotImplementedError()
@@ -136,7 +141,23 @@ class AbstractAppController(ABC):
     @file_property_visible.setter
     def file_property_visible(self, visible: bool):
         """
-        ファイルプロパティウィンドウの表示・非表示状態を設定します。
+        ファイル情報画面の表示・非表示状態を設定します。
+        :param visible: true:表示, false: 非表示
+        """
+        raise NotImplementedError()
+
+    @property
+    def app_settings_window_visible(self):
+        """
+        アプリ設定画面のプロパティウィンドウの表示・非表示状態
+        :return: true:表示, false: 非表示
+        """
+        raise NotImplementedError()
+
+    @app_settings_window_visible.setter
+    def app_settings_window_visible(self, visible: bool):
+        """
+        アプリ設定画面の表示・非表示状態を設定します。
         :param visible: true:表示, false: 非表示
         """
         raise NotImplementedError()

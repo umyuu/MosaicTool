@@ -88,6 +88,7 @@ class AppDataModel:
         # 許可される拡張子のリスト
         self.allowed_extensions = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".svg"]
         self.file_property_visible: bool = False
+        self.app_settings_window_visible: bool = False
         # ディレクトリをドロップ時
         self._is_save_directory: bool = False
         self._data_state: DATA_STATE = "Unchanged"

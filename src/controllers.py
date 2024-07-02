@@ -10,6 +10,7 @@ import re
 
 from PIL import Image
 
+from . asset import Asset
 from . app_config import AppConfig, FontSize, ThemeColors
 from . models import AppDataModel, StatusBarInfo, DATA_STATE
 from . image_file_service import ImageFileService
@@ -23,11 +24,13 @@ class AppController(AbstractAppController):
     """
     アプリのコントローラー
     """
-    def __init__(self, model: AppDataModel, view: MainPage, window_title_callback: Callable):
+    def __init__(self, model: AppDataModel, asset: Asset, view: MainPage, window_title_callback: Callable):
         """
         コンストラクタ
         """
-        self.model = model
+        self.model: AppDataModel = model
+        self.executor = ThreadPoolExecutor(max_workers=3)
+        self._asset: Asset = asset
         self.view = view
         self.window_title_callback = window_title_callback
         # ドラッグ＆ドロップで渡されたパスを分割する正規表現
@@ -37,7 +40,6 @@ class AppController(AbstractAppController):
         self.model.data_saved_handler = self.handle_auto_save
         # アイコンフォルダ
         self._icons_path: Path
-        self.executor = ThreadPoolExecutor(max_workers=3)
 
     def add_file_path(self, file_path: Path) -> int:
         """
@@ -94,9 +96,19 @@ class AppController(AbstractAppController):
         self.view.set_status_message(f"received in drop files:{count}")
         self.display_process_time(f"{sw.elapsed:.3f}s")
 
+    def initialize(self):
+        self._asset.load_all_images()
+
     @property
     def current_effect(self) -> MosaicEffect:
         return self.model.current_effect
+
+    @property
+    def asset(self) -> Asset:
+        if self._asset is None:
+            raise ValueError()
+
+        return self._asset
 
     def on_file_open(self, event=None):
         """
@@ -149,7 +161,7 @@ class AppController(AbstractAppController):
 
     def on_show_file_property(self, event=None):
         """
-        画像情報を表示するをクリック時
+        ファイル情報画面を表示するをクリック時
         :param event: イベント
         """
         if self.model.count == 0:
@@ -157,6 +169,13 @@ class AppController(AbstractAppController):
         status = self.get_status()
         image_info = ImageFileService.get_image_info(status.file_path)
         self.view.on_show_file_property(status, str(image_info))
+
+    def on_show_settings(self, event=None):
+        """
+        設定画面を表示するをクリック時
+        :param event: イベント
+        """
+        self.view.on_show_settings(event)
 
     def save_image(self, image: Image.Image, output_path: Path):
         """
@@ -194,20 +213,20 @@ class AppController(AbstractAppController):
         self.model.file_property_visible = visible
 
     @property
-    def icons_path(self) -> Path:
+    def app_settings_window_visible(self):
         """
-        アイコン画像のフォルダパス
-        :return: フォルタパス
+        設定画面の表示・非表示状態
+        :return: true:表示, false: 非表示
         """
-        return self._icons_path
+        return self.model.app_settings_window_visible
 
-    @icons_path.setter
-    def icons_path(self, path: Path):
+    @app_settings_window_visible.setter
+    def app_settings_window_visible(self, visible: bool):
         """
-        アイコンフォルダのパスを設定します。
-        :param path: アイコンフォルダのパス
+        設定画面の表示・非表示状態を設定します。
+        :param visible: true:表示, false: 非表示
         """
-        self._icons_path = path
+        self.model.app_settings_window_visible = visible
 
     def handle_back_effect(self, event=None):
         """

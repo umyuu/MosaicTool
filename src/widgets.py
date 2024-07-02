@@ -17,6 +17,7 @@ from . abstract_controllers import AbstractAppController
 from . models import StatusBarInfo, ImageFormat
 from . utils import round_up_decimal, Stopwatch
 from . widgets_core import WidgetUtils, PhotoImageButton, Tooltip
+from . widget_app_setting_window import AppSettingsWindow
 from . widget_file_property_window import FilePropertyWindow
 from . widget_image_canvas import ImageCanvas
 from . effects.image_effects import MosaicEffect
@@ -37,35 +38,36 @@ class HeaderFrame(tk.Frame):
 
         theme_colors = controller.theme_colors
         font_sizes = controller.font_sizes
-        icons_path = controller.icons_path
+        asset = controller.asset
+
         # Widgetを生成します。
         self.action_file_open = PhotoImageButton(
             self,
-            image_path=str((icons_path / "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+            photo_image=asset.get_tk_image("file_open"),
             tooltip_text="Open (Ctrl+O)",
             bg=theme_colors.bg_secondary,
             command=self.controller.on_file_open)
         self.action_save_as = PhotoImageButton(
             self,
-            image_path=str((icons_path / "save_as_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+            photo_image=asset.get_tk_image("save_as"),
             tooltip_text="SaveAs (Ctrl+Shift+S)",
             bg=theme_colors.bg_secondary,
             command=self.controller.on_save_as)
         self.action_back = PhotoImageButton(
             self,
-            image_path=str((icons_path / "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+            photo_image=asset.get_tk_image("arrow_back"),
             tooltip_text="Previous file (<-)",
             bg=theme_colors.bg_secondary,
             command=self.controller.handle_back_image)
         self.action_forward = PhotoImageButton(
             self,
-            image_path=str((icons_path / "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+            photo_image=asset.get_tk_image("arrow_forward"),
             tooltip_text="Next file (->)",
             bg=theme_colors.bg_secondary,
             command=self.controller.handle_next_image)
         self.action_file_info = PhotoImageButton(
             self,
-            image_path=str((icons_path / "info_24dp_FILL0_wght400_GRAD0_opsz24.png")),
+            photo_image=asset.get_tk_image("info"),
             tooltip_text="Image Information (I)",
             bg=theme_colors.bg_secondary,
             command=self.controller.on_show_file_property)
@@ -82,10 +84,14 @@ class HeaderFrame(tk.Frame):
             command=self.controller.handle_next_effect)
         self.action_mosaic_size_change_tooltip = Tooltip(self.action_mosaic_size_change,
                                                          "次のセルサイズに変更(Right Click)。 前のセルサイズに変更(Shift+Right Click)")
+        self.action_Settings = PhotoImageButton(
+            self,
+            photo_image=asset.get_tk_image("settings"),
+            tooltip_text="Settings (Ctrl+,)",
+            bg=theme_colors.bg_secondary,
+            command=self.controller.on_show_settings)
+
         self.update_view(None)
-
-        self.widgetHeader = tk.Label(self, bg=theme_colors.bg_primary)
-
         # Widgetを配置します。
         self.action_file_open.grid(row=0, column=0, padx=(0, 0))
         self.action_save_as.grid(row=0, column=1, padx=(4, 0))
@@ -94,7 +100,8 @@ class HeaderFrame(tk.Frame):
         self.action_file_info.grid(row=0, column=4, padx=(4, 0))
         self.mosaic_size.grid(row=0, column=5, padx=(8, 0))
         self.action_mosaic_size_change.grid(row=0, column=6, padx=(4, 4))
-        self.widgetHeader.grid(row=0, column=7, padx=(4, 0))
+        self.action_Settings.grid(row=0, column=7, padx=(4, 4), pady=(4, 4), sticky=tk.E)
+        self.grid_columnconfigure(7, weight=1)
 
         # キーバインドの設定をします。
         WidgetUtils.bind_all(self, "Control", "O", partial(self.controller.on_file_open))
@@ -104,6 +111,7 @@ class HeaderFrame(tk.Frame):
         WidgetUtils.bind_all(self, "", "Right", partial(self.controller.handle_next_image))
         WidgetUtils.bind_all(self, "Shift", "Right", partial(self.controller.handle_next_image))
         WidgetUtils.bind_all(self, "", "I", partial(self.controller.on_show_file_property))
+        WidgetUtils.bind_all(self, "Control", ",", partial(self.controller.on_show_file_property))
 
     def update_view(self, event):
         """
@@ -228,6 +236,7 @@ class MainPage(tk.Frame):
         self.controller = controller
 
         self.file_property_window: Optional[FilePropertyWindow] = None
+        self.app_settings_window: Optional[AppSettingsWindow] = None
         # Widgetの生成
         self.HeaderFrame = HeaderFrame(self, controller)
         self.MainFrame = MainFrame(self, controller)
@@ -320,8 +329,7 @@ class MainPage(tk.Frame):
             ('All Files', '*.*')
         ]
 
-        # フォルダをドロップ時は、モザイクフォルダが存在しません。
-        # フォルダを開く前にモザイクフォルダを作成します。
+        # フォルダをドロップ時は、モザイクフォルダが存在しないです。事前にモザイクフォルダを作成します。
         parent_dir = initial_file.parent
         if not parent_dir.exists():
             parent_dir.mkdir(parents=True)
@@ -361,7 +369,7 @@ class MainPage(tk.Frame):
 
     def on_show_file_property(self, status: StatusBarInfo, image_info):
         """
-        ファイルのプロパティ画面を表示します。
+        ファイルプロパティ画面を表示します。
         :param status: ステータスバーの情報
         :param image_info: Exif/PNGinfoの情報
         """
@@ -374,4 +382,14 @@ class MainPage(tk.Frame):
         else:
             self.file_property_window.set_extra_text("")
 
-        self.after(1, self.file_property_window.on_window_open)    
+        self.after(1, self.file_property_window.on_window_open)
+
+    def on_show_settings(self, event):
+        """
+        設定画面を表示します。
+        :param event: イベントデータ
+        """
+        if self.app_settings_window is None:
+            self.app_settings_window = AppSettingsWindow(self, self.controller)
+
+        self.after(1, self.app_settings_window.on_window_open)

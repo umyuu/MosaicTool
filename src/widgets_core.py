@@ -6,6 +6,8 @@
 import tkinter as tk
 from typing import Optional, Literal
 
+from PIL import ImageTk
+
 
 class WidgetUtils(object):
     """
@@ -97,19 +99,21 @@ class PhotoImageButton(tk.Button):
     """
     画像ボタンのクラス
     """
-    def __init__(self, master=None, image_path: str = "", tooltip_text: Optional[str] = None, **kwargs):
+    def __init__(self, master=None, 
+                 photo_image: Optional[tk.PhotoImage] = None,
+                 tooltip_text: Optional[str] = None,
+                 **kwargs):
         """
         コンストラクタ
         :param master: 親ウィジェット
-        :param image_path: ボタンに表示する画像のファイルパス
+        :param photo_image: ボタンに表示する画像
         :param tooltip_text: ツールチップに表示するテキスト
         :param kwargs: その他のオプション
         """
-        photo_image = tk.PhotoImage(file=image_path)
-        photo_image = photo_image.subsample(3, 3)
+        if photo_image is None:
+            raise ValueError("photo_image:None")
         super().__init__(master, image=photo_image, compound="top", **kwargs)
 
-        self.photo_image = photo_image  # ガベージコレクションを防ぐために画像を保持
         self.tooltip = Tooltip(self, tooltip_text) if tooltip_text else None
 
 
@@ -125,7 +129,6 @@ class LabelTextEntry(tk.Frame):
         """
         super().__init__(master)
 
-        #_, font_size = font
         self.label = tk.Label(self, **kwargs)
         self.label.pack(side=tk.LEFT)
 

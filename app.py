@@ -15,6 +15,7 @@ import tkinter as tk
 from tkinterdnd2 import TkinterDnD
 
 from src.app_config import AppConfig
+from src.asset import Asset
 from src.controllers import AppController
 from src.models import AppDataModel
 from src.widgets import MainPage
@@ -37,8 +38,6 @@ def get_application_path() -> Path:
 
 
 application_path = get_application_path()
-# アイコンのパスを作成
-icons_path = Path(os.path.dirname(os.path.abspath(__file__)), "third_party/icons")
 
 # コマンドライン引数の解析
 file_paths: list[str] = []
@@ -60,19 +59,30 @@ class MyApp(TkinterDnD.Tk):
     """
     def __init__(self):
         super().__init__()
+
+        # アイコンのパス
+        icons_path = Path(os.path.dirname(os.path.abspath(__file__)), "third_party/icons")
+        self.asset = Asset({
+            "file_open": icons_path / "file_open_24dp_FILL0_wght400_GRAD0_opsz24.png",
+            "save_as": icons_path / "save_as_24dp_FILL0_wght400_GRAD0_opsz24.png",
+            "arrow_back": icons_path / "arrow_back_24dp_FILL0_wght400_GRAD0_opsz24.png",
+            "arrow_forward": icons_path / "arrow_forward_24dp_FILL0_wght400_GRAD0_opsz24.png",
+            "info": icons_path / "info_24dp_FILL0_wght400_GRAD0_opsz24.png",
+            "content_copy": icons_path / "content_copy_24dp_FILL0_wght400_GRAD0_opsz24.png",
+            "settings": icons_path / "settings_24dp_FILL0_wght400_GRAD0_opsz24.png",
+        })
+        # アプリで使用するアイコン画像を読み込みます。
+        self.asset.load_all_images()
+
         self.set_window_title(Path(""))  # プログラム名とバージョン番号を表示
         self.model = AppDataModel(config)
         self.config = config
         width, height = config.get("window_sizes").get("main")
         self.geometry(f'{width}x{height}')  # ウィンドウサイズ
 
-        self.controller = AppController(self.model, None, self.set_window_title)
-        self.controller.icons_path = icons_path
+        self.controller = AppController(self.model, self.asset, None, self.set_window_title)
         self.MainPage = MainPage(self, self.controller)
-
-        self.MainPage.grid(column=0, row=0, sticky=tk.E + tk.W + tk.S + tk.N)
-        self.columnconfigure(0, weight=1)
-        self.rowconfigure(0, weight=1)
+        self.MainPage.pack(fill=tk.BOTH, expand=True)
 
         self.controller.view = self.MainPage
         self.protocol('WM_DELETE_WINDOW', self.on_window_close)
@@ -111,6 +121,9 @@ class MyApp(TkinterDnD.Tk):
 
 
 async def main():
+    """
+    エントリーポイント
+    """
     app = MyApp()
     app.mainloop()
 
